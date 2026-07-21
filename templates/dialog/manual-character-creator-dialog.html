@@ -1,0 +1,82 @@
+<form id="manual-character-creator-form" class="custom-dialog manual-character-creator-dialog">
+
+  <div class="custom-dialog-header">
+    <div class="subtitle">{{localize "PB.ManualCharacterCreatorSubtitle"}}</div>
+    {{#if forActor}}
+      <div class="description warning">
+        <p>{{localize "PB.CharacterGeneratorWarning"}}</p>
+      </div>
+    {{/if}}
+    <div class="description">{{localize "PB.ManualCharacterCreatorHint"}}</div>
+  </div>
+
+  {{#unless hasClasses}}
+    <div class="section">
+      <p class="warning">{{localize "PB.ManualCharacterNoClass"}}</p>
+    </div>
+  {{else}}
+  <div class="section manual-scroll">
+
+    <div class="manual-field">
+      <label>{{localize "PB.ManualCharacterName"}}</label>
+      <input type="text" class="name-input" value="{{name}}" placeholder="{{localize "PB.ManualCharacterNamePlaceholder"}}" />
+    </div>
+
+    <div class="manual-field">
+      <label>{{localize "PB.ManualCharacterClass"}}</label>
+      <select class="class-select">
+        {{#each classes as |cls|}}
+          <option value="{{cls.pack}}" {{#if cls.selected}}selected{{/if}}>{{cls.name}}</option>
+        {{/each}}
+      </select>
+    </div>
+
+    <h3 class="manual-group-title">{{localize "PB.ManualCharacterAbilities"}}</h3>
+    <div class="manual-abilities">
+      {{#each abilities as |ability|}}
+        <div class="manual-ability">
+          <label>{{ability.label}}</label>
+          <input type="number" class="ability-input" data-ability="{{ability.key}}" value="{{ability.value}}" step="1" />
+        </div>
+      {{/each}}
+    </div>
+
+    <h3 class="manual-group-title">{{localize "PB.ManualCharacterStats"}}</h3>
+    <div class="manual-abilities">
+      <div class="manual-ability">
+        <label>{{localize "PB.HP"}}</label>
+        <input type="number" class="hp-input" value="{{hitPoints}}" min="1" step="1" placeholder="{{localize "PB.ManualCharacterRandom"}}" />
+      </div>
+      <div class="manual-ability">
+        <label>{{localize "PB.Luck"}}</label>
+        <input type="number" class="luck-input" value="{{luck}}" min="0" step="1" placeholder="{{localize "PB.ManualCharacterRandom"}}" />
+      </div>
+      <div class="manual-ability">
+        <label>{{localize "PB.Silver"}}</label>
+        <input type="number" class="silver-input" value="{{silver}}" min="0" step="1" placeholder="{{localize "PB.ManualCharacterRandom"}}" />
+      </div>
+    </div>
+
+    {{#each tableGroups as |group|}}
+      <h3 class="manual-group-title">{{group.title}}</h3>
+      {{#each group.fields as |field|}}
+        <div class="manual-field">
+          <label>{{field.label}}</label>
+          <select class="table-select" data-key="{{field.key}}" data-kind="{{field.kind}}" data-table="{{field.table}}" data-index="{{field.index}}">
+            <option value="">{{localize "PB.ManualCharacterRandom"}}</option>
+            {{#each field.rows as |row|}}
+              <option value="{{row.value}}" {{#if row.selected}}selected{{/if}}>{{row.label}}</option>
+            {{/each}}
+          </select>
+        </div>
+      {{/each}}
+    {{/each}}
+
+  </div>
+
+  <div class="button-row">
+    <button type="button" class="button cancel-button">{{localize "PB.Cancel"}}</button>
+    <button type="button" class="button create-button">{{localize "PB.ManualCharacterCreate"}}</button>
+  </div>
+  {{/unless}}
+</form>

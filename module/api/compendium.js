@@ -8,27 +8,68 @@ import { getResultCollection, getResultText, getResultType } from "./utils.js";
 export const compendiumInfoFromString = (compendiumString) => compendiumString.split(";");
 
 /**
+ * Caches the (expensive) `pack.getDocuments()` call per compendium.
+ *
+ * Character generation resolves dozens of items across a handful of packs, and
+ * every lookup used to re-load and re-instantiate the *entire* pack. Loading
+ * each pack once and reusing the result turns that O(lookups × packSize) work
+ * into a single load per pack, which is what made "The Tavern" appear to freeze.
+ *
+ * @type {Map.<String, Promise.<Document[]>>}
+ */
+const compendiumDocumentsCache = new Map();
+
+/**
+ * Loads (and caches) every document for a compendium.
+ *
+ * @param {String} compendiumName
+ * @returns {Promise.<Document[]|undefined>}
+ */
+export const loadCompendiumDocuments = async (compendiumName) => {
+  const compendium = game.packs.get(compendiumName);
+  if (!compendium) {
+    console.warn(`loadCompendiumDocuments: Could not find compendium (${compendiumName})`);
+    return undefined;
+  }
+  if (!compendiumDocumentsCache.has(compendiumName)) {
+    // Store the promise (not the resolved value) so concurrent callers share a single load.
+    compendiumDocumentsCache.set(compendiumName, compendium.getDocuments());
+  }
+  return compendiumDocumentsCache.get(compendiumName);
+};
+
+/**
+ * Clears the cached compendium documents. Called whenever pack contents change
+ * so we never hand out stale data.
+ *
+ * @param {String} [compendiumName] When omitted, clears every cached pack.
+ */
+export const clearCompendiumDocumentsCache = (compendiumName) => {
+  if (compendiumName) {
+    compendiumDocumentsCache.delete(compendiumName);
+  } else {
+    compendiumDocumentsCache.clear();
+  }
+};
+
+/**
  * @param {String} compendiumName
  * @param {String} itemName
  * @returns {Promise.<PBItem|RollTable|undefined>}
  */
 export const findCompendiumItem = async (compendiumName, itemName) => {
-  const compendium = game.packs.get(compendiumName);
-  if (compendium) {
-    if (!itemName) {
-      console.warn(`findCompendiumItem: Missing item name for compendium (${compendiumName})`);
-      return null;
-    }
-    await compendium.getIndex({ fields: ["name"] });
-    const item = compendium.index.find((i) => i.name === itemName);
-    if (!item) {
-      console.warn(`findCompendiumItem: Could not find item (${itemName}) in compendium (${compendiumName})`);
-      return null;
-    }
-    return compendium.getDocument(item._id);
+  const documents = await loadCompendiumDocuments(compendiumName);
+  if (!documents) {
+    return undefined;
   }
-  console.warn(`findCompendiumItem: Could not find compendium (${compendiumName})`);
-  return null;
+  const item = documents.find((i) => i.name === itemName);
+  if (!item) {
+    console.warn(`findCompendiumItem: Could not find item (${itemName}) in compendium (${compendiumName})`);
+    return undefined;
+  }
+  // Return a fresh in-memory clone so callers that mutate the result (e.g. table
+  // description/quantity overrides in findTableItems) never corrupt the cache.
+  return item.clone();
 };
 
 /**
@@ -109,6 +150,67 @@ export const rollTable = async (compendium, table, formula) => {
 export const rollTableItems = async (compendium, table, formula) => {
   const draw = await rollTable(compendium, table, formula);
   return findTableItems(draw.results);
+};
+
+/**
+ * Lists the distinct rows of a roll table, for use in manual selection menus.
+ * Each row is keyed by the low end of its range (the value that would need to be
+ * rolled to select it) and labelled with the row's primary result.
+ *
+ * @param {String} compendium
+ * @param {String} tableName
+ * @returns {Promise.<Array.<{value: Number, low: Number, high: Number, label: String}>>}
+ */
+export const getTableRows = async (compendium, tableName) => {
+  const table = await findCompendiumItem(compendium, tableName);
+  if (!table || !table.results) {
+    return [];
+  }
+  const rowsByLow = new Map();
+  for (const result of table.results) {
+    const [low = 0, high = low] = result.range || [];
+    if (!rowsByLow.has(low)) {
+      rowsByLow.set(low, { value: low, low, high });
+    }
+    const row = rowsByLow.get(low);
+    row.high = Math.max(row.high, high);
+    const text = getResultText(result);
+    if (getResultType(result) === CONST.TABLE_RESULT_TYPES.TEXT) {
+      row.textLabel = row.textLabel || text;
+    } else {
+      row.itemLabel = row.itemLabel || text;
+    }
+  }
+  return [...rowsByLow.values()]
+    .map(({ value, low, high, itemLabel, textLabel }) => ({
+      value,
+      low,
+      high,
+      label: itemLabel || textLabel || `${low}`,
+    }))
+    .sort((a, b) => a.low - b.low);
+};
+
+/**
+ * Resolves the items produced by a specific row of a roll table, exactly as a
+ * random draw landing on `value` would. Used by manual character creation to
+ * reuse the same resolution as the randomizer.
+ *
+ * @param {String} compendium
+ * @param {String} tableName
+ * @param {Number} value
+ * @returns {Promise.<Array.<PBItem>>}
+ */
+export const resolveTableRow = async (compendium, tableName, value) => {
+  const table = await findCompendiumItem(compendium, tableName);
+  if (!table || !table.results) {
+    return [];
+  }
+  const results = table.results.filter((result) => {
+    const [low = 0, high = low] = result.range || [];
+    return value >= low && value <= high;
+  });
+  return findTableItems(results);
 };
 
 /**
@@ -212,13 +314,12 @@ export const findClassPacks = () => [...game.packs.keys()].filter((pack) => pack
  * @returns {Promise.<PBItem>}
  */
 export const classItemFromPack = async (compendiumName) => {
-  const compendium = game.packs.get(compendiumName);
-  await compendium.getIndex({ fields: ["type"] });
-  const item = compendium.index.find((i) => i.type === "class");
-  if (!item) {
-    return null;
-  }
-  return compendium.getDocument(item._id);
+  /** @type {Item[]} */
+  const documents = await loadCompendiumDocuments(compendiumName);
+  const cls = documents?.find((i) => i.type === "class");
+  // Clone so callers/macros that mutate the class (e.g. renaming for a base
+  // class) never corrupt the shared cached instance.
+  return cls ? cls.clone() : undefined;
 };
 
 /**

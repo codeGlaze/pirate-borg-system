@@ -51,7 +51,8 @@
   font-family: "Roman Antique Regular";
   src: url("../fonts/Roman Antique Regular.ttf") format("truetype");
 }
-.actors-sidebar .create-character-generator-button {
+.actors-sidebar .create-character-generator-button,
+.actors-sidebar .create-character-manual-button {
   flex-basis: 100%;
 }
 
@@ -2587,6 +2588,50 @@ li.folder > .folder-header {
 }
 .character-generator-dialog .module-group .module-classes ul {
   margin: 0;
+}
+
+.manual-character-creator-dialog .manual-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.manual-character-creator-dialog .manual-group-title {
+  font-family: var(--h3-font);
+  font-size: 18px;
+  margin: 16px 0 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+.manual-character-creator-dialog .manual-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+.manual-character-creator-dialog .manual-field label {
+  font-family: var(--item-font);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.manual-character-creator-dialog .manual-field input,
+.manual-character-creator-dialog .manual-field select {
+  width: 100%;
+}
+.manual-character-creator-dialog .manual-abilities {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.manual-character-creator-dialog .manual-abilities .manual-ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.manual-character-creator-dialog .manual-abilities .manual-ability label {
+  font-family: var(--item-font);
+  font-size: 12px;
+  text-align: center;
+}
+.manual-character-creator-dialog .manual-abilities .manual-ability input {
+  width: 100%;
+  text-align: center;
 }
 
 .defense-dialog .form-group,

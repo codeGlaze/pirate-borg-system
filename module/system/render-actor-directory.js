@@ -1,4 +1,5 @@
 import { showCharacterGeneratorDialog } from "../dialog/character-generator-dialog.js";
+import { showManualCharacterCreatorDialog } from "../dialog/manual-character-creator-dialog.js";
 
 /**
  * @param {Application} app
@@ -16,6 +17,14 @@ export const renderActorDirectory = (app, html) => {
       showCharacterGeneratorDialog();
     });
 
+    const manualButton = document.createElement("button");
+    manualButton.type = "button";
+    manualButton.classList.add("create-character-manual-button");
+    manualButton.innerHTML = `<i class="fas fa-scroll"></i>${game.i18n.localize("PB.ManualCharacterCreator")}`;
+    manualButton.addEventListener("click", () => {
+      showManualCharacterCreatorDialog();
+    });
+
     let headerActions = html.querySelector(".header-actions");
     // FIXME: Workaround for 336 bug. Remove when 337 released.
     if (!headerActions) {
@@ -23,6 +32,7 @@ export const renderActorDirectory = (app, html) => {
       headerActions.className = "header-actions action-buttons flexrow";
       html.querySelector(":scope > header").insertAdjacentElement("afterbegin", headerActions);
     }
+    headerActions.prepend(manualButton);
     headerActions.prepend(button);
   }
 };

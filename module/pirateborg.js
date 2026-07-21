@@ -16,11 +16,23 @@ import { registerEnrichers, registerEnricherClickHandlers } from "./system/enric
 import { alterTokenHUDStatusEffects } from "./system/token-hud.js";
 import { handleCanvasDropLoot } from "./system/canvas-drop-loot.js";
 import { registerChatRenderers } from "./chat-message/renderers/register-chat-renderers.js";
+import { clearCompendiumDocumentsCache } from "./api/compendium.js";
 
 Hooks.once("init", async () => {
   console.log(`Initializing Pirate Borg System`);
 
   Hooks.on("renderActorDirectory", renderActorDirectory);
+
+  // Keep the compendium document cache (used by character generation) fresh:
+  // drop it whenever pack contents change so we never serve stale data.
+  const invalidateCompendiumCache = (document) => {
+    if (document?.pack) {
+      clearCompendiumDocumentsCache(document.pack);
+    }
+  };
+  for (const hook of ["createItem", "updateItem", "deleteItem", "createRollTable", "updateRollTable", "deleteRollTable"]) {
+    Hooks.on(hook, invalidateCompendiumCache);
+  }
   Hooks.on("renderCombatTracker", renderCombatTracker);
   Hooks.on("renderSettings", renderSettings);
   if (foundry.utils.isNewerVersion(game.version, "13")) {

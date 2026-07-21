@@ -1,12 +1,14 @@
 import { PBActor } from "../../actor/actor.js";
 import {
   compendiumInfoFromString,
+  drawTableItem,
   drawTableItems,
   drawTableText,
   executeCompendiumMacro,
   findCompendiumItem,
   findItemsFromCompendiumString,
   findTableItems,
+  resolveTableRow,
   rollTableItems,
 } from "../compendium.js";
 import { PB } from "../../config.js";
@@ -356,31 +358,138 @@ export const generateDescription = (cls, items) => {
 };
 
 /**
- * @param {PBItem} cls
- * @returns {Object}
+ * @param {any} value
+ * @returns {Boolean} True when `value` is a usable, finite numeric choice.
  */
-export const rollCharacterForClass = async (cls) => {
+const isNumericChoice = (value) => value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+
+/**
+ * @param {any} value
+ * @returns {Boolean} True when `value` is a usable table-row choice.
+ */
+const isRowChoice = (value) => value !== undefined && value !== null && value !== "";
+
+/**
+ * Rolls the base tables, honouring any manually chosen rows.
+ *
+ * @param {Object.<String, Number>} [choices] Map of "compendium;table" -> chosen roll value.
+ * @returns {Promise.<Array.<PBItem>>}
+ */
+export const buildBaseTables = async (choices = {}) => {
+  let items = [];
+  for (const compendiumTable of PB.characterGenerator.baseTables) {
+    const [compendium, table, quantity = 1] = compendiumInfoFromString(compendiumTable);
+    const chosen = choices[compendiumTable];
+    if (isRowChoice(chosen)) {
+      items = items.concat(await resolveTableRow(compendium, table, Number(chosen)));
+    } else {
+      items = items.concat(await drawTableItems(compendium, table, quantity));
+    }
+  }
+  return items;
+};
+
+/**
+ * Resolves items from a class' newline-separated roll string, honouring any
+ * manually chosen rows (aligned, in order, to `values`).
+ *
+ * @param {String} rollString
+ * @param {Array.<Number>} [values]
+ * @returns {Promise.<Array.<PBItem>>}
+ */
+export const buildRollItems = async (rollString, values = []) => {
+  const lines = (rollString || "").split("\n").filter((item) => item);
+  let results = [];
+  let index = 0;
+  for (const line of lines) {
+    const [compendium, table, quantity = 1] = compendiumInfoFromString(line);
+    for (let i = 0; i < Number(quantity); i++) {
+      const chosen = values[index];
+      index++;
+      if (isRowChoice(chosen)) {
+        results = results.concat(await resolveTableRow(compendium, table, Number(chosen)));
+      } else {
+        results = results.concat(await drawTableItem(compendium, table));
+      }
+    }
+  }
+  return results;
+};
+
+/**
+ * Resolves a starting equipment slot (weapon/armor/hat) from a chosen row, or
+ * rolls it randomly against the class formula when no choice is provided.
+ *
+ * @param {String} formula
+ * @param {String} tableString "compendium;table"
+ * @param {Number} [chosenValue]
+ * @returns {Promise.<Array.<PBItem>>}
+ */
+const buildEquipment = async (formula, tableString, chosenValue) => {
+  const [compendium, table] = compendiumInfoFromString(tableString);
+  if (isRowChoice(chosenValue)) {
+    return resolveTableRow(compendium, table, Number(chosenValue));
+  }
+  if (!formula) {
+    return [];
+  }
+  return rollTableItems(compendium, table, formula);
+};
+
+/**
+ * Backwards-compatible random character roll.
+ *
+ * @param {PBItem} cls
+ * @returns {Promise.<Object>}
+ */
+export const rollCharacterForClass = async (cls) => buildCharacter(cls);
+
+/**
+ * Builds character data for a class. When `choices` supplies a value for a
+ * field it is used verbatim; otherwise that field is rolled randomly. This lets
+ * the randomizer ("The Tavern") and the manual creator share a single assembly
+ * path.
+ *
+ * @param {PBItem} cls
+ * @param {Object} [choices]
+ * @returns {Promise.<Object>}
+ */
+export const buildCharacter = async (cls, choices = {}) => {
   console.log(`Creating new ${cls.name}`);
 
-  //const { data } = cls.getData();
+  const name = choices.name ? choices.name : await rollName();
 
-  const name = await rollName();
-  const abilities = await rollAbilities(cls);
-  const luck = await rollLuck(cls.luckDie);
-  const hitPoints = await rollHitPoints(cls.startingHitPoints, abilities.toughness);
-  const baseTables = await rollBaseTables();
+  let abilities;
+  if (choices.abilities) {
+    abilities = {
+      strength: Number(choices.abilities.strength) || 0,
+      agility: Number(choices.abilities.agility) || 0,
+      presence: Number(choices.abilities.presence) || 0,
+      toughness: Number(choices.abilities.toughness) || 0,
+      spirit: Number(choices.abilities.spirit) || 0,
+    };
+  } else {
+    abilities = await rollAbilities(cls);
+  }
+
+  const luck = isNumericChoice(choices.luck) ? Number(choices.luck) : await rollLuck(cls.luckDie);
+  const hitPoints = isNumericChoice(choices.hitPoints) ? Number(choices.hitPoints) : await rollHitPoints(cls.startingHitPoints, abilities.toughness);
+  const baseTables = await buildBaseTables(choices.baseTableValues || {});
 
   const background = baseTables.find((item) => item.type === CONFIG.PB.itemTypes.background);
   const features = baseTables.filter((item) => item.type === CONFIG.PB.itemTypes.feature);
   const hasRelic = baseTables.some((item) => item.invokableType === "Ancient Relic");
 
-  const silver = await rollSilver(background);
+  const silver = isNumericChoice(choices.silver) ? Number(choices.silver) : await rollSilver(background);
 
-  const armor = cls.startingArmorTableFormula ? await rollArmor(!hasRelic ? cls.startingArmorTableFormula : "1d6") : [];
-  const hat = cls.startingHatTableFormula ? await rollHat(cls.startingHatTableFormula) : [];
-  const weapon = cls.startingWeaponTableFormula ? await rollWeapon(cls.startingWeaponTableFormula) : [];
+  // Preserve the original behaviour: only roll armor when the class defines a
+  // formula, and swap to "1d6" when the character rolled an Ancient Relic.
+  const armorFormula = cls.startingArmorTableFormula ? (!hasRelic ? cls.startingArmorTableFormula : "1d6") : "";
+  const armor = await buildEquipment(armorFormula, PB.characterGenerator.armorsRollTable, choices.armorValue);
+  const hat = await buildEquipment(cls.startingHatTableFormula, PB.characterGenerator.hatsRollTable, choices.hatValue);
+  const weapon = await buildEquipment(cls.startingWeaponTableFormula, PB.characterGenerator.weaponsRollTable, choices.weaponValue);
 
-  const startingRollItems = await rollRollItems(cls.startingRolls);
+  const startingRollItems = await buildRollItems(cls.startingRolls, choices.startingRollValues || []);
   const startingItems = await findItemsFromCompendiumString(cls.startingItems);
 
   // Both of the rolls should loop until nothing is returning to have a kind of recursive configuration
@@ -396,9 +505,13 @@ export const rollCharacterForClass = async (cls) => {
 
   const description = generateDescription(cls, baseTables);
 
-  const powerUsesRoll = Math.max(0, (await evaluateFormula(`1d4 + ${abilities.spirit}`)).total);
+  const powerUsesRoll = isNumericChoice(choices.powerUses)
+    ? Number(choices.powerUses)
+    : Math.max(0, (await evaluateFormula(`1d4 + ${abilities.spirit}`)).total);
   const extraResourceFormula = (cls.system.extraResourceFormula || "0").replace("@abilities.spirit.value", abilities.spirit);
-  const extraResourceRoll = Math.max(0, (await evaluateFormula(extraResourceFormula)).total);
+  const extraResourceRoll = isNumericChoice(choices.extraResourceUses)
+    ? Number(choices.extraResourceUses)
+    : Math.max(0, (await evaluateFormula(extraResourceFormula)).total);
 
   const allDocs = [
     ...baseTables,
