@@ -68,7 +68,7 @@ export class PBActorSheetCharacter extends PBActorSheet {
     ];
 
     // Offer a non-destructive "Become a Haunted Soul" for a standard character
-    // (one with a class that is not already an overlay character).
+    // (one with a class that is not already a hybrid character).
     if (this.actor.characterClass && !this.actor.characterBaseClass) {
       buttons.push({
         class: `become-haunted-soul-button-${this.actor.id}`,

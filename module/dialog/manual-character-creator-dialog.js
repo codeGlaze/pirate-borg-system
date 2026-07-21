@@ -1,6 +1,6 @@
 import { isCharacterGeneratorClassAllowed } from "../system/settings.js";
 import { buildCharacter, createActorWithCharacter, updateActorWithCharacter } from "../api/generator/character-generator.js";
-import { buildHybridCharacter, getBaseClassItems, isHybridClass } from "../api/generator/hybrid-character-generator.js";
+import { buildHybridCharacter, isHybridClass } from "../api/generator/hybrid-character-generator.js";
 import { classItemFromPack, compendiumInfoFromString, findClassPacks, getTableRows } from "../api/compendium.js";
 import { PB } from "../config.js";
 
@@ -8,6 +8,8 @@ const HAUNTED_SOUL_MACRO_PACK = "pirateborg.macros-haunted-soul";
 const TALL_TALE_MACRO_PACK = "pirateborg.macros-tall-tale";
 const TALL_TALE_ROLL_PACK = "pirateborg.rolls-tall-tale";
 const HAUNTED_SOUL_ROLL_PACK = "pirateborg.rolls-haunted-soul";
+
+const ABILITY_KEYS = ["strength", "agility", "presence", "toughness", "spirit"];
 
 /**
  * A manual counterpart to "The Tavern" (the randomized character generator).
@@ -17,11 +19,11 @@ const HAUNTED_SOUL_ROLL_PACK = "pirateborg.rolls-haunted-soul";
  * class features, ...) and types their ability scores. Any field left on
  * "Random" is rolled, so the same dialog also works as a partial randomizer.
  *
- * Overlay classes (Haunted Soul, Tall Tale) are supported too: they add a base
+ * Hybrid classes (Haunted Soul, Tall Tale) are supported too: they add a base
  * class picker (and, for Tall Tale, a sub-type / mutant / animal picker) whose
- * base character uses the normal manual fields. Under the hood everything is fed
- * through the same builders the randomizer uses, so a manually built actor is
- * identical to a rolled one.
+ * base character uses the normal manual fields. Everything is fed through the
+ * same builders the randomizer uses, so a manually built actor is identical to a
+ * rolled one.
  */
 class ManualCharacterCreatorDialog extends Application {
   constructor(actor = null, options = {}) {
@@ -38,6 +40,11 @@ class ManualCharacterCreatorDialog extends Application {
       tableValues: {},
       hybrid: {},
     };
+    // Lifetime caches: the class list and table contents are static while the
+    // dialog is open, so we load/clone each at most once even across re-renders.
+    this._classCatalog = null;
+    this._tableRowsCache = new Map();
+    this._scrollTop = 0;
   }
 
   /** @override */
@@ -55,24 +62,22 @@ class ManualCharacterCreatorDialog extends Application {
 
   /** @override */
   async getData(options = {}) {
-    const classes = await this.getManualClasses();
-    const selectedPack = classes.some((cls) => cls.pack === this.selection.classPack) ? this.selection.classPack : classes[0]?.pack;
+    const catalog = await this._getClassCatalog();
+    const selectedPack = catalog.some((entry) => entry.pack === this.selection.classPack) ? this.selection.classPack : catalog[0]?.pack;
     this.selection.classPack = selectedPack;
-    const selectedEntry = classes.find((cls) => cls.pack === selectedPack);
-    const cls = selectedEntry?.item;
+    const cls = selectedPack ? await classItemFromPack(selectedPack) : null;
 
-    const abilityKeys = ["strength", "agility", "presence", "toughness", "spirit"];
-    const hybrid = cls && isHybridClass(cls) ? await this.getHybridContext(cls) : null;
+    const hybrid = cls && isHybridClass(cls) ? await this.getHybridContext(cls, catalog) : null;
     const effectiveClass = hybrid ? hybrid.effectiveClass : cls;
     const effectivePack = hybrid ? hybrid.effectivePack : selectedPack;
 
     return foundry.utils.mergeObject(super.getData(options), {
       forActor: this.actor !== undefined && this.actor !== null,
-      hasClasses: classes.length > 0,
-      classes: classes.map((entry) => ({ name: entry.name, pack: entry.pack, selected: entry.pack === selectedPack })),
+      hasClasses: catalog.length > 0,
+      classes: catalog.map((entry) => ({ name: entry.name, pack: entry.pack, selected: entry.pack === selectedPack })),
       hybridSelects: hybrid ? hybrid.selects : [],
       name: this.selection.name,
-      abilities: abilityKeys.map((key) => ({
+      abilities: ABILITY_KEYS.map((key) => ({
         key,
         label: game.i18n.localize(`PB.Ability${key.charAt(0).toUpperCase()}${key.slice(1)}`),
         value: this.selection.abilities[key] ?? 0,
@@ -85,10 +90,17 @@ class ManualCharacterCreatorDialog extends Application {
   }
 
   /**
-   * @returns {Promise.<Array.<{name: String, pack: String, item: PBItem}>>}
+   * Loads the selectable classes once (standard classes plus supported hybrid
+   * classes) as lightweight descriptors, cached for the dialog's lifetime so a
+   * re-render does not re-load and re-clone every class pack.
+   *
+   * @returns {Promise.<Array.<{pack: String, name: String, standard: Boolean, hybrid: Boolean, macroPack: ?String}>>}
    */
-  async getManualClasses() {
-    const classes = [];
+  async _getClassCatalog() {
+    if (this._classCatalog) {
+      return this._classCatalog;
+    }
+    const catalog = [];
     for (const pack of this.classPacks) {
       if (!isCharacterGeneratorClassAllowed(pack)) {
         continue;
@@ -97,54 +109,77 @@ class ManualCharacterCreatorDialog extends Application {
       if (!cls) {
         continue;
       }
-      // Standard classes, plus supported overlay classes (Haunted Soul, Tall Tale).
-      const isStandard = !cls.requireBaseClass && !cls.characterGeneratorMacro;
-      if (!isStandard && !isHybridClass(cls)) {
+      const hybrid = isHybridClass(cls);
+      const standard = !cls.requireBaseClass && !cls.characterGeneratorMacro;
+      if (!standard && !hybrid) {
         continue;
       }
-      classes.push({ name: cls.name, pack, item: cls });
+      catalog.push({
+        pack,
+        name: cls.name,
+        standard,
+        hybrid,
+        macroPack: hybrid ? compendiumInfoFromString(cls.characterGeneratorMacro)[0] : null,
+      });
     }
-    return classes.sort((a, b) => a.name.localeCompare(b.name));
+    catalog.sort((a, b) => a.name.localeCompare(b.name));
+    this._classCatalog = catalog;
+    return catalog;
   }
 
   /**
-   * Builds the overlay-specific selectors (base class, sub-type, ailment/mutant/
-   * animal) and determines which class' standard tables to show.
+   * Memoized {@link getTableRows}: a table's rows are static for the dialog's
+   * lifetime, so each table is read (and its RollTable cloned) at most once.
+   *
+   * @param {String} compendium
+   * @param {String} table
+   * @returns {Promise.<Array>}
+   */
+  async _tableRows(compendium, table) {
+    const key = `${compendium};${table}`;
+    if (!this._tableRowsCache.has(key)) {
+      this._tableRowsCache.set(key, await getTableRows(compendium, table));
+    }
+    return this._tableRowsCache.get(key);
+  }
+
+  /**
+   * Builds the hybrid-specific selectors (base class, sub-type, ailment / mutant
+   * / animal) and determines which class' standard tables to show.
    *
    * @param {PBItem} cls
+   * @param {Array} catalog
    * @returns {Promise.<{type: String, selects: Array, effectiveClass: ?PBItem, effectivePack: ?String}>}
    */
-  async getHybridContext(cls) {
+  async getHybridContext(cls, catalog) {
     const [macroPack] = compendiumInfoFromString(cls.characterGeneratorMacro);
     const selects = [];
 
-    const baseClassItems = await getBaseClassItems();
-    // Key each base class by uuid when available, else name (clones have no uuid).
-    const baseOptions = baseClassItems.map((item) => ({ pack: this._baseClassKey(item), name: item.name }));
-    const selectedBaseKey = baseOptions.some((o) => o.pack === this.selection.hybrid.baseClassPack)
+    // Base classes are keyed by their pack, which is stable and lets us resolve a
+    // fresh class item when building.
+    const baseOptions = catalog.filter((entry) => entry.standard).map((entry) => ({ pack: entry.pack, name: entry.name }));
+    const selectedBasePack = baseOptions.some((o) => o.pack === this.selection.hybrid.baseClassPack)
       ? this.selection.hybrid.baseClassPack
       : baseOptions[0]?.pack;
 
-    const buildBaseClassSelect = () =>
+    const pushBaseClassSelect = () =>
       selects.push({
         hkey: "baseClassPack",
         label: game.i18n.localize("PB.ManualCharacterBaseClass"),
         rerender: true,
         includeRandom: false,
-        options: baseOptions.map((o) => ({ value: o.pack, label: o.name, selected: o.pack === selectedBaseKey })),
+        options: baseOptions.map((o) => ({ value: o.pack, label: o.name, selected: o.pack === selectedBasePack })),
       });
 
-    const selectedBaseItem = baseClassItems.find((item) => this._baseClassKey(item) === selectedBaseKey) ?? baseClassItems[0];
-
     if (macroPack === HAUNTED_SOUL_MACRO_PACK) {
-      buildBaseClassSelect();
+      pushBaseClassSelect();
       const [ailmentPack, ailmentTable] = compendiumInfoFromString(cls.startingRolls || `${HAUNTED_SOUL_ROLL_PACK};Ailments`);
       await this._pushTableSelect(selects, "ailmentValue", game.i18n.localize("PB.ManualCharacterAilment"), ailmentPack, ailmentTable, true);
-      return { type: "haunted-soul", selects, effectiveClass: selectedBaseItem, effectivePack: selectedBaseKey };
+      return { type: "haunted-soul", selects, effectiveClass: await classItemFromPack(selectedBasePack), effectivePack: selectedBasePack };
     }
 
     if (macroPack === TALL_TALE_MACRO_PACK) {
-      const subTypeRows = await getTableRows(TALL_TALE_ROLL_PACK, "Tall Tale");
+      const subTypeRows = await this._tableRows(TALL_TALE_ROLL_PACK, "Tall Tale");
       const selectedSubType = subTypeRows.some((r) => String(r.value) === String(this.selection.hybrid.tallTaleValue))
         ? this.selection.hybrid.tallTaleValue
         : subTypeRows[0]?.value;
@@ -163,22 +198,14 @@ class ManualCharacterCreatorDialog extends Application {
         return { type: "tall-tale", selects, effectiveClass: cls, effectivePack: this.selection.classPack };
       }
 
-      buildBaseClassSelect();
+      pushBaseClassSelect();
       if (subTypeName === "Aquatic Mutant") {
         await this._pushTableSelect(selects, "mutantValue", game.i18n.localize("PB.ManualCharacterMutant"), TALL_TALE_ROLL_PACK, "Aquatic Mutant", true);
       }
-      return { type: "tall-tale", selects, effectiveClass: selectedBaseItem, effectivePack: selectedBaseKey };
+      return { type: "tall-tale", selects, effectiveClass: await classItemFromPack(selectedBasePack), effectivePack: selectedBasePack };
     }
 
     return { type: null, selects, effectiveClass: cls, effectivePack: this.selection.classPack };
-  }
-
-  /**
-   * @param {PBItem} item
-   * @returns {String} A stable key identifying a base class item.
-   */
-  _baseClassKey(item) {
-    return item.uuid ?? item.name;
   }
 
   /**
@@ -192,7 +219,7 @@ class ManualCharacterCreatorDialog extends Application {
    * @param {Boolean} includeRandom
    */
   async _pushTableSelect(selects, hkey, label, compendium, table, includeRandom) {
-    const rows = await getTableRows(compendium, table);
+    const rows = await this._tableRows(compendium, table);
     const current = this.selection.hybrid[hkey];
     selects.push({
       hkey,
@@ -264,7 +291,7 @@ class ManualCharacterCreatorDialog extends Application {
    * @returns {Promise.<Object>}
    */
   async buildField(kind, key, label, compendium, table, index) {
-    const rows = await getTableRows(compendium, table);
+    const rows = await this._tableRows(compendium, table);
     const selectedValue = this.selection.tableValues[key];
     return {
       kind,
@@ -297,6 +324,9 @@ class ManualCharacterCreatorDialog extends Application {
     html.find(".hybrid-select.hybrid-rerender").on("change", this._onRerenderChange.bind(this));
     html.find(".cancel-button").on("click", this._onCancel.bind(this));
     html.find(".create-button").on("click", this._onCreate.bind(this));
+    // Keep the scroll position across the re-render triggered by a class /
+    // base-class / sub-type change.
+    html.find(".manual-scroll").scrollTop(this._scrollTop);
   }
 
   /**
@@ -308,7 +338,7 @@ class ManualCharacterCreatorDialog extends Application {
     const $form = $(form);
     this.selection.classPack = $form.find(".class-select").val() || this.selection.classPack;
     this.selection.name = $form.find(".name-input").val() ?? "";
-    for (const key of ["strength", "agility", "presence", "toughness", "spirit"]) {
+    for (const key of ABILITY_KEYS) {
       this.selection.abilities[key] = $form.find(`.ability-input[data-ability="${key}"]`).val() ?? 0;
     }
     this.selection.hitPoints = $form.find(".hp-input").val() ?? "";
@@ -320,6 +350,10 @@ class ManualCharacterCreatorDialog extends Application {
     $form.find(".hybrid-select").each((_i, el) => {
       this.selection.hybrid[el.dataset.hkey] = el.value;
     });
+    const scrollTop = $form.find(".manual-scroll").scrollTop();
+    if (typeof scrollTop === "number") {
+      this._scrollTop = scrollTop;
+    }
   }
 
   async _onRerenderChange(event) {
@@ -423,15 +457,11 @@ class ManualCharacterCreatorDialog extends Application {
   }
 
   /**
-   * @param {String} baseClassKey uuid (preferred) or name of a base class.
+   * @param {String} pack A base class pack id.
    * @returns {Promise.<PBItem|undefined>}
    */
-  async _resolveBaseClass(baseClassKey) {
-    if (!baseClassKey) {
-      return undefined;
-    }
-    const items = await getBaseClassItems();
-    return items.find((item) => this._baseClassKey(item) === baseClassKey);
+  async _resolveBaseClass(pack) {
+    return pack ? classItemFromPack(pack) : undefined;
   }
 }
 

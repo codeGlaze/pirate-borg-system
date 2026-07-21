@@ -51,7 +51,7 @@ const resolveOrDrawOne = async (compendium, table, value) => {
 };
 
 /**
- * The standard (non-overlay) classes that can serve as a base class.
+ * The standard (non-hybrid) classes that can serve as a base class.
  *
  * @returns {Promise.<Array.<PBItem>>}
  */
@@ -88,29 +88,29 @@ const resolveBaseClass = async (choices) => {
 };
 
 /**
- * Layers an overlay class onto an already-built base-class character: the base
- * class item is flagged as the base, the overlay's extra items are added, and
+ * Layers a hybrid class onto an already-built base-class character: the base
+ * class item is flagged as the base, the hybrid's extra items are added, and
  * both class items are appended. Mirrors the original macro composition.
  *
  * @param {Object} pirateData Character data from {@link buildCharacter}.
  * @param {Object} params
  * @param {PBItem} params.baseClass
- * @param {PBItem} params.overlayClass
+ * @param {PBItem} params.hybridClass
  * @param {Array.<PBItem>} [params.extraItems]
  * @returns {Object}
  */
-const layerOverlayOntoBase = (pirateData, { baseClass, overlayClass, extraItems = [] }) => {
+const composeWithBaseClass = (pirateData, { baseClass, hybridClass, extraItems = [] }) => {
   baseClass.getData().isBaseClass = true;
   pirateData.items = pirateData.items
     .filter((item) => item.type !== "class")
     .concat(extraItems)
     .concat([baseClass])
-    .concat([overlayClass]);
+    .concat([hybridClass]);
   return pirateData;
 };
 
 /**
- * Builds a Haunted Soul: a base-class character with the Haunted Soul overlay
+ * Builds a Haunted Soul: a base-class character with the Haunted Soul class
  * (ailment + items) layered on top.
  *
  * @param {PBItem} hauntedSoulClass
@@ -126,13 +126,13 @@ export const buildHauntedSoul = async (hauntedSoulClass, choices = {}) => {
   const baseClass = await resolveBaseClass(choices);
   const pirateData = await buildCharacter(baseClass, choices.baseChoices ?? {});
 
-  const overlayRolls = await buildRollItems(hauntedSoulClass.startingRolls, choices.ailmentValues ?? []);
-  const overlayItems = await findItemsFromCompendiumString(hauntedSoulClass.startingItems);
+  const hybridRolls = await buildRollItems(hauntedSoulClass.startingRolls, choices.ailmentValues ?? []);
+  const hybridItems = await findItemsFromCompendiumString(hauntedSoulClass.startingItems);
 
-  layerOverlayOntoBase(pirateData, {
+  composeWithBaseClass(pirateData, {
     baseClass,
-    overlayClass: hauntedSoulClass,
-    extraItems: [...overlayRolls, ...overlayItems],
+    hybridClass: hauntedSoulClass,
+    extraItems: [...hybridRolls, ...hybridItems],
   });
 
   const ailment = pirateData.items.find((item) => item.type === "feature" && item.featureType === "Ailment (Haunted Soul)");
@@ -177,7 +177,7 @@ const SENTIENT_ANIMAL_STATS = {
 };
 
 /**
- * Builds a Tall Tale Merfolk: a base-class character with the Tall Tale overlay.
+ * Builds a Tall Tale Merfolk: a base-class character with the Tall Tale class layered on.
  *
  * @param {PBItem} tallTaleClass
  * @param {PBItem} tallTaleItem The drawn/selected "Tall Tale" table item (Merfolk).
@@ -192,9 +192,9 @@ const buildMerfolk = async (tallTaleClass, tallTaleItem, choices) => {
   const rolls = await buildRollItems(tallTaleClass.startingRolls, choices.tallTaleRollValues ?? []);
   const bonusItems = [...(await findStartingBonusItems([...items, ...rolls])), ...(await findStartingBonusRollsItems([...items, ...rolls]))];
 
-  layerOverlayOntoBase(pirateData, {
+  composeWithBaseClass(pirateData, {
     baseClass,
-    overlayClass: tallTaleClass,
+    hybridClass: tallTaleClass,
     extraItems: [...items, ...rolls, ...bonusItems],
   });
 
@@ -224,9 +224,9 @@ const buildAquaticMutant = async (tallTaleClass, tallTaleItem, choices) => {
   const seedItems = [...items, ...rolls, ...additionalItems];
   const bonusItems = [...(await findStartingBonusItems(seedItems)), ...(await findStartingBonusRollsItems(seedItems))];
 
-  layerOverlayOntoBase(pirateData, {
+  composeWithBaseClass(pirateData, {
     baseClass,
-    overlayClass: tallTaleClass,
+    hybridClass: tallTaleClass,
     extraItems: [...items, ...rolls, ...additionalItems, ...bonusItems],
   });
 
@@ -325,7 +325,7 @@ const HYBRID_BUILDERS = {
 
 /**
  * @param {PBItem} cls
- * @returns {Boolean} True when the class is a supported overlay/hybrid class.
+ * @returns {Boolean} True when the class is a supported hybrid class.
  */
 export const isHybridClass = (cls) => {
   if (!cls?.characterGeneratorMacro) {
@@ -384,7 +384,7 @@ export const convertToHauntedSoul = async (actor, choices = {}) => {
     throw new Error("convertToHauntedSoul: actor has no class to build on");
   }
   if (actor.characterBaseClass) {
-    throw new Error("convertToHauntedSoul: actor is already an overlay character");
+    throw new Error("convertToHauntedSoul: actor is already a hybrid character");
   }
 
   const hauntedSoulClass = await findHybridClassByMacroPack(HAUNTED_SOUL_MACRO_PACK);
@@ -392,10 +392,10 @@ export const convertToHauntedSoul = async (actor, choices = {}) => {
     throw new Error("convertToHauntedSoul: could not find the Haunted Soul class");
   }
 
-  const overlayRolls = await buildRollItems(hauntedSoulClass.startingRolls, choices.ailmentValues ?? []);
-  const overlayItems = await findItemsFromCompendiumString(hauntedSoulClass.startingItems);
+  const hybridRolls = await buildRollItems(hauntedSoulClass.startingRolls, choices.ailmentValues ?? []);
+  const hybridItems = await findItemsFromCompendiumString(hauntedSoulClass.startingItems);
 
-  const ailment = overlayRolls.find((item) => item.type === "feature" && item.featureType === "Ailment (Haunted Soul)");
+  const ailment = hybridRolls.find((item) => item.type === "feature" && item.featureType === "Ailment (Haunted Soul)");
   if (ailment) {
     hauntedSoulClass.name = `${hauntedSoulClass.name} - ${ailment.name}`;
   }
@@ -404,7 +404,7 @@ export const convertToHauntedSoul = async (actor, choices = {}) => {
   await baseClass.update({ "system.isBaseClass": true });
 
   // Layer on the Haunted Soul class and its items.
-  const newItems = [hauntedSoulClass, ...overlayRolls, ...overlayItems].map((item) => ({ ...item.toObject(false), _id: null }));
+  const newItems = [hauntedSoulClass, ...hybridRolls, ...hybridItems].map((item) => ({ ...item.toObject(false), _id: null }));
   await actor.createEmbeddedDocuments("Item", newItems);
 
   const description = actor.system.description || "";
