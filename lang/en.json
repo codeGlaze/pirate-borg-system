@@ -347,7 +347,7 @@
   "PB.ManualCharacterName": "Name",
   "PB.ManualCharacterNamePlaceholder": "Leave blank for a random name",
   "PB.ManualCharacterNoClass": "No classes are available for manual creation.",
-  "PB.ManualCharacterOverlayOptions": "Overlay Options",
+  "PB.ManualCharacterOverlayOptions": "Class Options",
   "PB.ManualCharacterRandom": "🎲 Random",
   "PB.ManualCharacterStartingEquipment": "Starting Equipment",
   "PB.ManualCharacterStats": "Hit Points, Luck & Silver",

@@ -3,12 +3,15 @@ import { classItemFromPack, compendiumInfoFromString, drawTableItem, findClassPa
 import { isCharacterGeneratorClassAllowed } from "../../system/settings.js";
 
 /**
- * "Overlay" classes (Haunted Soul, Tall Tale) are not self-contained: they are
- * layered on top of a base class (or, for a Tall Tale Sentient Animal, replace
- * the class' statline). This module ports the composition that used to live only
- * in the packed character-creation macros into parameterized builders so both
- * the randomizer ("The Tavern") and the manual creator can drive them, and so an
- * existing character can be converted in place.
+ * Haunted Soul and Tall Tale are "hybrid" classes: at character creation they
+ * are built on top of a base class (or, for a Tall Tale Sentient Animal, they
+ * replace the class' statline). This module ports the composition that used to
+ * live only in the packed character-creation macros into parameterized builders
+ * so both the randomizer ("The Tavern") and the manual creator can drive them.
+ *
+ * Haunted Soul can additionally be applied to an existing character in play (a
+ * pirate that dies returns as a Haunted Soul); Tall Tales are character-creation
+ * only, so there is no in-play conversion for them.
  *
  * Every builder takes a `choices` object: any field left unset is rolled
  * randomly, so passing `{}` reproduces the original random behaviour exactly.
