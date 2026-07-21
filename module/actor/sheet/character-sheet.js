@@ -106,8 +106,6 @@ export class PBActorSheetCharacter extends PBActorSheet {
       ...(await this._prepareItems(formData)),
     };
 
-    console.log(formData);
-
     return formData;
   }
 
