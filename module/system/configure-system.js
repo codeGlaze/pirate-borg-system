@@ -8,6 +8,7 @@ import { PBItem } from "../item/item.js";
 import { PBItemSheet } from "../item/sheet/item-sheet.js";
 import { PBActiveEffect } from "../active-effect/active-effect.js";
 import * as characterGenerator from "../api/generator/character-generator.js";
+import * as hybridCharacterGenerator from "../api/generator/hybrid-character-generator.js";
 import * as macros from "../api/macros.js";
 import * as utils from "../api/utils.js";
 import * as compendium from "../api/compendium.js";
@@ -38,6 +39,7 @@ export const configureSystem = () => {
       advancedAnimations,
       outcomeAnimations,
       characterGenerator,
+      hybridCharacterGenerator,
       showGenericCard,
       outcomes,
       macros,

@@ -31,6 +31,21 @@
       </select>
     </div>
 
+    {{#if hybridSelects.length}}
+      <h3 class="manual-group-title">{{localize "PB.ManualCharacterOverlayOptions"}}</h3>
+      {{#each hybridSelects as |sel|}}
+        <div class="manual-field">
+          <label>{{sel.label}}</label>
+          <select class="hybrid-select {{#if sel.rerender}}hybrid-rerender{{/if}}" data-hkey="{{sel.hkey}}">
+            {{#if sel.includeRandom}}<option value="">{{localize "PB.ManualCharacterRandom"}}</option>{{/if}}
+            {{#each sel.options as |opt|}}
+              <option value="{{opt.value}}" {{#if opt.selected}}selected{{/if}}>{{opt.label}}</option>
+            {{/each}}
+          </select>
+        </div>
+      {{/each}}
+    {{/if}}
+
     <h3 class="manual-group-title">{{localize "PB.ManualCharacterAbilities"}}</h3>
     <div class="manual-abilities">
       {{#each abilities as |ability|}}
