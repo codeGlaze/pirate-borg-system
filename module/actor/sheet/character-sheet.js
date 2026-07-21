@@ -23,6 +23,7 @@ import {
   characterRollToughnessAction,
 } from "../../api/action/actions.js";
 import { showCharacterGeneratorDialog } from "../../dialog/character-generator-dialog.js";
+import { showBecomeHauntedSoulDialog } from "../../dialog/become-hauntedsoul-dialog.js";
 import { showActorBaseClassDialog } from "../../dialog/actor-base-class-dialog.js";
 import { characterUseItemAction } from "../../api/action/character/character-use-item-action.js";
 
@@ -51,7 +52,7 @@ export class PBActorSheetCharacter extends PBActorSheet {
 
   /** @override */
   _getHeaderButtons() {
-    return [
+    const buttons = [
       {
         class: `actor-base-class-dialog-button-${this.actor.id}`,
         label: game.i18n.localize("PB.BaseClass"),
@@ -64,8 +65,20 @@ export class PBActorSheetCharacter extends PBActorSheet {
         icon: "fas fa-skull",
         onclick: this._onRegenerateCharacter.bind(this),
       },
-      ...super._getHeaderButtons(),
     ];
+
+    // Offer a non-destructive "Become a Haunted Soul" for a standard character
+    // (one with a class that is not already an overlay character).
+    if (this.actor.characterClass && !this.actor.characterBaseClass) {
+      buttons.push({
+        class: `become-haunted-soul-button-${this.actor.id}`,
+        label: game.i18n.localize("PB.BecomeHauntedSoul"),
+        icon: "fas fa-ghost",
+        onclick: this._onBecomeHauntedSoul.bind(this),
+      });
+    }
+
+    return [...buttons, ...super._getHeaderButtons()];
   }
 
   /** @override */
@@ -385,6 +398,15 @@ export class PBActorSheetCharacter extends PBActorSheet {
     showCharacterGeneratorDialog(this.actor);
 
     //new CharacterGeneratorDialog(this.actor).render(true);
+  }
+
+  /**
+   * @param {MouseEvent} event
+   * @private
+   */
+  _onBecomeHauntedSoul(event) {
+    event.preventDefault();
+    showBecomeHauntedSoulDialog(this.actor);
   }
 
   /**

@@ -347,3 +347,67 @@ export const buildHybridCharacter = async (cls, choices = {}) => {
   }
   return builder(cls, choices);
 };
+
+/**
+ * Finds the class item whose character-generator macro lives in the given pack.
+ *
+ * @param {String} macroPack
+ * @returns {Promise.<PBItem|undefined>}
+ */
+export const findHybridClassByMacroPack = async (macroPack) => {
+  for (const pack of findClassPacks()) {
+    const cls = await classItemFromPack(pack);
+    if (cls && isHybridClass(cls) && compendiumInfoFromString(cls.characterGeneratorMacro)[0] === macroPack) {
+      return cls;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Non-destructively turns an existing character into a Haunted Soul: the
+ * character keeps its abilities, HP and inventory; its current class becomes the
+ * base class, and the Haunted Soul class + ailment are layered on top. This
+ * mirrors the fiction ("your pirate dies and returns changed").
+ *
+ * @param {PBActor} actor
+ * @param {Object} [choices]
+ * @param {Array.<Number>} [choices.ailmentValues] Chosen rows for the ailment roll (random when empty).
+ * @returns {Promise.<PBActor>}
+ */
+export const convertToHauntedSoul = async (actor, choices = {}) => {
+  const baseClass = actor.characterClass;
+  if (!baseClass) {
+    throw new Error("convertToHauntedSoul: actor has no class to build on");
+  }
+  if (actor.characterBaseClass) {
+    throw new Error("convertToHauntedSoul: actor is already an overlay character");
+  }
+
+  const hauntedSoulClass = await findHybridClassByMacroPack(HAUNTED_SOUL_MACRO_PACK);
+  if (!hauntedSoulClass) {
+    throw new Error("convertToHauntedSoul: could not find the Haunted Soul class");
+  }
+
+  const overlayRolls = await buildRollItems(hauntedSoulClass.startingRolls, choices.ailmentValues ?? []);
+  const overlayItems = await findItemsFromCompendiumString(hauntedSoulClass.startingItems);
+
+  const ailment = overlayRolls.find((item) => item.type === "feature" && item.featureType === "Ailment (Haunted Soul)");
+  if (ailment) {
+    hauntedSoulClass.name = `${hauntedSoulClass.name} - ${ailment.name}`;
+  }
+
+  // Flag the existing class as the base class.
+  await baseClass.update({ "system.isBaseClass": true });
+
+  // Layer on the Haunted Soul class and its items.
+  const newItems = [hauntedSoulClass, ...overlayRolls, ...overlayItems].map((item) => ({ ...item.toObject(false), _id: null }));
+  await actor.createEmbeddedDocuments("Item", newItems);
+
+  const description = actor.system.description || "";
+  await actor.update({ "system.description": `${hauntedSoulClass.flavorText}${description}` });
+
+  Hooks.call("updateCharacter", actor);
+
+  return actor;
+};
