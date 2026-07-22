@@ -223,7 +223,7 @@ export const rollRollItems = async (rollString) => {
 export const findStartingBonusItems = async (items) => {
   let results = [];
   for (const feature of items) {
-    if (feature.startingBonusItems) {
+    if (feature?.startingBonusItems) {
       results = results.concat(await findItemsFromCompendiumString(feature.startingBonusItems));
     }
   }
@@ -237,7 +237,7 @@ export const findStartingBonusItems = async (items) => {
 export const findStartingBonusRollsItems = async (items) => {
   let results = [];
   for (const feature of items) {
-    if (feature.startingBonusRolls) {
+    if (feature?.startingBonusRolls) {
       results = results.concat(await rollRollItems(feature.startingBonusRolls));
     }
   }

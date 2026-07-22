@@ -223,6 +223,8 @@ export const findItemsFromCompendiumString = async (compendiumString) => {
   for (const compendiumsItem of compendiumsItems) {
     const [compendium, table] = compendiumInfoFromString(compendiumsItem);
     const item = await findCompendiumItem(compendium, table);
+    // Skip missing references (renamed/absent packs) rather than leaking an
+    // `undefined` into the results, which downstream code would dereference.
     if (item) {
       results.push(item);
     }
