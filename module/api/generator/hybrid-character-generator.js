@@ -1,5 +1,5 @@
 import { buildCharacter, buildRollItems, findStartingBonusItems, findStartingBonusRollsItems } from "./character-generator.js";
-import { classItemFromPack, compendiumInfoFromString, drawTableItem, findClassPacks, findItemsFromCompendiumString, resolveTableRow } from "../compendium.js";
+import { classItemFromPack, compendiumInfoFromString, drawTableItem, findClassPacks, findItemsFromCompendiumString, resolveTablePath } from "../compendium.js";
 import { isCharacterGeneratorClassAllowed } from "../../system/settings.js";
 
 /**
@@ -46,7 +46,7 @@ const pickRandom = (array) => array[Math.floor(Math.random() * array.length)];
  * @returns {Promise.<PBItem|undefined>}
  */
 const resolveOrDrawOne = async (compendium, table, value) => {
-  const items = isRowChoice(value) ? await resolveTableRow(compendium, table, Number(value)) : await drawTableItem(compendium, table);
+  const items = isRowChoice(value) ? await resolveTablePath(compendium, table, value) : await drawTableItem(compendium, table);
   return items[0];
 };
 

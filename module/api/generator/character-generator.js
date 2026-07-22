@@ -8,7 +8,7 @@ import {
   findCompendiumItem,
   findItemsFromCompendiumString,
   findTableItems,
-  resolveTableRow,
+  resolveTablePath,
   rollTableItems,
 } from "../compendium.js";
 import { PB } from "../../config.js";
@@ -386,7 +386,7 @@ export const buildBaseTables = async (choices = {}) => {
     const [compendium, table, quantity = 1] = compendiumInfoFromString(compendiumTable);
     const chosen = choices[compendiumTable];
     if (isRowChoice(chosen)) {
-      items = items.concat(await resolveTableRow(compendium, table, Number(chosen)));
+      items = items.concat(await resolveTablePath(compendium, table, chosen));
     } else {
       items = items.concat(await drawTableItems(compendium, table, quantity));
     }
@@ -412,7 +412,7 @@ export const buildRollItems = async (rollString, values = []) => {
       const chosen = values[index];
       index++;
       if (isRowChoice(chosen)) {
-        results = results.concat(await resolveTableRow(compendium, table, Number(chosen)));
+        results = results.concat(await resolveTablePath(compendium, table, chosen));
       } else {
         results = results.concat(await drawTableItem(compendium, table));
       }
@@ -433,7 +433,7 @@ export const buildRollItems = async (rollString, values = []) => {
 const buildEquipment = async (formula, tableString, chosenValue) => {
   const [compendium, table] = compendiumInfoFromString(tableString);
   if (isRowChoice(chosenValue)) {
-    return resolveTableRow(compendium, table, Number(chosenValue));
+    return resolveTablePath(compendium, table, chosenValue);
   }
   if (!formula) {
     return [];

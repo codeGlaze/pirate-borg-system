@@ -153,24 +153,34 @@ export const rollTableItems = async (compendium, table, formula) => {
 };
 
 /**
- * Lists the distinct rows of a roll table, for use in manual selection menus.
- * Each row is keyed by the low end of its range (the value that would need to be
- * rolled to select it) and labelled with the row's primary result.
+ * True when a table result points at another RollTable (a nested sub-table),
+ * rather than an Item — e.g. the "d10 Pets" row inside "d12 Cheap gear".
  *
- * @param {String} compendium
- * @param {String} tableName
- * @returns {Promise.<Array.<{value: Number, low: Number, high: Number, label: String}>>}
+ * @param {TableResult} result
+ * @returns {Boolean}
  */
-export const getTableRows = async (compendium, tableName) => {
-  const table = await findCompendiumItem(compendium, tableName);
-  if (!table || !table.results) {
-    return [];
+const isSubTableResult = (result) => {
+  if (getResultType(result) === CONST.TABLE_RESULT_TYPES.TEXT) {
+    return false;
   }
+  const collection = getResultCollection(result);
+  return game.packs.get(collection)?.documentName === "RollTable";
+};
+
+/**
+ * Collapses a table's results into one entry per distinct row (keyed by the low
+ * end of its range), recording the row's label and, when the row points at a
+ * nested sub-table, the coordinates of that sub-table.
+ *
+ * @param {RollTable} table
+ * @returns {Array.<{low: Number, high: Number, itemLabel: ?String, textLabel: ?String, subCompendium: ?String, subTable: ?String}>}
+ */
+const distinctTableRows = (table) => {
   const rowsByLow = new Map();
   for (const result of table.results) {
     const [low = 0, high = low] = result.range || [];
     if (!rowsByLow.has(low)) {
-      rowsByLow.set(low, { value: low, low, high });
+      rowsByLow.set(low, { low, high, itemLabel: null, textLabel: null, subCompendium: null, subTable: null });
     }
     const row = rowsByLow.get(low);
     row.high = Math.max(row.high, high);
@@ -179,22 +189,84 @@ export const getTableRows = async (compendium, tableName) => {
       row.textLabel = row.textLabel || text;
     } else {
       row.itemLabel = row.itemLabel || text;
+      if (!row.subTable && isSubTableResult(result)) {
+        row.subCompendium = getResultCollection(result);
+        row.subTable = text;
+      }
     }
   }
-  return [...rowsByLow.values()]
-    .map(({ value, low, high, itemLabel, textLabel }) => ({
-      value,
-      low,
-      high,
-      label: itemLabel || textLabel || `${low}`,
-    }))
-    .sort((a, b) => a.low - b.low);
+  return [...rowsByLow.values()].sort((a, b) => a.low - b.low);
+};
+
+/**
+ * Lists the selectable rows of a roll table for manual selection menus. Each row
+ * is labelled with its primary result and carries a `value` that identifies it.
+ *
+ * Nested sub-tables (a row that points at another table, e.g. "d10 Pets" or the
+ * "Marlinspike or Belaying Pin" weapon choice) are flattened inline: the parent
+ * row becomes a "… (random)" entry plus one indented entry per leaf, so a player
+ * can pick the *exact* result (e.g. that specific parrot) instead of only being
+ * able to roll it randomly. A leaf's `value` is a ">"-separated path of row
+ * values (e.g. "12>3") that {@link resolveTablePath} walks back down.
+ *
+ * @param {String} compendium
+ * @param {String} tableName
+ * @param {Object} [options]
+ * @param {Number} [options.depth] Current recursion depth (internal).
+ * @param {String} [options.prefix] Accumulated path prefix (internal).
+ * @param {String} [options.indent] Accumulated label indent (internal).
+ * @returns {Promise.<Array.<{value: String, low: Number, high: Number, label: String}>>}
+ */
+export const getTableRows = async (compendium, tableName, { depth = 0, prefix = "", indent = "" } = {}) => {
+  const table = await findCompendiumItem(compendium, tableName);
+  if (!table || !table.results) {
+    return [];
+  }
+  const rows = [];
+  for (const row of distinctTableRows(table)) {
+    const baseLabel = row.itemLabel || row.textLabel || `${row.low}`;
+    const value = prefix ? `${prefix}>${row.low}` : `${row.low}`;
+    // Guard the recursion so malformed self-referential data can never loop.
+    if (row.subTable && depth < 4) {
+      rows.push({ value, low: row.low, high: row.high, label: `${indent}${baseLabel} (random)` });
+      const children = await getTableRows(row.subCompendium, row.subTable, {
+        depth: depth + 1,
+        prefix: value,
+        indent: `${indent}\u00A0\u00A0↳ `,
+      });
+      rows.push(...children);
+    } else {
+      rows.push({ value, low: row.low, high: row.high, label: `${indent}${baseLabel}` });
+    }
+  }
+  return rows;
+};
+
+/**
+ * Finds the nested sub-table that a given row of a table points at, if any.
+ *
+ * @param {String} compendium
+ * @param {String} tableName
+ * @param {Number} value
+ * @returns {Promise.<{compendium: String, table: String}|null>}
+ */
+const getRowSubTable = async (compendium, tableName, value) => {
+  const table = await findCompendiumItem(compendium, tableName);
+  if (!table || !table.results) {
+    return null;
+  }
+  for (const result of table.results) {
+    const [low = 0, high = low] = result.range || [];
+    if (value >= low && value <= high && isSubTableResult(result)) {
+      return { compendium: getResultCollection(result), table: getResultText(result) };
+    }
+  }
+  return null;
 };
 
 /**
  * Resolves the items produced by a specific row of a roll table, exactly as a
- * random draw landing on `value` would. Used by manual character creation to
- * reuse the same resolution as the randomizer.
+ * random draw landing on `value` would.
  *
  * @param {String} compendium
  * @param {String} tableName
@@ -212,6 +284,40 @@ export const resolveTableRow = async (compendium, tableName, value) => {
   // bogus item (which fails PBActor validation with "type may not be undefined").
   const draw = await table.roll({ roll: new Roll(String(value)) });
   return findTableItems(draw.results);
+};
+
+/**
+ * Resolves a manual table selection expressed as a ">"-separated path of row
+ * values produced by {@link getTableRows}. A plain "12" resolves row 12
+ * directly (rolling any nested sub-table randomly); "12>3" descends into the
+ * sub-table that row 12 points at and resolves *its* row 3 — letting a player
+ * pick a specific leaf (that parrot) rather than a random one.
+ *
+ * @param {String} compendium
+ * @param {String} tableName
+ * @param {String|Number} path
+ * @returns {Promise.<Array.<PBItem>>}
+ */
+export const resolveTablePath = async (compendium, tableName, path) => {
+  const steps = String(path)
+    .split(">")
+    .map((step) => step.trim())
+    .filter((step) => step !== "");
+  if (!steps.length) {
+    return [];
+  }
+  let currentCompendium = compendium;
+  let currentTable = tableName;
+  for (let i = 0; i < steps.length - 1; i++) {
+    const sub = await getRowSubTable(currentCompendium, currentTable, Number(steps[i]));
+    if (!sub) {
+      // Path drifted from the current data (table changed); resolve what we can.
+      return resolveTableRow(currentCompendium, currentTable, Number(steps[i]));
+    }
+    currentCompendium = sub.compendium;
+    currentTable = sub.table;
+  }
+  return resolveTableRow(currentCompendium, currentTable, Number(steps[steps.length - 1]));
 };
 
 /**
