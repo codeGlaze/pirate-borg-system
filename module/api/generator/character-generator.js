@@ -88,14 +88,19 @@ export const updateActorWithCharacter = async (actor, characterData) => {
  * @returns {Promise.<PBActor>}
  */
 export const invokeStartingMacro = async (actor) => {
-  const cls = actor?.characterClass;
+  // Guard against a failed actor creation upstream so we surface the real error
+  // instead of a misleading "cannot read characterClass of undefined" cascade.
+  if (!actor) {
+    return actor;
+  }
+  const cls = actor.characterClass;
   if (cls) {
     await executeCompendiumMacro(cls.getData().startingMacro, {
       actor,
       item: cls,
     });
   }
-  const baseClass = actor?.characterBaseClass;
+  const baseClass = actor.characterBaseClass;
   if (baseClass) {
     await executeCompendiumMacro(baseClass.getData().startingMacro, {
       actor,

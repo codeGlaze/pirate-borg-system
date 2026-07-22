@@ -203,14 +203,15 @@ export const getTableRows = async (compendium, tableName) => {
  */
 export const resolveTableRow = async (compendium, tableName, value) => {
   const table = await findCompendiumItem(compendium, tableName);
-  if (!table || !table.results) {
+  if (!table) {
     return [];
   }
-  const results = table.results.filter((result) => {
-    const [low = 0, high = low] = result.range || [];
-    return value >= low && value <= high;
-  });
-  return findTableItems(results);
+  // Force the roll to `value` so the exact same resolution path as a random draw
+  // runs: nested sub-tables (e.g. "d10 Pets", "d10 Instruments") recurse into
+  // their leaf items instead of leaking the sub-table RollTable document as a
+  // bogus item (which fails PBActor validation with "type may not be undefined").
+  const draw = await table.roll({ roll: new Roll(String(value)) });
+  return findTableItems(draw.results);
 };
 
 /**
@@ -277,7 +278,10 @@ export const findTableItems = async (results) => {
         items.push(item);
       }
     } else if (isTextResult(type) && item) {
-      const resultText = getResultText(result);
+      // A TEXT result that follows a document result carries an override, e.g.
+      // "quantity: 10" or "description: ...". Read it through getResultText so the
+      // v12 `text` / v13 `description` field difference is handled in one place.
+      const resultText = getResultText(result) ?? "";
       const [property, value] = resultText.split(": ");
       if (!property || value === undefined) continue;
 
@@ -287,7 +291,12 @@ export const findTableItems = async (results) => {
       if (property === "description") {
         item.getData().description = enrichHtml;
       } else if (property === "quantity") {
-        item.getData().quantity = parseInt($(`<span>${enrichHtml}</span>`).text().trim(), 10);
+        const quantity = parseInt($(`<span>${enrichHtml}</span>`).text().trim(), 10);
+        // Only apply a real number — never overwrite the item's own quantity with
+        // NaN, which the data model would store as null and render as "(null)".
+        if (Number.isFinite(quantity)) {
+          item.getData().quantity = quantity;
+        }
       }
     }
   }
