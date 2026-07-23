@@ -44,7 +44,14 @@ weapon keeps `reloadTime: 2` and the perk is text only.
 
 ### Phase 2 — dice-ladder + natural armor tier
 
-- Add a `DICE_LADDER` util + `stepToDie` / `dieToStep` helpers (tested).
+- ✅ `module/api/dice-ladder.js` — `DICE_LADDER` + `normalizeDie` / `dieToStep` /
+  `stepToDie` / `stepDie` (tested). This is the single-source-of-truth helper:
+  a numeric step an AE can move, deriving the die (e.g. `stepDie("1d2", +1)` →
+  `"1d4"`).
+- ⏸ **Held pending Phase 1 verification** (below): the natural-armor-tier
+  defense change touches core combat and its Thick-Skinned grant uses the same
+  item→actor AE transfer as the reload effect. Confirm reload applies in a live
+  world first, then:
 - Add `system.attributes.naturalArmorTier.value` (step). Defense damage
   reduction = ladder[max(equippedArmorTier, naturalArmorTier)].
 - Automate **Brute "Thick Skinned"** (natural tier 1) as an AE, and make **crit
