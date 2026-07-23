@@ -374,6 +374,36 @@ const isNumericChoice = (value) => value !== undefined && value !== null && valu
  */
 const isRowChoice = (value) => value !== undefined && value !== null && value !== "";
 
+/** The name of the ammo item that starting ranged weapons come with. */
+const ROUNDS_OF_SHOT = "Rounds of shot";
+
+/**
+ * A starting ranged weapon (Flintlock/Musket, or the Buccaneer's musket) comes
+ * with "10 + Presence rounds of shot" (rulebook pg. 51). The gear table grants a
+ * flat 10 and the ammo item defaults to 20, so we normalise any starting Rounds
+ * of shot to the Presence-scaled amount here.
+ *
+ * @param {Number} presence
+ * @returns {Number}
+ */
+export const startingRoundsOfShotQuantity = (presence) => Math.max(0, 10 + Number(presence || 0));
+
+/**
+ * Sets every "Rounds of shot" stack among freshly generated starting items to
+ * the Presence-scaled starting amount.
+ *
+ * @param {Array.<PBItem>} items
+ * @param {Number} presence
+ */
+const applyStartingRoundsOfShot = (items, presence) => {
+  const quantity = startingRoundsOfShotQuantity(presence);
+  for (const item of items) {
+    if (item?.name === ROUNDS_OF_SHOT) {
+      item.getData().quantity = quantity;
+    }
+  }
+};
+
 /**
  * Rolls the base tables, honouring any manually chosen rows.
  *
@@ -529,6 +559,9 @@ export const buildCharacter = async (cls, choices = {}) => {
     ...(startingBonusRollItems || []),
     cls,
   ];
+
+  // Starting ranged weapons ship with 10 + Presence rounds of shot (pg. 51).
+  applyStartingRoundsOfShot(allDocs, abilities.presence);
 
   return {
     name,

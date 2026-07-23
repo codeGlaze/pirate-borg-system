@@ -93,8 +93,12 @@ export const installFoundryStubs = () => {
     globalThis[name] = class extends Stub {};
   }
   globalThis.Hooks = { on() {}, once() {}, call() {}, callAll() {} };
-  globalThis.CONFIG = { PB: {} };
-  globalThis.CONST = { TABLE_RESULT_TYPES: { TEXT: "text", DOCUMENT: "document", COMPENDIUM: "pack" } };
+  globalThis.CONFIG = { PB: { itemTypes: {} } };
+  globalThis.CONST = {
+    TABLE_RESULT_TYPES: { TEXT: "text", DOCUMENT: "document", COMPENDIUM: "pack" },
+    TOKEN_DISPOSITIONS: { FRIENDLY: 1, NEUTRAL: 0, HOSTILE: -1, SECRET: -2 },
+    ACTIVE_EFFECT_MODES: { CUSTOM: 0, MULTIPLY: 1, ADD: 2, DOWNGRADE: 3, UPGRADE: 4, OVERRIDE: 5 },
+  };
   globalThis.Roll = class {
     constructor(formula) {
       this.total = Number(formula);

@@ -53,3 +53,19 @@ test("Relic Heart of the Sea makes cubic feet of fog (pg. 63)", () => {
   const r = readJson("packs/_source/invokable-ancient-relics/heart-of-the-sea.json");
   assert.match(r.system.description, /30 cubic feet of fog/);
 });
+
+test("Tall Tale Sentient Animal d6 matches book order (pg. 48-49)", () => {
+  const d = readJson("packs/_source/rolls-tall-tale/sentient-animal.json");
+  const order = d.results
+    .slice()
+    .sort((a, b) => a.range[0] - b.range[0])
+    .map((r) => [r.range[0], r.text.replace(/<[^>]+>/g, "")]);
+  assert.deepEqual(order, [
+    [1, "Foul Fowl"],
+    [2, "Jaguar"],
+    [3, "Crocodile"],
+    [4, "Bilge Rat"],
+    [5, "Lucky Parrot"],
+    [6, "Clever Monkey"],
+  ]);
+});

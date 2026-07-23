@@ -21,10 +21,10 @@
       "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.pH84jajor42VlOmF"
     },
     {
-      "_id": "WPSDCLExXWbfkp1x",
+      "_id": "Ezq3rVrnLRSQUchw",
       "type": "pack",
-      "text": "Crocodile",
-      "img": "systems/pirateborg/icons/classes/tall-tale/crocodile.png",
+      "text": "Jaguar",
+      "img": "systems/pirateborg/icons/classes/tall-tale/jaguar.png",
       "weight": 1,
       "range": [
         2,
@@ -33,14 +33,14 @@
       "drawn": false,
       "flags": {},
       "documentCollection": "pirateborg.class-tall-tale",
-      "documentId": "a1dn6FUP6fy7N9r0",
-      "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.WPSDCLExXWbfkp1x"
+      "documentId": "iDVD29wjXnI9oDBf",
+      "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.Ezq3rVrnLRSQUchw"
     },
     {
-      "_id": "1DkN26585sntKtbV",
+      "_id": "WPSDCLExXWbfkp1x",
       "type": "pack",
-      "text": "Lucky Parrot",
-      "img": "systems/pirateborg/icons/classes/tall-tale/lucky-parrot.png",
+      "text": "Crocodile",
+      "img": "systems/pirateborg/icons/classes/tall-tale/crocodile.png",
       "weight": 1,
       "range": [
         3,
@@ -49,24 +49,8 @@
       "drawn": false,
       "flags": {},
       "documentCollection": "pirateborg.class-tall-tale",
-      "documentId": "sdTjTdmBYkJ4Ak97",
-      "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.1DkN26585sntKtbV"
-    },
-    {
-      "_id": "Ezq3rVrnLRSQUchw",
-      "type": "pack",
-      "text": "Jaguar",
-      "img": "systems/pirateborg/icons/classes/tall-tale/jaguar.png",
-      "weight": 1,
-      "range": [
-        4,
-        4
-      ],
-      "drawn": false,
-      "flags": {},
-      "documentCollection": "pirateborg.class-tall-tale",
-      "documentId": "iDVD29wjXnI9oDBf",
-      "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.Ezq3rVrnLRSQUchw"
+      "documentId": "a1dn6FUP6fy7N9r0",
+      "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.WPSDCLExXWbfkp1x"
     },
     {
       "_id": "GyMUpnHo96jTcBoQ",
@@ -75,14 +59,30 @@
       "img": "systems/pirateborg/icons/classes/tall-tale/bilge-rat.png",
       "weight": 1,
       "range": [
-        5,
-        5
+        4,
+        4
       ],
       "drawn": false,
       "flags": {},
       "documentCollection": "pirateborg.class-tall-tale",
       "documentId": "C8LdpjrOpMpyZB98",
       "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.GyMUpnHo96jTcBoQ"
+    },
+    {
+      "_id": "1DkN26585sntKtbV",
+      "type": "pack",
+      "text": "Lucky Parrot",
+      "img": "systems/pirateborg/icons/classes/tall-tale/lucky-parrot.png",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {},
+      "documentCollection": "pirateborg.class-tall-tale",
+      "documentId": "sdTjTdmBYkJ4Ak97",
+      "_key": "!tables.results!9lsuw5ZvjQ9CDnXt.1DkN26585sntKtbV"
     },
     {
       "_id": "mcFoGTVZvzJFETFR",
