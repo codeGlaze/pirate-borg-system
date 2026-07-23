@@ -1,6 +1,6 @@
 {
   "_id": "tf9kUjoaGg8UMDk9",
-  "name": "Rats is your favorite meal.",
+  "name": "Rats are your favorite meal.",
   "type": "feature",
   "img": "systems/pirateborg/icons/misc/idiosyncrasie.png",
   "effects": [],
@@ -20,7 +20,7 @@
     "duplicateSource": null
   },
   "system": {
-    "description": "<p>Rats is your favorite meal</p>",
+    "description": "<p>Rats are your favorite meal</p>",
     "featureType": "Idiosyncrasies",
     "maxQuantity": null,
     "quantity": 1,

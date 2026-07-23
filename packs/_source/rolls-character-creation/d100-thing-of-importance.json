@@ -1333,7 +1333,7 @@
       "_key": "!tables.results!zdslrlczJyGmflFt.9ygfnnl8e9liruha"
     },
     {
-      "text": "small keg of something valuable (rum, powder, ashes)",
+      "text": "small keg of something valuable (rum, powder, ashes, ASH)",
       "type": "pack",
       "img": "systems/pirateborg/icons/misc/thing-of-importance.png",
       "weight": 1,
@@ -1429,7 +1429,7 @@
       "_key": "!tables.results!zdslrlczJyGmflFt.ejh5nld32zqjyzad"
     },
     {
-      "text": "wanted poster, d4:1 legend, 2 loved one, 3 enemy, 4 stranger",
+      "text": "wanted poster, d4:1 legend, 2 enemy, 3 loved one, 4 stranger",
       "type": "pack",
       "img": "systems/pirateborg/icons/misc/thing-of-importance.png",
       "weight": 1,

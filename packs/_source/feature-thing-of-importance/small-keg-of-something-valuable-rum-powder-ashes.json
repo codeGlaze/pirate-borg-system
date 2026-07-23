@@ -1,6 +1,6 @@
 {
   "_id": "EeuUzBJ1uTfCFNRk",
-  "name": "small keg of something valuable (rum, powder, ashes)",
+  "name": "small keg of something valuable (rum, powder, ashes, ASH)",
   "type": "feature",
   "img": "systems/pirateborg/icons/misc/thing-of-importance.png",
   "effects": [],
@@ -20,7 +20,7 @@
     "duplicateSource": null
   },
   "system": {
-    "description": "<p>a small keg of something valuable (rum, powder, ashes)</p>",
+    "description": "<p>a small keg of something valuable (rum, powder, ashes, ASH)</p>",
     "featureType": "Thing of Importance",
     "maxQuantity": null,
     "quantity": 1,

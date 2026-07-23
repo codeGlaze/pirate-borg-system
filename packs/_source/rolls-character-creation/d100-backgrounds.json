@@ -74,8 +74,8 @@
       "img": "systems/pirateborg/icons/misc/background.png",
       "weight": 1,
       "range": [
-        24,
-        24
+        25,
+        25
       ],
       "drawn": false,
       "_id": "z31q5u1euua2aurk",
@@ -90,8 +90,8 @@
       "img": "systems/pirateborg/icons/misc/background.png",
       "weight": 1,
       "range": [
-        25,
-        25
+        24,
+        24
       ],
       "drawn": false,
       "_id": "m0grntirr4ij036r",

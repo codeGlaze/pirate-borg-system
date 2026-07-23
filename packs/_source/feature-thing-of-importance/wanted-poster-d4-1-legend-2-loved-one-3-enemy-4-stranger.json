@@ -1,6 +1,6 @@
 {
   "_id": "HUzvnJUHicDi5KWz",
-  "name": "wanted poster, d4:1 legend, 2 loved one, 3 enemy, 4 stranger",
+  "name": "wanted poster, d4:1 legend, 2 enemy, 3 loved one, 4 stranger",
   "type": "feature",
   "img": "systems/pirateborg/icons/misc/thing-of-importance.png",
   "effects": [],
@@ -20,7 +20,7 @@
     "duplicateSource": null
   },
   "system": {
-    "description": "<p>a wanted poster, d4:1 legend, 2 loved one, 3 enemy, 4 stranger</p>",
+    "description": "<p>a wanted poster, d4:1 legend, 2 enemy, 3 loved one, 4 stranger</p>",
     "featureType": "Thing of Importance",
     "maxQuantity": null,
     "quantity": 1,
