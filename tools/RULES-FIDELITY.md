@@ -53,7 +53,7 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 | Content                                 | Status                                       |
 | --------------------------------------- | -------------------------------------------- |
 | Reaction, Morale, Fumble (black powder) | ✅ (spot-checked)                            |
-| Mystical Mishaps (d20, full effects)    | 🔧 #18 wording aligned (`PENDING`)           |
+| Mystical Mishaps (d20, full effects)    | 🔧 #18 wording aligned (`5e619cf`)           |
 | Grenades & Bombs (d6, names + damage)   | ✅                                           |
 | Ship: Derelict Takes Damage             | ❔ not in the compared PDF — unverified      |
 | Ship: full naval rules, ASH tables      | ⛔ not in the system (do not add — see note) |
@@ -71,7 +71,7 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 | 7   | Relic Heart of the Sea       | 30 **square** ft fog           | 30 **cubic** ft fog                              | `7e1fa53` |
 | 8   | Tall Tale Sentient Animal d6 | 2 Croc/3 Parrot/4 Jaguar/5 Rat | 2 Jaguar/3 Croc/4 Rat/5 Parrot                   | `47dfbcb` |
 | 9   | Starting rounds of shot      | flat 10 / 20 default           | 10 + Presence                                    | `47dfbcb` |
-| 10  | Mystical Mishap 18 (crabs)   | "extra -2 armor"               | "-d2 damage reduction (does not count as armor)" | `PENDING` |
+| 10  | Mystical Mishap 18 (crabs)   | "extra -2 armor"               | "-d2 damage reduction (does not count as armor)" | `5e619cf` |
 
 Notes:
 
