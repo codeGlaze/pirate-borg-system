@@ -58,6 +58,31 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 | Ship: Derelict Takes Damage             | ❔ not in the compared PDF — unverified      |
 | Ship: full naval rules, ASH tables      | ⛔ not in the system (do not add — see note) |
 
+## Play mechanics (runtime audit)
+
+A read-only audit of the play-time systems (not just table data). All match the
+book; **no corrections needed**.
+
+| Mechanic          | Book                            | System                                                   |
+| ----------------- | ------------------------------- | -------------------------------------------------------- |
+| Short / long rest | recover d4 / d8 HP              | ✅ `d4` / `d8`; no food or infected → no heal            |
+| Starvation        | lose d4 HP/day                  | ✅ `d4` starvation outcome                               |
+| Infection/sick    | lose d6 HP/morning              | ✅ `d6` infection outcome                                |
+| Rituals per day   | roll d4 + Spirit                | ✅ `max(d4 + spirit, 0)` (refreshes on long rest)        |
+| Reload            | 2 actions (gunpowder)           | ✅ `reloadTime: 2`                                       |
+| Crit (nat 20)     | double damage (+ armor −1 tier) | ✅ damage `× 2` (+ per-weapon crit bonus)                |
+| Gunpowder fumble  | roll on Gunpowder Fumble table  | ✅ auto-draws the table                                  |
+| Carrying capacity | 8 + Strength                    | ✅ `strength + carryingModifier(8)` (Active-Effect-able) |
+| Broken (0 HP)     | roll d6 Broken table            | ✅ draws the (verified) Broken table                     |
+| Armor tiers       | −d2 / −d4 / −d6                 | ✅ `armorTiers` config                                   |
+
+**Deliberately manual (not bugs):** a few effects are surfaced as card
+reminders the player applies by hand rather than auto-applied — crit's "armor
+reduced one tier", an attack fumble's "weapon breaks", the Buccaneer's 1-action
+reload (item keeps `reloadTime: 2`), and the "extra protection" relics/mishap.
+This is consistent across the system (relics/rituals ship with 0 Active Effects
+by design), so it's a design choice, not a defect.
+
 ## Corrections applied
 
 | #   | Entry                        | Was                            | Now (2e)                                         | Commit    |
