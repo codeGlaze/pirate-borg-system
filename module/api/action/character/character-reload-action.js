@@ -8,7 +8,7 @@ import { trackAmmo } from "../../../system/settings.js";
  * @returns {Promise<Object>}
  */
 export const characterReloadAction = async (actor, item) => {
-  const reloadTime = item.reloadTime || 1;
+  const reloadTime = actor.getEffectiveReloadTime(item);
   if (!item.needsReloading) {
     return;
   }

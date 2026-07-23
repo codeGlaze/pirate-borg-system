@@ -571,6 +571,27 @@ export class PBActor extends Actor {
   }
 
   /**
+   * Number of reload actions saved, e.g. by the Buccaneer's fast reloading.
+   * Driven by an Active Effect on `system.attributes.reloadModifier.value`.
+   *
+   * @return {Number}
+   */
+  get reloadModifier() {
+    return this.attributes?.reloadModifier?.value ?? 0;
+  }
+
+  /**
+   * The actions a weapon takes to reload for this actor, after its reload
+   * modifier — never below 1.
+   *
+   * @param {PBItem} weapon
+   * @return {Number}
+   */
+  getEffectiveReloadTime(weapon) {
+    return Math.max(1, (weapon.reloadTime || 1) - this.reloadModifier);
+  }
+
+  /**
    * @return {Number}
    */
   get carryingWeight() {

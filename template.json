@@ -121,6 +121,9 @@
         "grog": {
           "drinks": 0,
           "hoursRemaining": 0
+        },
+        "reloadModifier": {
+          "value": 0
         }
       }
     },

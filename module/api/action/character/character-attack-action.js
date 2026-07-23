@@ -29,7 +29,7 @@ export const characterAttackAction = async (actor, weapon) => {
     armorFormula: targetArmor,
   });
 
-  await handleWeaponReloading(weapon);
+  await handleWeaponReloading(actor, weapon);
   await decrementWeaponAmmo(actor, weapon);
 
   await showGenericCard({
@@ -48,12 +48,11 @@ export const characterAttackAction = async (actor, weapon) => {
  * @param {PBItem} weapon
  * @returns {Promise}
  */
-const handleWeaponReloading = async (weapon) => {
+const handleWeaponReloading = async (actor, weapon) => {
   if (!weapon?.needsReloading) {
     return;
   }
-  const reloadTime = weapon.reloadTime || 1;
-  await weapon.setLoadingCount(reloadTime);
+  await weapon.setLoadingCount(actor.getEffectiveReloadTime(weapon));
 };
 
 /**

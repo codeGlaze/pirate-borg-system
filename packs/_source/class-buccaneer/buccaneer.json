@@ -3,7 +3,38 @@
   "name": "Buccaneer",
   "type": "class",
   "img": "systems/pirateborg/tokens/bucaneer.png",
-  "effects": [],
+  "effects": [
+    {
+      "name": "Fast Reloading",
+      "img": "systems/pirateborg/tokens/bucaneer.png",
+      "changes": [
+        {
+          "key": "system.attributes.reloadModifier.value",
+          "mode": 2,
+          "value": "1",
+          "priority": 20
+        }
+      ],
+      "disabled": false,
+      "duration": {
+        "startTime": null,
+        "seconds": null,
+        "combat": null,
+        "rounds": null,
+        "turns": null,
+        "startRound": null,
+        "startTurn": null
+      },
+      "description": "Reloading black powder weapons takes 1 action instead of 2.",
+      "origin": null,
+      "tint": "#ffffff",
+      "transfer": true,
+      "statuses": [],
+      "flags": {},
+      "_id": "buccaneerFReld01",
+      "_key": "!items.effects!bddji3nIZctPA8tg.buccaneerFReld01"
+    }
+  ],
   "folder": null,
   "sort": 0,
   "flags": {},
