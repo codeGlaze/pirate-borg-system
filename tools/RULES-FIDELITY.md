@@ -50,12 +50,13 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 
 ## GM / other
 
-| Content                                    | Status            |
-| ------------------------------------------ | ----------------- |
-| Reaction, Morale, Fumble (black powder)    | ✅ (spot-checked) |
-| Mystical Mishaps (full effects)            | ⏳                |
-| Grenades & Bombs (d6)                      | ⏳                |
-| Ship tables (derelict damage, shanties, …) | ⏳                |
+| Content                                 | Status                                       |
+| --------------------------------------- | -------------------------------------------- |
+| Reaction, Morale, Fumble (black powder) | ✅ (spot-checked)                            |
+| Mystical Mishaps (d20, full effects)    | ✅ (one minor #18 wording nuance — see note) |
+| Grenades & Bombs (d6, names + damage)   | ✅                                           |
+| Ship: Derelict Takes Damage             | ❔ not in the compared PDF — unverified      |
+| Ship: full naval rules, ASH tables      | ⛔ not in the system (do not add — see note) |
 
 ## Corrections applied
 
@@ -81,6 +82,21 @@ Notes:
 - ASH in Thing of Importance 84: almost certainly a 2e addition (the system is
   otherwise 1e-faithful and ASH is 2e's central setting concept), so adding it
   correctly moves the entry to 2e.
+- Mystical Mishap 18: system reads "extra -2 armor"; the book reads "-d2 damage
+  reduction (does not count as armor)". Minor wording (likely 1e); left as-is.
+- Ammo model: the book's shop list sells "20 rounds of shot — 10s", so the ammo
+  item's default quantity of 20 (a purchase) is correct and distinct from the
+  "10 + Presence" a character starts play with (correction #9).
+
+## Scope & licensing
+
+This comparison only **corrects content the system already ships** — reordering,
+grammar, effect values, and text on entries already present under the system's
+MÖRK BORG 3rd-party license. It does **not** add content that is absent from the
+system (full naval rules, ASH market/consumption tables, bestiary), since that
+would introduce new licensed material. Content printed on the free Pirate Borg
+quick-start character sheet is a defensible source if scope is ever expanded —
+provide the sheet and it can be treated as allowed.
 
 ## Book page references (dual-edition)
 
