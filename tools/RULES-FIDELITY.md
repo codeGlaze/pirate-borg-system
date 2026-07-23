@@ -37,16 +37,16 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 
 ## Classes
 
-| Class                                                   | Rulebook  | Status                                        |
-| ------------------------------------------------------- | --------- | --------------------------------------------- |
-| Brute — stats, trusted weapon (d6), getting better (d6) | pg. 34–35 | ✅                                            |
-| Rapscallion — stats, features (d6), 54-card deck        | pg. 36–37 | ✅                                            |
-| Buccaneer — stats, features (d6)                        | pg. 38–39 | ✅ (10+Presence ammo not modeled — see below) |
-| Swashbuckler — stats, starting + getting-better (d6)    | pg. 40–41 | ✅                                            |
-| Zealot — stats, prayers (d10), deity (d8)               | pg. 42–43 | ✅                                            |
-| Sorcerer — stats, spells (d6)                           | pg. 44–45 | ✅ (spell d6-order cosmetic; random-learn)    |
-| Haunted Soul — ailments (d6)                            | pg. 46–47 | ✅                                            |
-| Tall Tale — Merfolk / Aquatic Mutant (d8) / animals     | pg. 48–49 | ⚠️ Sentient Animal d6 order differs           |
+| Class                                                   | Rulebook  | Status                                      |
+| ------------------------------------------------------- | --------- | ------------------------------------------- |
+| Brute — stats, trusted weapon (d6), getting better (d6) | pg. 34–35 | ✅                                          |
+| Rapscallion — stats, features (d6), 54-card deck        | pg. 36–37 | ✅                                          |
+| Buccaneer — stats, features (d6)                        | pg. 38–39 | ✅ (10+Presence ammo now modeled)           |
+| Swashbuckler — stats, starting + getting-better (d6)    | pg. 40–41 | ✅                                          |
+| Zealot — stats, prayers (d10), deity (d8)               | pg. 42–43 | ✅                                          |
+| Sorcerer — stats, spells (d6)                           | pg. 44–45 | ✅ (spell d6-order cosmetic; random-learn)  |
+| Haunted Soul — ailments (d6)                            | pg. 46–47 | ✅                                          |
+| Tall Tale — Merfolk / Aquatic Mutant (d8) / animals     | pg. 48–49 | 🔧 Sentient Animal d6 reordered (`47dfbcb`) |
 
 ## GM / other
 
@@ -59,15 +59,17 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 
 ## Corrections applied
 
-| #   | Entry                  | Was                     | Now (2e)               | Commit    |
-| --- | ---------------------- | ----------------------- | ---------------------- | --------- |
-| 1   | Backgrounds 24/25      | 24 Bandit, 25 Assassin  | 24 Assassin, 25 Bandit | `c380d70` |
-| 2   | Thing of Importance 90 | "2 loved one, 3 enemy"  | "2 enemy, 3 loved one" | `c380d70` |
-| 3   | Thing of Importance 84 | "(rum, powder, ashes)"  | "…, ASH)"              | `c380d70` |
-| 4   | Idiosyncrasy 5         | "Rats is…"              | "Rats are…"            | `c380d70` |
-| 5   | Ritual Mermaid's Kiss  | +STR/AGI/TOU/**PRE**    | +STR/AGI/TOU           | `7e1fa53` |
-| 6   | Ritual The Black Spot  | die within d8 **hours** | d8 **days**            | `7e1fa53` |
-| 7   | Relic Heart of the Sea | 30 **square** ft fog    | 30 **cubic** ft fog    | `7e1fa53` |
+| #   | Entry                        | Was                            | Now (2e)                       | Commit    |
+| --- | ---------------------------- | ------------------------------ | ------------------------------ | --------- |
+| 1   | Backgrounds 24/25            | 24 Bandit, 25 Assassin         | 24 Assassin, 25 Bandit         | `c380d70` |
+| 2   | Thing of Importance 90       | "2 loved one, 3 enemy"         | "2 enemy, 3 loved one"         | `c380d70` |
+| 3   | Thing of Importance 84       | "(rum, powder, ashes)"         | "…, ASH)"                      | `c380d70` |
+| 4   | Idiosyncrasy 5               | "Rats is…"                     | "Rats are…"                    | `c380d70` |
+| 5   | Ritual Mermaid's Kiss        | +STR/AGI/TOU/**PRE**           | +STR/AGI/TOU                   | `7e1fa53` |
+| 6   | Ritual The Black Spot        | die within d8 **hours**        | d8 **days**                    | `7e1fa53` |
+| 7   | Relic Heart of the Sea       | 30 **square** ft fog           | 30 **cubic** ft fog            | `7e1fa53` |
+| 8   | Tall Tale Sentient Animal d6 | 2 Croc/3 Parrot/4 Jaguar/5 Rat | 2 Jaguar/3 Croc/4 Rat/5 Parrot | `47dfbcb` |
+| 9   | Starting rounds of shot      | flat 10 / 20 default           | 10 + Presence                  | `47dfbcb` |
 
 Notes:
 
@@ -76,13 +78,9 @@ Notes:
   description; nothing lost. Guarded by a test.
 - Mermaid's Kiss / Black Spot: no published edition or errata supports the old
   values, so treated as system transcription errors, not intentional.
-- Buccaneer (and any ranged starting weapon) grants "10 + Presence rounds of
-  shot" in the book; the system gives a flat 10 (the table override) / 20 (the
-  ammo item default). The `+ Presence` scaling is not modeled. Open item.
-- Tall Tale "Sentient Animal" (d6): all six animals and their stat blocks match,
-  but the d6 slot order differs from the book (system 2 Crocodile / 3 Lucky
-  Parrot / 4 Jaguar / 5 Bilge Rat vs book 2 Jaguar / 3 Crocodile / 4 Bilge Rat /
-  5 Lucky Parrot). Cosmetic for name-based/random selection. Open item.
+- ASH in Thing of Importance 84: almost certainly a 2e addition (the system is
+  otherwise 1e-faithful and ASH is 2e's central setting concept), so adding it
+  correctly moves the entry to 2e.
 
 ## Book page references (dual-edition)
 
