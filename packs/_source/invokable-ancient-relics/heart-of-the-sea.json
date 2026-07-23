@@ -8,7 +8,7 @@
   "sort": 0,
   "flags": {},
   "system": {
-    "description": "<p>Create or destroy 15 gallons water or 30 square feet of fog.</p>",
+    "description": "<p>Create or destroy 15 gallons water or 30 cubic feet of fog.</p>",
     "containerSpace": 1,
     "carryWeight": 1,
     "equipped": false,

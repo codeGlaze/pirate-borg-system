@@ -113,7 +113,7 @@
   "sort": 0,
   "flags": {},
   "system": {
-    "description": "<p>A creature gains +1 to strength, agility, toughness, &amp; presence for d4 days.</p>\n<p><strong>Usage:</strong> Drag effects to target creature, then roll 1d4 and set duration in days (1 day = 86400 seconds) on the target's Effects tab.</p>",
+    "description": "<p>A creature gains +1 to strength, agility, &amp; toughness for d4 days.</p>",
     "containerSpace": 0,
     "carryWeight": 0,
     "equipped": false,

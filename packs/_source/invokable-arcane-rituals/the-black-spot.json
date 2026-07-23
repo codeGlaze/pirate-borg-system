@@ -8,7 +8,7 @@
   "sort": 0,
   "flags": {},
   "system": {
-    "description": "<p>Name a human you have met. They must test DR12 or die within d8 hours.</p>",
+    "description": "<p>Name a human you have met. They must test DR12 or die within d8 days.</p>",
     "containerSpace": 0,
     "carryWeight": 0,
     "equipped": false,

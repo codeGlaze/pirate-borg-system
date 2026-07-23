@@ -37,3 +37,19 @@ test("Thing of Importance 65 tattoo keeps its d4 sub-table in the item (pg. 61)"
   const tattoo = readJson("packs/_source/feature-thing-of-importance/tattoo.json");
   assert.match(tattoo.system.description, /d4: 1 love, 2 revenge, 3 ancestors, 4 unknown origin/);
 });
+
+test("Ritual Mermaid's Kiss buffs 3 abilities, not presence (pg. 65)", () => {
+  const r = readJson("packs/_source/invokable-arcane-rituals/mermaids-kiss.json");
+  assert.match(r.system.description, /strength, agility, &amp; toughness/);
+  assert.doesNotMatch(r.system.description, /presence/i);
+});
+
+test("Ritual The Black Spot kills within d8 days, not hours (pg. 65)", () => {
+  const r = readJson("packs/_source/invokable-arcane-rituals/the-black-spot.json");
+  assert.match(r.system.description, /die within d8 days/);
+});
+
+test("Relic Heart of the Sea makes cubic feet of fog (pg. 63)", () => {
+  const r = readJson("packs/_source/invokable-ancient-relics/heart-of-the-sea.json");
+  assert.match(r.system.description, /30 cubic feet of fog/);
+});
