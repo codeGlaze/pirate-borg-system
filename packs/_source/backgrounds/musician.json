@@ -20,7 +20,7 @@
     "duplicateSource": null
   },
   "system": {
-    "description": "<p>2d6 x 10s &amp; [roll on instrument table, pg. 11]</p>",
+    "description": "<p>2d6 x 10s &amp; [roll on instrument table, 2e pg. 27 / 1e pg. 11]</p>",
     "startingGold": "2d6 * 10",
     "quantity": 1,
     "startingBonusItems": "",

@@ -37,7 +37,7 @@
     {
       "_id": "Embwdb2C5UI1jgni",
       "type": "text",
-      "text": "A wraith appears, the ghost of an old captain. Roll reaction for it (pg. 30). It leaves after d6 rounds.",
+      "text": "A wraith appears, the ghost of an old captain. Roll reaction for it (2e pg. 31 / 1e pg. 30). It leaves after d6 rounds.",
       "weight": 1,
       "range": [
         3,
@@ -52,7 +52,7 @@
     {
       "_id": "ltqNG4HEqBJ6vTcs",
       "type": "text",
-      "text": "You are possessed by an ancient, arcane spirit for [[d4]] rounds. Roll reaction (pg. 30) to see how it behaves to others.",
+      "text": "You are possessed by an ancient, arcane spirit for [[d4]] rounds. Roll reaction (2e pg. 31 / 1e pg. 30) to see how it behaves to others.",
       "weight": 1,
       "range": [
         4,
