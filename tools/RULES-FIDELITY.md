@@ -53,24 +53,25 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 | Content                                 | Status                                       |
 | --------------------------------------- | -------------------------------------------- |
 | Reaction, Morale, Fumble (black powder) | ✅ (spot-checked)                            |
-| Mystical Mishaps (d20, full effects)    | ✅ (one minor #18 wording nuance — see note) |
+| Mystical Mishaps (d20, full effects)    | 🔧 #18 wording aligned (`PENDING`)           |
 | Grenades & Bombs (d6, names + damage)   | ✅                                           |
 | Ship: Derelict Takes Damage             | ❔ not in the compared PDF — unverified      |
 | Ship: full naval rules, ASH tables      | ⛔ not in the system (do not add — see note) |
 
 ## Corrections applied
 
-| #   | Entry                        | Was                            | Now (2e)                       | Commit    |
-| --- | ---------------------------- | ------------------------------ | ------------------------------ | --------- |
-| 1   | Backgrounds 24/25            | 24 Bandit, 25 Assassin         | 24 Assassin, 25 Bandit         | `c380d70` |
-| 2   | Thing of Importance 90       | "2 loved one, 3 enemy"         | "2 enemy, 3 loved one"         | `c380d70` |
-| 3   | Thing of Importance 84       | "(rum, powder, ashes)"         | "…, ASH)"                      | `c380d70` |
-| 4   | Idiosyncrasy 5               | "Rats is…"                     | "Rats are…"                    | `c380d70` |
-| 5   | Ritual Mermaid's Kiss        | +STR/AGI/TOU/**PRE**           | +STR/AGI/TOU                   | `7e1fa53` |
-| 6   | Ritual The Black Spot        | die within d8 **hours**        | d8 **days**                    | `7e1fa53` |
-| 7   | Relic Heart of the Sea       | 30 **square** ft fog           | 30 **cubic** ft fog            | `7e1fa53` |
-| 8   | Tall Tale Sentient Animal d6 | 2 Croc/3 Parrot/4 Jaguar/5 Rat | 2 Jaguar/3 Croc/4 Rat/5 Parrot | `47dfbcb` |
-| 9   | Starting rounds of shot      | flat 10 / 20 default           | 10 + Presence                  | `47dfbcb` |
+| #   | Entry                        | Was                            | Now (2e)                                         | Commit    |
+| --- | ---------------------------- | ------------------------------ | ------------------------------------------------ | --------- |
+| 1   | Backgrounds 24/25            | 24 Bandit, 25 Assassin         | 24 Assassin, 25 Bandit                           | `c380d70` |
+| 2   | Thing of Importance 90       | "2 loved one, 3 enemy"         | "2 enemy, 3 loved one"                           | `c380d70` |
+| 3   | Thing of Importance 84       | "(rum, powder, ashes)"         | "…, ASH)"                                        | `c380d70` |
+| 4   | Idiosyncrasy 5               | "Rats is…"                     | "Rats are…"                                      | `c380d70` |
+| 5   | Ritual Mermaid's Kiss        | +STR/AGI/TOU/**PRE**           | +STR/AGI/TOU                                     | `7e1fa53` |
+| 6   | Ritual The Black Spot        | die within d8 **hours**        | d8 **days**                                      | `7e1fa53` |
+| 7   | Relic Heart of the Sea       | 30 **square** ft fog           | 30 **cubic** ft fog                              | `7e1fa53` |
+| 8   | Tall Tale Sentient Animal d6 | 2 Croc/3 Parrot/4 Jaguar/5 Rat | 2 Jaguar/3 Croc/4 Rat/5 Parrot                   | `47dfbcb` |
+| 9   | Starting rounds of shot      | flat 10 / 20 default           | 10 + Presence                                    | `47dfbcb` |
+| 10  | Mystical Mishap 18 (crabs)   | "extra -2 armor"               | "-d2 damage reduction (does not count as armor)" | `PENDING` |
 
 Notes:
 
@@ -82,8 +83,12 @@ Notes:
 - ASH in Thing of Importance 84: almost certainly a 2e addition (the system is
   otherwise 1e-faithful and ASH is 2e's central setting concept), so adding it
   correctly moves the entry to 2e.
-- Mystical Mishap 18: system reads "extra -2 armor"; the book reads "-d2 damage
-  reduction (does not count as armor)". Minor wording (likely 1e); left as-is.
+- Mystical Mishap 18: aligned to the book's "-d2 damage reduction (does not
+  count as armor)". This is also _more_ modellable than the old "-2 armor": the
+  defend dialog's armor field is a free-text roll formula, so a defending player
+  adds `+ 1d2` to their damage reduction — the same way the system's existing
+  "extra protection in addition to armor" relics (Crown of the Sunken Lord,
+  Spiritual Ward) are applied.
 - Ammo model: the book's shop list sells "20 rounds of shot — 10s", so the ammo
   item's default quantity of 20 (a purchase) is correct and distinct from the
   "10 + Presence" a character starts play with (correction #9).

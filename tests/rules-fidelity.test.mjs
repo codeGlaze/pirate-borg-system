@@ -54,6 +54,12 @@ test("Relic Heart of the Sea makes cubic feet of fog (pg. 63)", () => {
   assert.match(r.system.description, /30 cubic feet of fog/);
 });
 
+test("Mystical Mishap 18 crabs give -d2 damage reduction, not armor (pg. 67)", () => {
+  const d = readJson("packs/_source/rolls-gamemaster/mystical-mishaps.json");
+  const r = d.results.find((res) => res.range[0] === 18);
+  assert.match(r.text, /-d2 damage reduction \(does not count as armor\)/);
+});
+
 test("Tall Tale Sentient Animal d6 matches book order (pg. 48-49)", () => {
   const d = readJson("packs/_source/rolls-tall-tale/sentient-animal.json");
   const order = d.results

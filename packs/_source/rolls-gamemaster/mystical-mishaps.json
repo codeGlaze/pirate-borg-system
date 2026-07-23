@@ -262,7 +262,7 @@
     {
       "_id": "NjmuCwU085Vlfnor",
       "type": "text",
-      "text": "Hundreds of tiny crabs swarm you. They are harmless, and provide an extra -2 armor. They leave after [[d6]] days, but return every full moon.",
+      "text": "Hundreds of tiny crabs swarm you. They are harmless, and provide an extra -d2 damage reduction (does not count as armor). They leave after [[d6]] days, but return every full moon.",
       "weight": 1,
       "range": [
         18,
