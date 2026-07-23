@@ -37,16 +37,16 @@ Legend: ✅ matches · 🔧 corrected (see commit) · ⏳ not yet compared
 
 ## Classes
 
-| Class                                                   | Rulebook  | Status |
-| ------------------------------------------------------- | --------- | ------ |
-| Brute — stats, trusted weapon (d6), getting better (d6) | pg. 34–35 | ✅     |
-| Rapscallion                                             | pg. 36–37 | ⏳     |
-| Buccaneer                                               | pg. 38–39 | ⏳     |
-| Swashbuckler                                            | pg. 40–41 | ⏳     |
-| Zealot                                                  | pg. 42–43 | ⏳     |
-| Sorcerer                                                | pg. 44–45 | ⏳     |
-| Haunted Soul (optional)                                 | pg. 46–47 | ⏳     |
-| Tall Tale (optional)                                    | pg. 48–49 | ⏳     |
+| Class                                                   | Rulebook  | Status                                        |
+| ------------------------------------------------------- | --------- | --------------------------------------------- |
+| Brute — stats, trusted weapon (d6), getting better (d6) | pg. 34–35 | ✅                                            |
+| Rapscallion — stats, features (d6), 54-card deck        | pg. 36–37 | ✅                                            |
+| Buccaneer — stats, features (d6)                        | pg. 38–39 | ✅ (10+Presence ammo not modeled — see below) |
+| Swashbuckler — stats, starting + getting-better (d6)    | pg. 40–41 | ✅                                            |
+| Zealot — stats, prayers (d10), deity (d8)               | pg. 42–43 | ✅                                            |
+| Sorcerer — stats, spells (d6)                           | pg. 44–45 | ✅ (spell d6-order cosmetic; random-learn)    |
+| Haunted Soul — ailments (d6)                            | pg. 46–47 | ✅                                            |
+| Tall Tale — Merfolk / Aquatic Mutant (d8) / animals     | pg. 48–49 | ⚠️ Sentient Animal d6 order differs           |
 
 ## GM / other
 
@@ -76,6 +76,13 @@ Notes:
   description; nothing lost. Guarded by a test.
 - Mermaid's Kiss / Black Spot: no published edition or errata supports the old
   values, so treated as system transcription errors, not intentional.
+- Buccaneer (and any ranged starting weapon) grants "10 + Presence rounds of
+  shot" in the book; the system gives a flat 10 (the table override) / 20 (the
+  ammo item default). The `+ Presence` scaling is not modeled. Open item.
+- Tall Tale "Sentient Animal" (d6): all six animals and their stat blocks match,
+  but the d6 slot order differs from the book (system 2 Crocodile / 3 Lucky
+  Parrot / 4 Jaguar / 5 Bilge Rat vs book 2 Jaguar / 3 Crocodile / 4 Bilge Rat /
+  5 Lucky Parrot). Cosmetic for name-based/random selection. Open item.
 
 ## Book page references (dual-edition)
 
