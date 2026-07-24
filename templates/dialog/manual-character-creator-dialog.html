@@ -51,7 +51,7 @@
       {{#each abilities as |ability|}}
         <div class="manual-ability">
           <label>{{ability.label}}</label>
-          <input type="number" class="ability-input" data-ability="{{ability.key}}" value="{{ability.value}}" step="1" />
+          <input type="number" class="ability-input" data-ability="{{ability.key}}" value="{{ability.value}}" step="1" placeholder="{{localize "PB.ManualCharacterRandom"}}" />
         </div>
       {{/each}}
     </div>

@@ -33,7 +33,9 @@ class ManualCharacterCreatorDialog extends Application {
     this.selection = {
       classPack: null,
       name: "",
-      abilities: { strength: 0, agility: 0, presence: 0, toughness: 0, spirit: 0 },
+      // Blank by default: an untouched ability is rolled with the class bonus
+      // (like the Tavern), rather than forced to a literal 0.
+      abilities: { strength: "", agility: "", presence: "", toughness: "", spirit: "" },
       hitPoints: "",
       luck: "",
       silver: "",
@@ -80,7 +82,7 @@ class ManualCharacterCreatorDialog extends Application {
       abilities: ABILITY_KEYS.map((key) => ({
         key,
         label: game.i18n.localize(`PB.Ability${key.charAt(0).toUpperCase()}${key.slice(1)}`),
-        value: this.selection.abilities[key] ?? 0,
+        value: this.selection.abilities[key] ?? "",
       })),
       hitPoints: this.selection.hitPoints,
       luck: this.selection.luck,
@@ -339,7 +341,7 @@ class ManualCharacterCreatorDialog extends Application {
     this.selection.classPack = $form.find(".class-select").val() || this.selection.classPack;
     this.selection.name = $form.find(".name-input").val() ?? "";
     for (const key of ABILITY_KEYS) {
-      this.selection.abilities[key] = $form.find(`.ability-input[data-ability="${key}"]`).val() ?? 0;
+      this.selection.abilities[key] = $form.find(`.ability-input[data-ability="${key}"]`).val() ?? "";
     }
     this.selection.hitPoints = $form.find(".hp-input").val() ?? "";
     this.selection.luck = $form.find(".luck-input").val() ?? "";

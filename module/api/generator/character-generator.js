@@ -494,18 +494,19 @@ export const buildCharacter = async (cls, choices = {}) => {
 
   const name = choices.name ? choices.name : await rollName();
 
-  let abilities;
-  if (choices.abilities) {
-    abilities = {
-      strength: Number(choices.abilities.strength) || 0,
-      agility: Number(choices.abilities.agility) || 0,
-      presence: Number(choices.abilities.presence) || 0,
-      toughness: Number(choices.abilities.toughness) || 0,
-      spirit: Number(choices.abilities.spirit) || 0,
-    };
-  } else {
-    abilities = await rollAbilities(cls);
-  }
+  // Each ability is used verbatim only when a value was chosen; otherwise it is
+  // rolled with the class' bonus (so a blank field behaves like the Tavern and
+  // reflects the class, rather than staying a literal 0).
+  const abilityChoices = choices.abilities ?? {};
+  const rollOrUseAbility = async (key, bonus) =>
+    isNumericChoice(abilityChoices[key]) ? Number(abilityChoices[key]) : rollAbility(cls.startingAbilityScoreFormula, bonus);
+  const abilities = {
+    strength: await rollOrUseAbility("strength", cls.startingStrengthBonus),
+    agility: await rollOrUseAbility("agility", cls.startingAgilityBonus),
+    presence: await rollOrUseAbility("presence", cls.startingPresenceBonus),
+    toughness: await rollOrUseAbility("toughness", cls.startingToughnessBonus),
+    spirit: await rollOrUseAbility("spirit", cls.startingSpiritBonus),
+  };
 
   const luck = isNumericChoice(choices.luck) ? Number(choices.luck) : await rollLuck(cls.luckDie);
   const hitPoints = isNumericChoice(choices.hitPoints) ? Number(choices.hitPoints) : await rollHitPoints(cls.startingHitPoints, abilities.toughness);
