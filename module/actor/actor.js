@@ -592,6 +592,32 @@ export class PBActor extends Actor {
   }
 
   /**
+   * Natural armor tier — a floor on damage reduction independent of worn armor
+   * (e.g. the Brute's "Thick Skinned" = tier 1). Driven by an Active Effect on
+   * `system.attributes.naturalArmorTier.value`.
+   *
+   * @return {Number}
+   */
+  get naturalArmorTier() {
+    return this.attributes?.naturalArmorTier?.value ?? 0;
+  }
+
+  /**
+   * The character's effective damage-reduction die: the better of worn armor and
+   * natural armor. The tier is the single source of truth — an Active Effect
+   * raises the tier and the die follows from the shared armor-tier ladder.
+   *
+   * @return {String}
+   */
+  getCharacterArmorFormula() {
+    const armorTierModifier = this.attributes?.combat?.armorTierModifier || 0;
+    const baseTier = Math.max(this.equippedArmor?.tier?.value ?? 0, this.naturalArmorTier);
+    const maxTier = Math.max(0, CONFIG.PB.armorTiers.length - 1);
+    const effectiveTier = Math.max(0, Math.min(maxTier, baseTier + armorTierModifier));
+    return CONFIG.PB.armorTiers[effectiveTier].damageReductionDie;
+  }
+
+  /**
    * @return {Number}
    */
   get carryingWeight() {
@@ -790,17 +816,8 @@ export class PBActor extends Actor {
    */
   getActorArmorFormula() {
     switch (this.type) {
-      case CONFIG.PB.actorTypes.character: {
-        const baseArmor = this.equippedArmor;
-        if (!baseArmor) return "0";
-
-        // Calculate effective armor tier with modifiers
-        const baseTier = baseArmor.tier.value;
-        const armorTierModifier = this.attributes?.combat?.armorTierModifier || 0;
-        const effectiveTier = Math.max(0, Math.min(3, baseTier + armorTierModifier));
-
-        return CONFIG.PB.armorTiers[effectiveTier].damageReductionDie;
-      }
+      case CONFIG.PB.actorTypes.character:
+        return this.getCharacterArmorFormula();
       case CONFIG.PB.actorTypes.vehicle_npc:
       case CONFIG.PB.actorTypes.vehicle:
         return CONFIG.PB.armorTiers[this.attributes.hull.value].damageReductionDie;

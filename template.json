@@ -124,6 +124,9 @@
         },
         "reloadModifier": {
           "value": 0
+        },
+        "naturalArmorTier": {
+          "value": 0
         }
       }
     },

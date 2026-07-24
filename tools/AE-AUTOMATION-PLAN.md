@@ -48,15 +48,19 @@ weapon keeps `reloadTime: 2` and the perk is text only.
   `stepToDie` / `stepDie` (tested). This is the single-source-of-truth helper:
   a numeric step an AE can move, deriving the die (e.g. `stepDie("1d2", +1)` →
   `"1d4"`).
-- ⏸ **Held pending Phase 1 verification** (below): the natural-armor-tier
-  defense change touches core combat and its Thick-Skinned grant uses the same
-  item→actor AE transfer as the reload effect. Confirm reload applies in a live
-  world first, then:
-- Add `system.attributes.naturalArmorTier.value` (step). Defense damage
-  reduction = ladder[max(equippedArmorTier, naturalArmorTier)].
-- Automate **Brute "Thick Skinned"** (natural tier 1) as an AE, and make **crit
-  "armor −1 tier"** derive from the tier step. Demonstrates the AE picking up a
-  die change (d2→d4…) via the single source of truth.
+- ✅ **Natural armor tier** — `system.attributes.naturalArmorTier.value` added
+  to the character schema. `PBActor.getCharacterArmorFormula()` derives the
+  damage-reduction die from `armorTiers[max(equippedTier, naturalArmorTier)]`,
+  and both armor-die spots (`getActorArmorFormula` when targeted, `_getDefendArmor`
+  when defending) use it. Default 0 → identical to before for everyone without
+  a natural tier.
+- ✅ **Brute "Thick Skinned"** — the feature item carries a transfer AE that
+  `UPGRADE`s `naturalArmorTier` to 1, so an unarmored Brute counts as light armor
+  (-d2). Tested. This is the tier-as-single-source-of-truth demo: the AE moves a
+  number, the die follows.
+- ⏳ **Crit "armor −1 tier"** — deferred to Phase 2b. This is the defender-side,
+  persistent reduction (like a fumble damaging your own armor), cross-actor and
+  higher-risk. When done it will use `dice-ladder.stepDie(armorDie, -1)`.
 
 ### Phase 3 — case-by-case flat feature AEs
 

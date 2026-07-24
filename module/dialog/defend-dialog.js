@@ -54,7 +54,7 @@ class DefendDialog extends Application {
   }
 
   async _getDefendArmor() {
-    return (await getSystemFlag(this.actor, CONFIG.PB.flags.DEFEND_ARMOR)) ?? this.actor.equippedArmor?.damageReductionDie ?? 0;
+    return (await getSystemFlag(this.actor, CONFIG.PB.flags.DEFEND_ARMOR)) ?? this.actor.getCharacterArmorFormula();
   }
 
   async _getIncomingAttack() {
