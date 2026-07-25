@@ -632,7 +632,10 @@ export class PBActor extends Actor {
   getCharacterArmorFormula() {
     const armorTierModifier = this.attributes?.combat?.armorTierModifier || 0;
     const baseTier = Math.max(this.equippedArmor?.tier?.value ?? 0, this.naturalArmorTier);
-    const maxTier = Math.max(0, CONFIG.PB.armorTiers.length - 1);
+    const tierKeys = Object.keys(CONFIG.PB.armorTiers ?? {})
+      .map((k) => Number(k))
+      .filter(Number.isFinite);
+    const maxTier = tierKeys.length ? Math.max(...tierKeys) : 0;
     const effectiveTier = Math.max(0, Math.min(maxTier, baseTier + armorTierModifier));
     return CONFIG.PB.armorTiers[effectiveTier].damageReductionDie;
   }
