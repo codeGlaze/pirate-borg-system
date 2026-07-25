@@ -39,6 +39,41 @@ derived value follows. Single source of truth.
 | Shakespeare of Insults | Swashbuckler | +1 all damage rolls | ⛔ | AE → a new `damageModifier` field the damage roll reads (med) |
 | Dazzling Acrobatics | Swashbuckler | +2 Agility *when defending* | ⛔ | conditional — AE a `defenseAgilityModifier` the defend flow reads (med) |
 
+## Tracking & reversal (the "remove it if the feature is removed" problem)
+
+Adding a boost is easy; the hard part is **reversing it exactly when the feature
+is removed** — doubly so because part is random (Survivalist's +d4 HP). A naïve
+"subtract a d4" is wrong; you must remove the *specific* amount granted. The
+answer is not a bespoke ledger — it's **Active Effects as the tracker**:
+
+- A **transfer AE on the feature item** applies its change to the actor and is
+  **removed automatically when the item is deleted** (verified: `carryingModifier`,
+  `reloadModifier`, `naturalArmorTier` all work this way). So reversal is free and
+  exact — no separate bookkeeping.
+- **Fixed numeric** (e.g. +1 Toughness) → a static AE change on the feature.
+  Ability-score AEs are already first-class here: `character-get-better-action`
+  subtracts AE modifiers before re-rolling, so nothing double-counts.
+- **Random numeric** (e.g. +d4 HP) → the compendium can't hold a rolled value, so
+  **roll once when the feature is gained and write the result into the embedded
+  item's AE change value.** The AE now stores the exact amount granted → deleting
+  the feature reverts exactly that. The AE *is* the ledger.
+- **Stacking** (Survivalist ×2): keep an `appliedCount` flag on the item; when
+  `quantity` rises, roll the delta, add it into the AE value, bump the count.
+  Removing the whole feature drops the whole AE (all copies revert together).
+- `hp.max` is a safe AE target (not recomputed in prep); current HP is left alone,
+  which matches the book ("you must rest or heal to increase current HP").
+
+**Item grants** (rations, a bayonet, lock picks) aren't field changes, so AEs
+don't apply. Track them by stamping each granted item with
+`flags.pirateborg.grantedBy = <featureId>` and removing those on a `deleteItem`
+hook for the source feature. The random quantity is already stored on the item,
+so removal is exact there too.
+
+Net: **one on-gain handler** (roll randoms → write into the item's AE / stamp
+granted items) plus **core AE auto-revert** covers add *and* remove for the whole
++stat/+HP/grant family. Build it once, reuse for Survivalist, Sea Turtle, the
+grants, etc.
+
 ## B. One-time boost applied on gain — *your Survivalist case*
 
 Permanent +stat/+HP the moment you gain the feature; then inert. Needs
