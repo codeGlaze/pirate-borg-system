@@ -41,6 +41,11 @@ weapon keeps `reloadTime: 2` and the perk is text only.
 - Reload + post-fire reload-reset logic read the effective time.
 - The Buccaneer class item carries a transfer AE: `reloadModifier` `ADD` 1.
 - Tests for `getEffectiveReloadTime`; CHANGELOG entry.
+- **Retired the "Fast loading musket" starting macro** (`macros-buccaneer/`),
+  the reload twin of Thick Skin's phantom item. It mutated only the single
+  starting Musket's `reloadTime` 2→1 (a looted Musket still reloaded in 2) and
+  rewrote its description in place. The AE supersedes it for every black-powder
+  weapon, so the macro is deleted and the class' `startingMacro` cleared.
 
 ### Phase 2 — dice-ladder + natural armor tier
 
