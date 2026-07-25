@@ -78,19 +78,19 @@ const sameChanges = (a = [], b = []) =>
  *
  * @param {PBItem} item
  */
-export const reconcileFeatureGrant = async (item) => {
+export const reconcileFeatureGrant = async (item, { silent = false } = {}) => {
   if (!hasGrant(item) || !item.parent || reconciling.has(item.id)) {
     return;
   }
   reconciling.add(item.id);
   try {
-    await reconcileGrantInner(item);
+    await reconcileGrantInner(item, silent);
   } finally {
     reconciling.delete(item.id);
   }
 };
 
-const reconcileGrantInner = async (item) => {
+const reconcileGrantInner = async (item, silent) => {
   const spec = item.system.onGain;
   const scope = CONFIG.PB.flagScope;
   const quantity = Math.max(1, item.system.quantity || 1);
@@ -99,7 +99,6 @@ const reconcileGrantInner = async (item) => {
   const rolls = existingRolls.slice(0, quantity);
   if (spec.maxHp) {
     while (rolls.length < quantity) {
-       
       rolls.push((await evaluateFormula(spec.maxHp, item.parent.getRollData?.() ?? {})).total);
     }
   }
@@ -128,7 +127,9 @@ const reconcileGrantInner = async (item) => {
     ]);
   }
 
-  await postGrantFeedback(item, spec, existingRolls, rolls, quantity, !effect);
+  if (!silent) {
+    await postGrantFeedback(item, spec, existingRolls, rolls, quantity, !effect);
+  }
 };
 
 /**
@@ -186,9 +187,9 @@ export const registerFeatureGrantHooks = () => {
     return false; // cancel the duplicate — the existing feature absorbed it
   });
 
-  const onChange = (item, _change, _options, userId) => {
-    if (game.user?.id !== userId) {
-      return;
+  const onChange = (item, _change, options, userId) => {
+    if (game.user?.id !== userId || options?.pbMigration) {
+      return; // migration reconciles explicitly (and silently)
     }
     if (item?.type !== CONFIG.PB.itemTypes.feature || !item.parent || !hasGrant(item)) {
       return;

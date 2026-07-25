@@ -1,6 +1,7 @@
 import { createPirateBorgMacro } from "./api/macros.js";
 import { migrate } from "./system/migrate.js";
 import { registerFeatureGrantHooks } from "./system/feature-grants.js";
+import { migrateFeatureMechanics } from "./system/feature-migration.js";
 import { configureHandlebar } from "./system/configure-handlebar.js";
 import { configureSystem } from "./system/configure-system.js";
 import { renderCombatTracker } from "./system/render-combat-tracker.js";
@@ -73,6 +74,7 @@ Hooks.once("init", async () => {
 
 Hooks.once("ready", () => {
   migrate();
+  migrateFeatureMechanics();
   showHelpDialogOnStartup();
   configureAutomation();
   registerEnricherClickHandlers();
