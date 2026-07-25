@@ -24,8 +24,8 @@
     "featureType": "Class",
     "maxQuantity": 2,
     "quantity": 1,
-    "actionMacro": "pirateborg.macros-pirateborg;Generic Item",
-    "actionMacroLabel": "Use",
+    "actionMacro": "pirateborg.macros-pirateborg;Cook rations",
+    "actionMacroLabel": "Cook",
     "startingBonusItems": "",
     "startingBonusRolls": "",
     "flavorText": ""

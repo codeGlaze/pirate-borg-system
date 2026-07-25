@@ -1,0 +1,25 @@
+{
+  "_id": "bccnCookStock001",
+  "name": "Stock Buccan Cook rations",
+  "type": "script",
+  "author": "pdXclp2r5tiEF79G",
+  "img": "icons/svg/dice-target.svg",
+  "scope": "global",
+  "command": "// Grants Buccan Cook's starting d8 rations of Exquisite smoked meat, exactly once.\n// Runs from the Buccaneer's starting and getting-better macros; a flag on the\n// feature keeps a level-up (or eating all your meat) from re-stocking it.\nconst MEAT = \"Exquisite smoked meat\";\nconst cook = actor.items.find((i) => i.type === \"feature\" && i.name === \"Buccan Cook\");\nif (!cook) return;\n\nconst flagScope = CONFIG.PB.flagScope;\nif (await cook.getFlag(flagScope, \"rationsStocked\")) return;\n\nconst total = (await game.pirateborg.api.utils.evaluateFormula(\"1d8\", actor.getRollData())).total;\nconst existing = actor.items.find((i) => i.name === MEAT);\nif (existing) {\n  await existing.update({ \"system.quantity\": (existing.system.quantity || 0) + total });\n} else {\n  const meat = await game.pirateborg.api.compendium.findCompendiumItem(\"pirateborg.class-buccaneer\", MEAT);\n  if (!meat) return;\n  const data = meat.toObject(false);\n  data.system.quantity = total;\n  await actor.createEmbeddedDocuments(\"Item\", [data]);\n}\nawait cook.setFlag(flagScope, \"rationsStocked\", true);",
+  "folder": null,
+  "sort": 0,
+  "flags": {},
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "systemId": "pirateborg",
+    "systemVersion": "v0.4.2",
+    "coreVersion": "12.331",
+    "createdTime": null,
+    "modifiedTime": null,
+    "lastModifiedBy": "pbbuilder0000000",
+    "duplicateSource": null
+  },
+  "_key": "!macros!bccnCookStock001"
+}

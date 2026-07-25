@@ -1,0 +1,25 @@
+{
+  "_id": "bccnCookCook0001",
+  "name": "Cook rations",
+  "type": "script",
+  "author": "pdXclp2r5tiEF79G",
+  "img": "icons/svg/dice-target.svg",
+  "scope": "global",
+  "command": "const showGenericCard = game.pirateborg.api.showGenericCard;\nconst rollOutcome = game.pirateborg.api.outcomes.rollOutcome;\nconst MEAT = \"Exquisite smoked meat\";\n\n// Buccan Cook lets you make d4 more rations from any edible animal you kill. The\n// system can't know when you've made a kill, so this is a button you press then.\nconst outcome = await rollOutcome({ formula: \"1d4\", formulaLabel: \"1d4 rations\", data: actor.getRollData() })();\nconst made = Math.max(1, outcome.roll.total);\n\nconst existing = actor.items.find((i) => i.name === MEAT);\nif (existing) {\n  await existing.update({ \"system.quantity\": (existing.system.quantity || 0) + made });\n} else {\n  const meat = await game.pirateborg.api.compendium.findCompendiumItem(\"pirateborg.class-buccaneer\", MEAT);\n  if (!meat) {\n    ui.notifications?.warn?.(`Could not find \"${MEAT}\" in the compendium.`);\n    return;\n  }\n  const data = meat.toObject(false);\n  data.system.quantity = made;\n  await actor.createEmbeddedDocuments(\"Item\", [data]);\n}\n\noutcome.title = `+${made} ration${made === 1 ? \"\" : \"s\"}`;\nawait showGenericCard({\n  actor,\n  title: \"Cook rations\",\n  description: `You butcher and smoke your kill, making ${made} ration${made === 1 ? \"\" : \"s\"} of ${MEAT}.`,\n  outcomes: [outcome],\n});",
+  "folder": null,
+  "sort": 0,
+  "flags": {},
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "systemId": "pirateborg",
+    "systemVersion": "v0.4.2",
+    "coreVersion": "12.331",
+    "createdTime": null,
+    "modifiedTime": null,
+    "lastModifiedBy": "pbbuilder0000000",
+    "duplicateSource": null
+  },
+  "_key": "!macros!bccnCookCook0001"
+}

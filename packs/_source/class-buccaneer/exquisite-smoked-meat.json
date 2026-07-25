@@ -27,8 +27,8 @@
     "carried": true,
     "price": 0,
     "quantity": 1,
-    "actionMacro": "",
-    "actionMacroLabel": ""
+    "actionMacro": "pirateborg.macros-pirateborg;Eat exquisite meat",
+    "actionMacroLabel": "Eat"
   },
   "_key": "!items!2UrikGJeiCaJAUrH"
 }
