@@ -154,6 +154,7 @@
   "PB.GetBetterChooseFeatureTitle": "Choose a class feature",
   "PB.GetBetterChooseFeatureHint": "Pick the class feature to gain.",
   "PB.FeatureAtMaxQuantity": "{name} is already at its maximum ({max}).",
+  "PB.DecrementFeature": "Remove one (reverts its exact bonus)",
   "PB.GrantMaxHp": "max HP",
   "PB.MigrationReportTitle": "PIRATE BORG — feature updates applied",
   "PB.MigrationReportSummary": "PIRATE BORG: updated {count} feature(s) on existing characters. See the whispered report.",

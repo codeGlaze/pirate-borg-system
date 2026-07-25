@@ -334,6 +334,9 @@
               <h4 class="item-name item-edit rollable">{{item.name}} {{#ifGt item.system.quantity 1}} ({{item.system.quantity}}) {{/ifGt}}</h4>
               <div class="item-buttons">{{> "systems/pirateborg/templates/actor/common/actor-item-button.html" item=item}}</div>
               <div class="item-controls">
+                {{#ifGt item.system.quantity 1}}
+                <a class="item-control item-qty-minus" title="{{localize 'PB.DecrementFeature'}}"><i class="fas fa-minus"></i></a>
+                {{/ifGt}}
                 <a class="item-control item-delete" title="{{localize 'PB.ItemDelete'}}"><i class="fas fa-trash"></i></a>
               </div>
             </li>
