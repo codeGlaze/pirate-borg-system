@@ -289,7 +289,7 @@ export const handleClassGettingBetterItems = async (actor, compendiumTable) => {
  */
 const resolveGettingBetterItems = async (actor, compendiumTable) => {
   const [compendium, table] = compendiumInfoFromString(compendiumTable);
-  const chosenValue = await chooseGettingBetterFeatureValue(compendium, table);
+  const chosenValue = await chooseGettingBetterFeatureValue(actor, compendium, table);
   if (chosenValue != null) {
     const items = await resolveTablePath(compendium, table, chosenValue);
     if (items.length) {
