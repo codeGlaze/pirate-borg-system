@@ -251,7 +251,8 @@
       "actionMacroLabel": "",
       "startingBonusItems": "",
       "startingBonusRolls": "",
-      "flavorText": ""
+      "flavorText": "",
+      "drTestReduction": 0
     },
     "class": {
       "description": "",

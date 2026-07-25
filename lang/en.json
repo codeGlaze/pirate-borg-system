@@ -45,6 +45,8 @@
   "PB.BecomeHauntedSoulDone": "{name} has returned as a Haunted Soul.",
   "PB.BecomeHauntedSoulError": "Error converting to a Haunted Soul. Check console for error log.",
   "PB.BecomeHauntedSoulHint": "Keeps this character's abilities, hit points and gear, marks their current class as the base class, and layers on the Haunted Soul class and ailment.",
+  "PB.AbilityCheckDrTitle": "Apply DR reduction?",
+  "PB.AbilityCheckDrHint": "Check any that apply to this test. Their DR reduction is applied as a bonus to the roll.",
   "PB.Broken": "Broken",
   "PB.Cancel": "Cancel",
   "PB.CargoCurrent": "Cargo (Current)",

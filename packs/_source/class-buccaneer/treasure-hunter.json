@@ -28,7 +28,8 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "drTestReduction": 3
   },
   "_key": "!items!lgzHS7vSvM7xgDOv"
 }

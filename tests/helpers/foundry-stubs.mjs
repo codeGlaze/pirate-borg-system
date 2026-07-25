@@ -111,15 +111,24 @@ export const installFoundryStubs = () => {
   };
   globalThis.Roll = class {
     constructor(formula) {
+      this.formula = String(formula);
       this.total = Number(formula);
+    }
+    evaluate() {
+      return this;
     }
   };
   globalThis.TextEditor = { enrichHTML: (v) => v };
-  globalThis.foundry = { applications: { ux: { TextEditor: { implementation: globalThis.TextEditor } } } };
+  let idCounter = 0;
+  globalThis.foundry = {
+    applications: { ux: { TextEditor: { implementation: globalThis.TextEditor } } },
+    utils: { randomID: () => `stubid${++idCounter}` },
+  };
   // jQuery-lite: only .text() (strip tags) is used by the quantity override.
   globalThis.$ = (html) => ({ text: () => String(html).replace(/<[^>]*>/g, "") });
   globalThis.game = {
     release: { generation: 12 },
+    i18n: { localize: (key) => key, format: (key) => key },
     packs: {
       get(id) {
         // Any ".rolls-*" pack holds RollTables; everything else holds Items.

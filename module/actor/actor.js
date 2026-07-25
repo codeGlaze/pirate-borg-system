@@ -592,6 +592,26 @@ export class PBActor extends Actor {
   }
 
   /**
+   * Situational ability-test DR reductions the character can opt into (e.g. the
+   * Buccaneer's "Treasure Hunter"). A feature declares `system.drTestReduction`
+   * (DR reduced per copy); the total stacks with the feature's quantity, so a
+   * twice-taken Treasure Hunter reports 6, not 3. These apply only to a narrative
+   * subset of tests, so they are never auto-applied — the player elects them per
+   * roll.
+   *
+   * @return {Array.<{id: String, name: String, dr: Number}>}
+   */
+  getAbilityTestDrReductions() {
+    return this.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && Number(item.system.drTestReduction) > 0)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        dr: Number(item.system.drTestReduction) * (item.system.quantity || 1),
+      }));
+  }
+
+  /**
    * Natural armor tier — a floor on damage reduction independent of worn armor
    * (e.g. the Brute's "Thick Skinned" = tier 1). Driven by an Active Effect on
    * `system.attributes.naturalArmorTier.value`.
