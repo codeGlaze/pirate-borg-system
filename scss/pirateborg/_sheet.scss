@@ -99,6 +99,21 @@
             }
           }
 
+          .ability-test-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+
+            .ability-test-feature {
+              font-family: var(--item-font);
+              font-size: 11px;
+              padding: 2px 6px;
+              cursor: pointer;
+              white-space: nowrap;
+            }
+          }
+
           .ability-label {
             font-family: var(--item-font);
             font-size: 16px;

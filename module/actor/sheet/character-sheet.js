@@ -180,6 +180,13 @@ export class PBActorSheetCharacter extends PBActorSheet {
       .reduce(groupByType, [])
       .sort(byType);
 
+    // Features that ease certain ability tests (e.g. Treasure Hunter) get a button
+    // next to the ability scores, so the DR reduction is one obvious click away.
+    data.abilityTestFeatures = sheetData.data.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && Number(item.system.drTestReduction) > 0)
+      .map((item) => ({ id: item._id, name: item.name, dr: Number(item.system.drTestReduction) * (item.system.quantity || 1) }))
+      .sort(byName);
+
     data.trackCarryingCapacity = trackCarryingCapacity();
     data.trackAmmo = trackAmmo();
 
@@ -217,6 +224,7 @@ export class PBActorSheetCharacter extends PBActorSheet {
       ".luck-label": this._onLuckLabel,
       ".get-better-button": this._onGetBetter,
       ".action-macro-button": this._onActionMacroRoll,
+      ".ability-test-feature": this._onAbilityTestFeature,
       ".action-invokable": this._onActionInvokable,
       ".ritual-per-day-text": this._onRitualPerDay,
       ".extra-resources-per-day-text": this._onExtraResourcePerDay,
@@ -521,6 +529,14 @@ export class PBActorSheetCharacter extends PBActorSheet {
     event.preventDefault();
     const item = this.getItem(event);
     await characterUseItemAction(this.actor, item);
+  }
+
+  async _onAbilityTestFeature(event) {
+    event.preventDefault();
+    const item = this.actor.items.get($(event.currentTarget).data("itemId"));
+    if (item) {
+      await characterUseItemAction(this.actor, item);
+    }
   }
 
   /**

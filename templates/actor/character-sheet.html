@@ -113,6 +113,13 @@
         />
         <span class="ability-label rollable spirit" title="{{ localize 'PB.AbilitySpiritDescription' }}">{{ localize 'PB.AbilitySpirit' }}</span>
       </div>
+      {{#if data.system.dynamic.abilityTestFeatures.length}}
+      <div class="ability-test-features">
+        {{#each data.system.dynamic.abilityTestFeatures as |feat|}}
+        <a class="ability-test-feature button" data-item-id="{{feat.id}}" title="{{localize 'PB.DR'}} - {{feat.dr}}">{{feat.name}} ({{localize 'PB.DR'}} -{{feat.dr}})</a>
+        {{/each}}
+      </div>
+      {{/if}}
     </div>
   </header>
 
