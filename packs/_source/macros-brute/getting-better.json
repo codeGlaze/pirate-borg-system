@@ -5,7 +5,7 @@
   "author": "pdXclp2r5tiEF79G",
   "img": "icons/svg/dice-target.svg",
   "scope": "global",
-  "command": "const prerequisite = 'Thick Skinned';\nconst target = 'Thick Skin';\n\nif (actor.items.some(item => item.name === prerequisite) && !actor.items.some(item => item.name === target)) {\n const item = await game.pirateborg.api.compendium.findCompendiumItem('pirateborg.class-brute', target);\n await actor.createEmbeddedDocuments('Item', [item.toObject(false)]); \n}",
+  "command": "// 'Thick Skinned' is now fully automated by the feature's Active Effect\n// (system.attributes.naturalArmorTier.value = 1), so the -d2 applies the moment\n// the feature is gained, unarmored, with no manual equip step. The old approach\n// granted a separate 'Thick Skin' armor item; that item is now redundant\n// (getCharacterArmorFormula() takes max(wornTier, naturalArmorTier), so it never\n// stacked anyway). Clean up any legacy copy so the sheet doesn't show a phantom.\nconst legacy = actor.items.filter(item => item.name === 'Thick Skin' && item.type === 'armor');\nif (legacy.length) {\n await actor.deleteEmbeddedDocuments('Item', legacy.map(item => item.id));\n}",
   "folder": null,
   "sort": 0,
   "flags": {},

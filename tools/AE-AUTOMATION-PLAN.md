@@ -58,6 +58,16 @@ weapon keeps `reloadTime: 2` and the perk is text only.
   `UPGRADE`s `naturalArmorTier` to 1, so an unarmored Brute counts as light armor
   (-d2). Tested. This is the tier-as-single-source-of-truth demo: the AE moves a
   number, the die follows.
+  - **Reconciled with upstream's phantom item.** Stock Pirate Borg automated
+    Thick Skinned by having the Brute *Getting Better* macro grant a separate
+    `Thick Skin` **armor item** (tier 1, `equipped:false`) — which did nothing
+    until the player manually equipped it, and only appeared on a leveled-up
+    Brute. That's now redundant: the feature's AE applies the -d2 the instant the
+    feature is gained, unarmored, no equip step. `getCharacterArmorFormula()` uses
+    `max(wornTier, naturalArmorTier)` so the two never stacked, but the phantom
+    item was confusing. Retired it: deleted the `Thick Skin` armor source
+    (`class-brute/thick-skin.json`) and rewrote `macros-brute/getting-better.json`
+    to *remove* any legacy `Thick Skin` armor copy instead of granting one.
 - ⏳ **Crit "armor −1 tier"** — deferred to Phase 2b. This is the defender-side,
   persistent reduction (like a fumble damaging your own armor), cross-actor and
   higher-risk. When done it will use `dice-ladder.stepDie(armorDie, -1)`.
