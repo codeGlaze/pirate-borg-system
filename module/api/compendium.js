@@ -53,6 +53,25 @@ export const clearCompendiumDocumentsCache = (compendiumName) => {
 };
 
 /**
+ * Clones a cached compendium document so callers can safely mutate it (table
+ * description/quantity overrides, base-class renaming, ...) without corrupting
+ * the shared cache — while preserving the source's compendium uuid.
+ *
+ * A bare `clone()` loses its uuid, which makes `item.link` enrich to a broken
+ * content-link (the pills seen in get-better / loot chat cards). Re-pointing the
+ * clone's uuid at its source keeps `.link` / `.uuid` resolving to the real pack
+ * entry.
+ *
+ * @param {Document} document
+ * @returns {Document}
+ */
+const cloneWithSourceUuid = (document) => {
+  const clone = document.clone();
+  Object.defineProperty(clone, "uuid", { value: document.uuid, configurable: true });
+  return clone;
+};
+
+/**
  * @param {String} compendiumName
  * @param {String} itemName
  * @returns {Promise.<PBItem|RollTable|undefined>}
@@ -67,15 +86,7 @@ export const findCompendiumItem = async (compendiumName, itemName) => {
     console.warn(`findCompendiumItem: Could not find item (${itemName}) in compendium (${compendiumName})`);
     return undefined;
   }
-  // Return a fresh in-memory clone so callers that mutate the result (e.g. table
-  // description/quantity overrides in findTableItems, or setBaseClass) never
-  // corrupt the cached document.
-  const clone = item.clone();
-  // A bare clone loses its compendium uuid, which makes `item.link` enrich to a
-  // broken content-link (the pills seen in get-better / loot chat cards). Re-point
-  // the clone's uuid at its source so `.link` resolves to the real pack entry.
-  Object.defineProperty(clone, "uuid", { value: item.uuid, configurable: true });
-  return clone;
+  return cloneWithSourceUuid(item);
 };
 
 /**
@@ -440,9 +451,10 @@ export const classItemFromPack = async (compendiumName) => {
   /** @type {Item[]} */
   const documents = await loadCompendiumDocuments(compendiumName);
   const cls = documents?.find((i) => i.type === "class");
-  // Clone so callers/macros that mutate the class (e.g. renaming for a base
-  // class) never corrupt the shared cached instance.
-  return cls ? cls.clone() : undefined;
+  // Clone (cache-safe, uuid-preserving) so callers/macros that mutate the class
+  // (e.g. renaming for a base class) never corrupt the shared cached instance,
+  // while `.link` / `.uuid` still resolve to the source pack entry.
+  return cls ? cloneWithSourceUuid(cls) : undefined;
 };
 
 /**

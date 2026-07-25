@@ -7,7 +7,7 @@ import path from "node:path";
 import { installFoundryStubs, REPO_ROOT } from "./helpers/foundry-stubs.mjs";
 
 installFoundryStubs();
-const { findCompendiumItem } = await import(path.join(REPO_ROOT, "module/api/compendium.js"));
+const { findCompendiumItem, classItemFromPack } = await import(path.join(REPO_ROOT, "module/api/compendium.js"));
 
 test("findCompendiumItem result keeps a resolvable uuid (working content link)", async () => {
   const item = await findCompendiumItem("pirateborg.class-buccaneer", "Survivalist");
@@ -22,4 +22,11 @@ test("the returned item is a clone, so mutating it never corrupts the cache", as
   first.getData().description = "MUTATED";
   const second = await findCompendiumItem("pirateborg.class-buccaneer", "Survivalist");
   assert.notEqual(second.getData().description, "MUTATED", "second lookup is isolated from the first's mutation");
+});
+
+test("classItemFromPack (the other clone site) also keeps a resolvable uuid", async () => {
+  const cls = await classItemFromPack("pirateborg.class-buccaneer");
+  assert.ok(cls, "the buccaneer class should be found");
+  assert.match(cls.uuid, /^Compendium\.pirateborg\.class-buccaneer\.Item\./);
+  assert.doesNotMatch(cls.link, /undefined|null/);
 });
