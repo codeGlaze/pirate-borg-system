@@ -191,7 +191,7 @@
                       data-label="reload_{{item._id}}"
                       title="{{localize 'PB.Attack'}}"
               >
-                {{localize 'PB.Reload'}} {{#if item.system.reloadTime}}({{item.system.loadingStatus}}/{{item.system.reloadTime}}){{/if}}
+                {{localize 'PB.Reload'}} {{#if item.system.reloadTime}}({{item.system.loadingStatus}}/{{item.system.effectiveReloadTime}}){{/if}}
               </button>
               {{else}}
               <button

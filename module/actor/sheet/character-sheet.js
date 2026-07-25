@@ -152,7 +152,14 @@ export class PBActorSheetCharacter extends PBActorSheet {
 
     for (const weapon of data.equippedWeapons) {
       if (weapon.system.needsReloading && weapon.system.reloadTime) {
-        weapon.system.loadingStatus = weapon.system.reloadTime - (weapon.system.loadingCount || 0);
+        // Show the reload counter against the actor's *effective* reload time, so
+        // class perks (e.g. the Buccaneer's faster-reloading Active Effect) are
+        // reflected here the same way firing and the reload card already use it —
+        // otherwise the raw reloadTime makes a 1-action reload read as "/2".
+        const item = this.actor.items.get(weapon._id);
+        const effectiveReloadTime = item ? this.actor.getEffectiveReloadTime(item) : weapon.system.reloadTime;
+        weapon.system.effectiveReloadTime = effectiveReloadTime;
+        weapon.system.loadingStatus = effectiveReloadTime - (weapon.system.loadingCount || 0);
       }
     }
 

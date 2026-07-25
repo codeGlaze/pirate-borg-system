@@ -29,3 +29,22 @@ test("reload time never drops below 1 action", () => {
 test("weapon without a reload time defaults to 1", () => {
   assert.equal(actorWith(0).getEffectiveReloadTime({}), 1);
 });
+
+// The character sheet's reload counter (loadingStatus/denominator) must be built
+// from the effective reload time, not the weapon's raw reloadTime — otherwise a
+// Buccaneer's 1-action Musket reload reads as "1/2" instead of "0/1".
+const reloadCounter = (actor, weapon, loadingCount) => {
+  const effective = actor.getEffectiveReloadTime(weapon);
+  return { loadingStatus: effective - loadingCount, denominator: effective };
+};
+
+test("Buccaneer freshly-fired Musket reads 0/1, not 1/2", () => {
+  // Firing sets loadingCount to the effective reload time (1) for a Buccaneer.
+  const { loadingStatus, denominator } = reloadCounter(actorWith(1), { reloadTime: 2 }, 1);
+  assert.equal(`${loadingStatus}/${denominator}`, "0/1");
+});
+
+test("non-Buccaneer Musket still reads against its raw 2-action reload", () => {
+  const { loadingStatus, denominator } = reloadCounter(actorWith(0), { reloadTime: 2 }, 1);
+  assert.equal(`${loadingStatus}/${denominator}`, "1/2");
+});
