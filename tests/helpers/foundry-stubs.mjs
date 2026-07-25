@@ -32,6 +32,10 @@ const makeDoc = (json) => {
     getData() {
       return this.system;
     },
+    // Mirrors Foundry's ClientDocument#link — a content link built from the uuid.
+    get link() {
+      return `@UUID[${this.uuid}]{${this.name}}`;
+    },
     toObject() {
       return { name: this.name, type: this.type, system: { ...this.system } };
     },
@@ -64,7 +68,13 @@ const loadDocsForPack = (id) => {
   if (fs.existsSync(folder)) {
     for (const file of fs.readdirSync(folder)) {
       if (file.endsWith(".json")) {
-        docs.push(makeDoc(JSON.parse(fs.readFileSync(path.join(folder, file), "utf-8"))));
+        const json = JSON.parse(fs.readFileSync(path.join(folder, file), "utf-8"));
+        const doc = makeDoc(json);
+        // Live pack documents carry a resolvable compendium uuid; a bare clone()
+        // does not (mimicking Foundry), so this lets tests verify findCompendiumItem
+        // re-points the clone's uuid back at its source (working content links).
+        doc.uuid = `Compendium.${id}.Item.${json._id ?? json.name}`;
+        docs.push(doc);
       }
     }
   }

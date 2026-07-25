@@ -68,8 +68,14 @@ export const findCompendiumItem = async (compendiumName, itemName) => {
     return undefined;
   }
   // Return a fresh in-memory clone so callers that mutate the result (e.g. table
-  // description/quantity overrides in findTableItems) never corrupt the cache.
-  return item.clone();
+  // description/quantity overrides in findTableItems, or setBaseClass) never
+  // corrupt the cached document.
+  const clone = item.clone();
+  // A bare clone loses its compendium uuid, which makes `item.link` enrich to a
+  // broken content-link (the pills seen in get-better / loot chat cards). Re-point
+  // the clone's uuid at its source so `.link` resolves to the real pack entry.
+  Object.defineProperty(clone, "uuid", { value: item.uuid, configurable: true });
+  return clone;
 };
 
 /**
