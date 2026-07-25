@@ -58,45 +58,75 @@ export const missingEffects = (embedded, compendium) => {
     });
 };
 
+/**
+ * Applies the whitelisted re-sync to one embedded item and returns short labels for
+ * what actually changed (empty when already current).
+ *
+ * @returns {Promise<String[]>}
+ */
 const migrateItem = async (item, entry) => {
+  const changed = [];
   const compendium = await findCompendiumItem(entry.pack, entry.name);
   if (!compendium) {
-    return;
+    return changed;
   }
   const patch = computeSystemPatch(item, compendium, entry.fields);
   if (Object.keys(patch).length) {
     await item.update(patch, { pbMigration: true });
+    changed.push(...Object.keys(patch).map((key) => key.replace("system.", "")));
   }
   if (entry.syncEffects) {
     const missing = missingEffects(item, compendium);
     if (missing.length) {
       await item.createEmbeddedDocuments("ActiveEffect", missing);
+      changed.push("effect");
     }
   }
   if (entry.reconcileGrant) {
     await reconcileFeatureGrant(item, { silent: true });
-  }
-};
-
-const migrateItems = async (items) => {
-  for (const item of items ?? []) {
-    const entry = ENHANCED.find((e) => e.name === item.name);
-    if (entry) {
-      await migrateItem(item, entry);
+    if ("system.onGain" in patch) {
+      changed.push("grant applied");
     }
   }
+  return changed;
 };
 
 /**
  * Runs the re-sync across world items and every actor's embedded items. GM-only and
- * idempotent, so it can run on every load and self-heals imported actors.
+ * idempotent, so it can run on every load and self-heals imported actors. Reports
+ * once (a GM whisper) when it actually changed something.
  */
 export const migrateFeatureMechanics = async () => {
   if (!game.user?.isGM) {
     return;
   }
-  await migrateItems(game.items);
+  const report = [];
+  const run = async (owner, items) => {
+    for (const item of items ?? []) {
+      const entry = ENHANCED.find((e) => e.name === item.name);
+      if (!entry) {
+        continue;
+      }
+
+      const changed = await migrateItem(item, entry);
+      if (changed.length) {
+        report.push({ owner, item: item.name, changed });
+      }
+    }
+  };
+  await run(game.i18n.localize("PB.MigrationWorldItems"), game.items);
   for (const actor of game.actors) {
-    await migrateItems(actor.items);
+    await run(actor.name, actor.items);
   }
+  if (report.length) {
+    await postMigrationReport(report);
+  }
+};
+
+const postMigrationReport = async (report) => {
+  const lines = report.map((r) => `<li><strong>${r.owner}</strong> — ${r.item}: ${r.changed.join(", ")}</li>`).join("");
+  const content = `<div class="pirateborg"><h3>${game.i18n.localize("PB.MigrationReportTitle")}</h3><ul>${lines}</ul></div>`;
+  const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
+  await ChatMessage.create({ content, whisper: gmIds });
+  ui.notifications?.info?.(game.i18n.format("PB.MigrationReportSummary", { count: report.length }));
 };
