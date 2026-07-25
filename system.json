@@ -296,13 +296,6 @@
       "type": "RollTable"
     },
     {
-      "name": "macros-buccaneer",
-      "label": "Macros - Buccaneer",
-      "system": "pirateborg",
-      "path": "packs/macros-buccaneer",
-      "type": "Macro"
-    },
-    {
       "name": "class-swashbuckler",
       "label": "Class - Swashbuckler",
       "system": "pirateborg",
@@ -433,7 +426,6 @@
             "macros-rapscallion",
             "class-buccaneer",
             "rolls-buccaneer",
-            "macros-buccaneer",
             "class-swashbuckler",
             "rolls-swashbuckler",
             "macros-swashbuckler",
