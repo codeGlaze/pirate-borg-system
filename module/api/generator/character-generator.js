@@ -388,7 +388,20 @@ export const generateDescription = (cls, items) => {
  * @param {any} value
  * @returns {Boolean} True when `value` is a usable, finite numeric choice.
  */
-const isNumericChoice = (value) => value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+export const isNumericChoice = (value) => value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+
+/**
+ * The single fork the manual and random paths share for a numeric field: use the
+ * player's value verbatim when they gave one (including an explicit 0), otherwise
+ * fall through to `roll`. Centralised so a blank field can never silently become 0
+ * (the class of bug behind "manual keeps stats at 0") and so both paths are one
+ * tested branch, not several inline copies.
+ *
+ * @param {any} choice
+ * @param {function(): (Number|Promise<Number>)} roll
+ * @returns {Number|Promise<Number>}
+ */
+export const resolveNumericChoice = (choice, roll) => (isNumericChoice(choice) ? Number(choice) : roll());
 
 /**
  * @param {any} value
@@ -520,8 +533,7 @@ export const buildCharacter = async (cls, choices = {}) => {
   // rolled with the class' bonus (so a blank field behaves like the Tavern and
   // reflects the class, rather than staying a literal 0).
   const abilityChoices = choices.abilities ?? {};
-  const rollOrUseAbility = async (key, bonus) =>
-    isNumericChoice(abilityChoices[key]) ? Number(abilityChoices[key]) : rollAbility(cls.startingAbilityScoreFormula, bonus);
+  const rollOrUseAbility = (key, bonus) => resolveNumericChoice(abilityChoices[key], () => rollAbility(cls.startingAbilityScoreFormula, bonus));
   const abilities = {
     strength: await rollOrUseAbility("strength", cls.startingStrengthBonus),
     agility: await rollOrUseAbility("agility", cls.startingAgilityBonus),
@@ -530,15 +542,15 @@ export const buildCharacter = async (cls, choices = {}) => {
     spirit: await rollOrUseAbility("spirit", cls.startingSpiritBonus),
   };
 
-  const luck = isNumericChoice(choices.luck) ? Number(choices.luck) : await rollLuck(cls.luckDie);
-  const hitPoints = isNumericChoice(choices.hitPoints) ? Number(choices.hitPoints) : await rollHitPoints(cls.startingHitPoints, abilities.toughness);
+  const luck = await resolveNumericChoice(choices.luck, () => rollLuck(cls.luckDie));
+  const hitPoints = await resolveNumericChoice(choices.hitPoints, () => rollHitPoints(cls.startingHitPoints, abilities.toughness));
   const baseTables = await buildBaseTables(choices.baseTableValues || {});
 
   const background = baseTables.find((item) => item.type === CONFIG.PB.itemTypes.background);
   const features = baseTables.filter((item) => item.type === CONFIG.PB.itemTypes.feature);
   const hasRelic = baseTables.some((item) => item.invokableType === "Ancient Relic");
 
-  const silver = isNumericChoice(choices.silver) ? Number(choices.silver) : await rollSilver(background);
+  const silver = await resolveNumericChoice(choices.silver, () => rollSilver(background));
 
   // Preserve the original behaviour: only roll armor when the class defines a
   // formula, and swap to "1d6" when the character rolled an Ancient Relic.
