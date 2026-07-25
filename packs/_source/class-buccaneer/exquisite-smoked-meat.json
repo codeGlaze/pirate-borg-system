@@ -20,7 +20,7 @@
     "duplicateSource": null
   },
   "system": {
-    "description": "<p>Eating it immediately recovers d4 hp</p>",
+    "description": "<p>Eating it immediately recovers d4 HP &mdash; or d6 HP if you&rsquo;ve taken Buccan Cook twice. Eating consumes one ration.</p>",
     "containerSpace": 1,
     "carryWeight": 1,
     "equipped": false,

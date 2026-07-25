@@ -19,7 +19,7 @@ const ENHANCED = [
   { pack: "pirateborg.class-buccaneer", name: "Treasure Hunter", fields: ["drTestReduction"] },
   { pack: "pirateborg.class-buccaneer", name: "Survivalist", fields: ["onGain", "actionMacro", "actionMacroLabel"], reconcileGrant: true },
   { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel"] },
-  { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel"] },
+  { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel", "description"] },
 ];
 
 /**
@@ -116,11 +116,51 @@ export const migrateFeatureMechanics = async () => {
   };
   await run(game.i18n.localize("PB.MigrationWorldItems"), game.items);
   for (const actor of game.actors) {
+    for (const merge of await mergeDuplicateFeatures(actor)) {
+      report.push({ owner: actor.name, item: merge.name, changed: [`merged ${merge.from} copies → quantity ${merge.to}`] });
+    }
+
     await run(actor.name, actor.items);
   }
   if (report.length) {
     await postMigrationReport(report);
   }
+};
+
+/**
+ * Folds same-name duplicate features (an artifact of the old drag-drop bug) into a
+ * single stacked item, capped at maxQuantity, and reconciles any grant. Reversal is
+ * safe: the deleted copies' transfer effects revert on deletion, and the kept item's
+ * grant re-rolls only the shortfall for the merged quantity.
+ *
+ * @param {PBActor} actor
+ * @returns {Promise<Array.<{name: String, from: Number, to: Number}>>}
+ */
+export const mergeDuplicateFeatures = async (actor) => {
+  const byName = new Map();
+  for (const item of actor.items) {
+    if (item.type !== CONFIG.PB.itemTypes.feature) {
+      continue;
+    }
+    (byName.get(item.name) ?? byName.set(item.name, []).get(item.name)).push(item);
+  }
+  const merged = [];
+  for (const [name, group] of byName) {
+    if (group.length < 2) {
+      continue;
+    }
+    const keep = group[0];
+    const total = group.reduce((sum, i) => sum + (i.quantity || 1), 0);
+    const capped = keep.maxQuantity === 0 ? total : Math.min(total, keep.maxQuantity);
+    await keep.update({ "system.quantity": capped }, { pbMigration: true });
+    await actor.deleteEmbeddedDocuments(
+      "Item",
+      group.slice(1).map((i) => i.id),
+    );
+    await reconcileFeatureGrant(keep, { silent: true });
+    merged.push({ name, from: group.length, to: capped });
+  }
+  return merged;
 };
 
 const postMigrationReport = async (report) => {
