@@ -54,12 +54,18 @@ answer is not a bespoke ledger — it's **Active Effects as the tracker**:
   Ability-score AEs are already first-class here: `character-get-better-action`
   subtracts AE modifiers before re-rolling, so nothing double-counts.
 - **Random numeric** (e.g. +d4 HP) → the compendium can't hold a rolled value, so
-  **roll once when the feature is gained and write the result into the embedded
-  item's AE change value.** The AE now stores the exact amount granted → deleting
-  the feature reverts exactly that. The AE *is* the ledger.
-- **Stacking** (Survivalist ×2): keep an `appliedCount` flag on the item; when
-  `quantity` rises, roll the delta, add it into the AE value, bump the count.
-  Removing the whole feature drops the whole AE (all copies revert together).
+  **roll once when the feature is gained and store that roll as its own record**,
+  not a merged total. Each application = one record holding its own rolled value.
+- **Stacking** (Survivalist ×2) — the important case. A *single accumulated total*
+  can't be reversed by one step (you'd have lost how much the 2nd take added). So
+  keep **one record per application**: the item carries one transfer AE per take,
+  each holding that take's own roll (take 1 → +3 HP AE, take 2 → +2 HP AE). Foundry
+  sums ADD-mode AEs, so the actor gets +5. A **reconcile handler** keyed to the
+  feature's `quantity` keeps records == takes: quantity rises → roll the delta and
+  add a record; quantity falls → drop the newest record(s). So "grabbed 2, want 1"
+  = set quantity to 1, and the *exact* second roll (+2) is removed, leaving +3.
+  Deleting the whole feature removes every record at once (core AE auto-revert).
+  Fixed parts (+1 Toughness per take) are just `quantity × 1`, recomputed the same way.
 - `hp.max` is a safe AE target (not recomputed in prep); current HP is left alone,
   which matches the book ("you must rest or heal to increase current HP").
 
