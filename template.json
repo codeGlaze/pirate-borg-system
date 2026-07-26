@@ -253,7 +253,8 @@
       "startingBonusRolls": "",
       "flavorText": "",
       "drTestReduction": 0,
-      "onGain": {}
+      "onGain": {},
+      "grantsItems": []
     },
     "class": {
       "description": "",

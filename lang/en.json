@@ -156,6 +156,7 @@
   "PB.FeatureAtMaxQuantity": "{name} is already at its maximum ({max}).",
   "PB.DecrementFeature": "Remove one (reverts its exact bonus)",
   "PB.GrantMaxHp": "max HP",
+  "PB.FeatureGrantedItem": "Gained {item}.",
   "PB.MigrationReportTitle": "PIRATE BORG — feature updates applied",
   "PB.MigrationReportSummary": "PIRATE BORG: updated {count} feature(s) on existing characters. See the whispered report.",
   "PB.MigrationWorldItems": "World items",

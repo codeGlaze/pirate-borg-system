@@ -19,6 +19,12 @@ const ENHANCED = [
   { pack: "pirateborg.class-buccaneer", name: "Treasure Hunter", fields: ["drTestReduction"] },
   { pack: "pirateborg.class-buccaneer", name: "Survivalist", fields: ["onGain", "actionMacro", "actionMacroLabel"], reconcileGrant: true },
   { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel"] },
+  {
+    pack: "pirateborg.class-buccaneer",
+    name: "Fix Bayonets!",
+    fields: ["grantsItems", "maxQuantity", "actionMacro", "actionMacroLabel"],
+    reconcileGrant: true,
+  },
   { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel", "description"] },
 ];
 
@@ -84,7 +90,7 @@ const migrateItem = async (item, entry) => {
   }
   if (entry.reconcileGrant) {
     await reconcileFeatureGrant(item, { silent: true });
-    if ("system.onGain" in patch) {
+    if ("system.onGain" in patch || "system.grantsItems" in patch) {
       changed.push("grant applied");
     }
   }

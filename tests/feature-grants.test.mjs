@@ -7,7 +7,15 @@ import path from "node:path";
 import { installFoundryStubs, REPO_ROOT } from "./helpers/foundry-stubs.mjs";
 
 installFoundryStubs();
-const { reconcileRolls, buildGrantChanges } = await import(path.join(REPO_ROOT, "module/system/feature-grants.js"));
+const { reconcileRolls, buildGrantChanges, dieForQuantity } = await import(path.join(REPO_ROOT, "module/system/feature-grants.js"));
+
+test("dieForQuantity picks the die for the highest matching quantity (Fix Bayonets d4→d6)", () => {
+  const map = { 1: "1d4", 2: "1d6" };
+  assert.equal(dieForQuantity(map, 1), "1d4");
+  assert.equal(dieForQuantity(map, 2), "1d6");
+  assert.equal(dieForQuantity(map, 3), "1d6", "beyond the top rung stays at the top die");
+  assert.equal(dieForQuantity(undefined, 2), null, "no map → no die");
+});
 
 test("first take rolls one value", () => {
   let n = 0;

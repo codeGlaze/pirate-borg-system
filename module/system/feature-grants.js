@@ -1,4 +1,5 @@
 import { evaluateFormula } from "../api/utils.js";
+import { findCompendiumItem } from "../api/compendium.js";
 import { showGenericCard } from "../chat-message/generic-card.js";
 
 /**
@@ -58,9 +59,32 @@ export const buildGrantChanges = (spec, rolls, quantity) => {
   return changes;
 };
 
-const hasGrant = (item) => {
+const GRANTED_BY_FLAG = "grantedBy";
+
+const hasNumericGrant = (item) => {
   const spec = item?.system?.onGain;
   return !!spec && (Object.keys(spec.abilities ?? {}).length > 0 || !!spec.maxHp);
+};
+
+const hasItemGrant = (item) => (item?.system?.grantsItems ?? []).length > 0;
+
+const hasGrant = (item) => hasNumericGrant(item) || hasItemGrant(item);
+
+/**
+ * Picks the damage die for a granted weapon from a `{ quantity: die }` map: the die
+ * for the highest listed quantity at or below the current one (e.g. Fix Bayonets
+ * `{1:"1d4",2:"1d6"}` → d6 at ×2). Returns null when no map / nothing matches.
+ *
+ * @param {Object} dieMap
+ * @param {Number} quantity
+ * @returns {String|null}
+ */
+export const dieForQuantity = (dieMap, quantity) => {
+  const keys = Object.keys(dieMap ?? {})
+    .map(Number)
+    .filter((k) => k <= quantity)
+    .sort((a, b) => a - b);
+  return keys.length ? dieMap[String(keys[keys.length - 1])] : null;
 };
 
 // Reconcile writes the item's flag + AE, which re-fire the update hook. Track
@@ -91,6 +115,60 @@ export const reconcileFeatureGrant = async (item, { silent = false } = {}) => {
 };
 
 const reconcileGrantInner = async (item, silent) => {
+  if (hasNumericGrant(item)) {
+    await reconcileNumericGrant(item, silent);
+  }
+  if (hasItemGrant(item)) {
+    await reconcileItemGrants(item, silent);
+  }
+};
+
+/**
+ * Grants (and equips) the items a feature declares in `system.grantsItems`, stamping
+ * each with `grantedBy` so it can be removed when the feature is. A weapon's die can
+ * scale with the feature's quantity (`dieByQuantity`). Idempotent: an item already
+ * granted by this feature is not re-granted, only its die is kept in sync.
+ */
+const reconcileItemGrants = async (item, silent) => {
+  const scope = CONFIG.PB.flagScope;
+  const quantity = Math.max(1, item.system.quantity || 1);
+  for (const spec of item.system.grantsItems ?? []) {
+    const [compendium, name] = String(spec.ref ?? "").split(";");
+    if (!compendium || !name) {
+      continue;
+    }
+    const die = dieForQuantity(spec.dieByQuantity, quantity);
+    const granted = item.parent.items.find((i) => i.getFlag(scope, GRANTED_BY_FLAG) === item.id && i.name === name);
+    if (granted) {
+      if (die && granted.system.damageDie !== die) {
+         
+        await granted.update({ "system.damageDie": die });
+      }
+      continue;
+    }
+     
+    const compendiumItem = await findCompendiumItem(compendium, name);
+    if (!compendiumItem) {
+      continue;
+    }
+    const data = compendiumItem.toObject(false);
+    foundry.utils.setProperty(data, `flags.${scope}.${GRANTED_BY_FLAG}`, item.id);
+    if (spec.equip) {
+      data.system.equipped = true;
+    }
+    if (die) {
+      data.system.damageDie = die;
+    }
+     
+    const [created] = await item.parent.createEmbeddedDocuments("Item", [data]);
+    if (!silent && created) {
+       
+      await showGenericCard({ actor: item.parent, title: item.name, description: game.i18n.format("PB.FeatureGrantedItem", { item: created.name }) });
+    }
+  }
+};
+
+const reconcileNumericGrant = async (item, silent) => {
   const spec = item.system.onGain;
   const scope = CONFIG.PB.flagScope;
   const quantity = Math.max(1, item.system.quantity || 1);
@@ -198,4 +276,19 @@ export const registerFeatureGrantHooks = () => {
   };
   Hooks.on("createItem", (item, options, userId) => onChange(item, null, options, userId));
   Hooks.on("updateItem", (item, change, options, userId) => onChange(item, change, options, userId));
+
+  // Auto-revert item grants: deleting a feature removes the items it granted.
+  Hooks.on("deleteItem", (item, _options, userId) => {
+    if (game.user?.id !== userId || item?.type !== CONFIG.PB.itemTypes.feature || !item.parent) {
+      return;
+    }
+    const scope = CONFIG.PB.flagScope;
+    const granted = item.parent.items.filter((i) => i.getFlag(scope, GRANTED_BY_FLAG) === item.id);
+    if (granted.length) {
+      item.parent.deleteEmbeddedDocuments(
+        "Item",
+        granted.map((i) => i.id),
+      );
+    }
+  });
 };

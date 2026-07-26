@@ -1,0 +1,25 @@
+{
+  "_id": "bccnReadyBayonet",
+  "name": "Ready bayonet",
+  "type": "script",
+  "author": "pdXclp2r5tiEF79G",
+  "img": "icons/svg/dice-target.svg",
+  "scope": "global",
+  "command": "// The bayonet is granted (and equipped) automatically when you gain Fix Bayonets!;\n// this button just makes sure it's equipped and reminds you of the timing.\nconst showGenericCard = game.pirateborg.api.showGenericCard;\nconst bayonet = actor.items.find((i) => i.type === \"weapon\" && (i.name === \"Bayonets\" || i.name === \"Bayonet\"));\nif (bayonet && !bayonet.system.equipped) {\n  await bayonet.update({ \"system.equipped\": true });\n}\nawait showGenericCard({\n  actor,\n  title: item.name,\n  description: bayonet\n    ? `Your bayonet (${bayonet.system.damageDie}) is fixed and equipped. You can attack with it on the same turn you reload a black-powder weapon.`\n    : `You can attack with your bayonet on the same turn you reload a black-powder weapon.`,\n});",
+  "folder": null,
+  "sort": 0,
+  "flags": {},
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "systemId": "pirateborg",
+    "systemVersion": "v0.4.2",
+    "coreVersion": "12.331",
+    "createdTime": null,
+    "modifiedTime": null,
+    "lastModifiedBy": "pbbuilder0000000",
+    "duplicateSource": null
+  },
+  "_key": "!macros!bccnReadyBayonet"
+}

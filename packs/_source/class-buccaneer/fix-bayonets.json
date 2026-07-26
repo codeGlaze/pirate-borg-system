@@ -24,11 +24,21 @@
     "featureType": "Class",
     "maxQuantity": 2,
     "quantity": 1,
-    "actionMacro": "pirateborg.macros-pirateborg;Generic Item",
-    "actionMacroLabel": "Use",
+    "actionMacro": "pirateborg.macros-pirateborg;Ready bayonet",
+    "actionMacroLabel": "Ready Bayonet",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "grantsItems": [
+      {
+        "ref": "pirateborg.class-buccaneer;Bayonets",
+        "equip": true,
+        "dieByQuantity": {
+          "1": "1d4",
+          "2": "1d6"
+        }
+      }
+    ]
   },
   "_key": "!items!a44UBgayTh0aBtcy"
 }
