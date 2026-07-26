@@ -3,6 +3,7 @@ node_modules
 .idea
 .env
 system.zip
+dist/
 .foundry-backups/
 REFERENCE/*
 .worktrees/
