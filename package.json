@@ -7,6 +7,7 @@
     "build:clean": "node ./utils/packs.mjs package clean",
     "build:db": "node ./utils/packs.mjs package pack",
     "build:json": "node ./utils/packs.mjs package unpack",
+    "build:beta": "node ./tools/beta/build-beta.mjs",
     "lint": "eslint --fix ./module",
     "lint:check": "eslint ./module",
     "lint:globals:refresh": "node ./utils/generate-foundry-globals.mjs",
