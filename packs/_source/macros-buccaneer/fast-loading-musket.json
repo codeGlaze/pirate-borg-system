@@ -1,0 +1,25 @@
+{
+  "_id": "fastLoadMusket01",
+  "name": "Fast loading musket",
+  "type": "script",
+  "author": "pdXclp2r5tiEF79G",
+  "img": "icons/svg/dice-target.svg",
+  "scope": "global",
+  "command": "/**\n * @deprecated since v1.7 - the Buccaneer's fast reload is now automatic via the\n * `reloadModifier` Active Effect on the class item. This macro is a no-op\n * compatibility shim, kept only so existing references (world hotbars, other\n * modules) resolve gracefully instead of erroring. Safe to remove once nothing\n * references it.\n */\nfoundry.utils.logCompatibilityWarning(\n  \"The 'Fast loading musket' macro is deprecated: Buccaneer reloading is now automatic (reloadModifier Active Effect).\",\n  { since: \"1.7\", until: \"2.0\", once: true },\n);",
+  "folder": null,
+  "sort": 0,
+  "flags": {},
+  "ownership": {
+    "default": 0
+  },
+  "_stats": {
+    "systemId": "pirateborg",
+    "systemVersion": "v0.4.2",
+    "coreVersion": "12.331",
+    "createdTime": null,
+    "modifiedTime": null,
+    "lastModifiedBy": "pbbuilder0000000",
+    "duplicateSource": null
+  },
+  "_key": "!macros!fastLoadMusket01"
+}

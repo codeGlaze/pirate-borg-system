@@ -1,0 +1,5 @@
+2026/07/26-16:12:45.593336 7fb2f8fbd6c0 Delete type=3 #1
+2026/07/26-16:12:45.600441 7fb2eb7fe6c0 Level-0 table #5: started
+2026/07/26-16:12:45.606201 7fb2eb7fe6c0 Level-0 table #5: 986 bytes OK
+2026/07/26-16:12:45.607851 7fb2eb7fe6c0 Delete type=0 #3
+2026/07/26-16:12:45.608224 7fb2eb7fe6c0 Manual compaction at level-0 from '!macros!fastLoadMusket01' @ 72057594037927935 : 1 .. '!macros!fastLoadMusket01' @ 0 : 0; will stop at (end)
