@@ -112,12 +112,18 @@ export default class PBActorSheet extends (foundry.appv1?.sheets?.ActorSheet ?? 
   constructEffectLists(sheetData) {
     const effects = {};
 
-    // Foundry v13 includes transferred effects through `allApplicableEffects()`.
-    // Fall back to owned effects for older versions.
+    // `allApplicableEffects()` (Foundry v11+) yields both the actor's own effects
+    // and the transfer effects granted by its items — this is the path taken on
+    // v12/v13. The fallback (older cores without that generator) must gather item
+    // transfer effects itself, otherwise feature AEs (Thick Skinned, Sea Turtle,
+    // reloadModifier, …) would be invisible on the Effects tab.
     const actorEffects =
       typeof sheetData.actor.allApplicableEffects === "function"
         ? Array.from(sheetData.actor.allApplicableEffects())
-        : sheetData.actor.effects.filter(() => true);
+        : [
+            ...Array.from(sheetData.actor.effects ?? []),
+            ...Array.from(sheetData.actor.items ?? []).flatMap((item) => Array.from(item.effects ?? []).filter((effect) => effect.transfer)),
+          ];
 
     effects.temporary = actorEffects.filter((i) => i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
     effects.disabled = actorEffects.filter((i) => i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
