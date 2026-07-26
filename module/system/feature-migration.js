@@ -16,6 +16,7 @@ import { reconcileFeatureGrant } from "./feature-grants.js";
 const ENHANCED = [
   { pack: "pirateborg.class-buccaneer", name: "Buccaneer", syncEffects: true }, // reloadModifier AE
   { pack: "pirateborg.class-brute", name: "Thick Skinned", syncEffects: true }, // naturalArmorTier AE (else lost -d2)
+  { pack: "pirateborg.class-tall-tale", name: "Sea Turtle", syncEffects: true }, // armorTierModifier AE (extra -d2)
   { pack: "pirateborg.class-buccaneer", name: "Treasure Hunter", fields: ["drTestReduction"] },
   { pack: "pirateborg.class-buccaneer", name: "Survivalist", fields: ["onGain", "actionMacro", "actionMacroLabel"], reconcileGrant: true },
   { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel"] },
