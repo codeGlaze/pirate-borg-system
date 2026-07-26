@@ -254,7 +254,8 @@
       "flavorText": "",
       "drTestReduction": 0,
       "onGain": {},
-      "grantsItems": []
+      "grantsItems": [],
+      "attackDr": {}
     },
     "class": {
       "description": "",

@@ -48,3 +48,25 @@
   word-wrap: break-word;
   color: var(--foreground-color);
 }
+
+// Conditions row on the Effects tab. (Previously only in the compiled CSS; restored
+// here so the SCSS stays the source of truth and recompiles don't drop it.)
+.pirateborg .effects .condition-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  .condition {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+  }
+}

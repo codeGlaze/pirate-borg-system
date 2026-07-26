@@ -16,7 +16,11 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "attackDr": {
+      "dr": 2,
+      "conditional": true
+    }
   },
   "ownership": {
     "default": 0

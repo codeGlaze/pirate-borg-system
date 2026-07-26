@@ -53,6 +53,26 @@
     </ul>
   </div>
 
+  {{#if hasAttackFeatures}}
+    <div class="form-group form-group-attack-features">
+      <label>{{localize "PB.AttackFeatures"}}:</label>
+      <div class="attack-features">
+        {{#each attackFeatures}}
+          <button type="button"
+            class="attack-feature {{#if auto}}auto active{{else}}situational{{/if}}"
+            data-feature-id="{{this.id}}" data-name="{{this.name}}" data-dr="{{this.dr}}"
+            {{#if auto}}disabled title="{{localize "PB.AttackFeatureAuto"}}"{{/if}}>
+            <span class="attack-feature-name">{{this.name}}</span>
+            <span class="attack-feature-dr">&minus;{{this.dr}}</span>
+          </button>
+        {{/each}}
+      </div>
+      <div class="effective-attack-dr-wrap">
+        {{localize "PB.Attack"}} {{localize "PB.DR"}}: <span class="effective-attack-dr">{{attackDR}}</span>
+      </div>
+    </div>
+  {{/if}}
+
   <div class="form-group">
     <label>{{localize "PB.TargetArmor"}}:</label>
     <div class="form-fields">

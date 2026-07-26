@@ -28,7 +28,11 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "attackDr": {
+      "dr": 2,
+      "requires": "sword"
+    }
   },
   "_key": "!items!fGzP477fNIDHs2id"
 }

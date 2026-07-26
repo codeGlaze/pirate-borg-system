@@ -28,7 +28,12 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "attackDr": {
+      "dr": 2,
+      "requires": "ranged",
+      "stacks": true
+    }
   },
   "_key": "!items!faput8RkeUiNkwzx"
 }

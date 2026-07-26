@@ -15,7 +15,12 @@ export const characterAttackAction = async (actor, weapon) => {
 
   if (!isAttackValid(weapon, ammo)) return;
 
-  const { attackDR, targetArmor, targetToken } = await showAttackDialog({
+  const {
+    attackDR,
+    targetArmor,
+    targetToken,
+    appliedFeatures = [],
+  } = await showAttackDialog({
     actor,
     weapon,
   });
@@ -32,12 +37,17 @@ export const characterAttackAction = async (actor, weapon) => {
   await handleWeaponReloading(actor, weapon);
   await decrementWeaponAmmo(actor, weapon);
 
+  // Note any attack-DR features that were applied (Crack Shot, Focused Aim, …) so the
+  // card shows why the DR was lowered rather than a silently different number.
+  const featureNote = appliedFeatures.map((feature) => game.i18n.format("PB.AttackFeatureApplied", { name: feature.name, dr: feature.dr })).join(", ");
+  const ammoDescription = weapon.useAmmoDamage ? ammo.description : "";
+
   await showGenericCard({
     actor,
     title: `${game.i18n.localize(weapon.isRanged ? "PB.WeaponTypeRanged" : "PB.WeaponTypeMelee")} ${game.i18n.localize("PB.Attack")}`,
     outcomes: [outcome],
     items: await getItems(weapon, ammo),
-    description: weapon.useAmmoDamage ? ammo.description : "",
+    description: [featureNote, ammoDescription].filter(Boolean).join("<br/>"),
     target: targetToken,
   });
 

@@ -28,7 +28,11 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "attackDr": {
+      "dr": 4,
+      "conditional": true
+    }
   },
   "_key": "!items!vKcCqgp5tTmwYaWd"
 }

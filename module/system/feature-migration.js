@@ -27,6 +27,12 @@ const ENHANCED = [
     reconcileGrant: true,
   },
   { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel", "description"] },
+  // Attack-DR features: sync the attackDr spec so existing characters gain the toggle.
+  { pack: "pirateborg.class-buccaneer", name: "Crack Shot", fields: ["attackDr"] },
+  { pack: "pirateborg.class-buccaneer", name: "Focused Aim", fields: ["attackDr"] },
+  { pack: "pirateborg.class-swashbuckler", name: "Sword Master", fields: ["attackDr"] },
+  { pack: "pirateborg.class-swashbuckler", name: "Scurvy Scallywag", fields: ["attackDr"] },
+  { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr"] },
 ];
 
 const FIX_BAYONET_FLAG = "fixBayonetWeapon";

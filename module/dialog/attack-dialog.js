@@ -36,11 +36,20 @@ class AttackDialog extends Application {
     const attackDR = (await getSystemFlag(this.actor, CONFIG.PB.flags.ATTACK_DR)) ?? 12;
     const targetArmor = this.shouldIgnoreArmor ? "0" : await this._getTargetArmor();
 
+    // Attack-DR features applicable to this weapon: auto ones (weapon requirement met)
+    // are pre-applied and locked; situational ones are opt-in toggles.
+    const attackFeatures = (this.actor.getAttackDrFeatures?.(this.weapon) ?? []).map((feature) => ({
+      ...feature,
+      situational: !feature.auto,
+    }));
+
     return {
       ...data,
       config: CONFIG.pirateborg,
       attackDR,
       targetArmor,
+      attackFeatures,
+      hasAttackFeatures: attackFeatures.length > 0,
       target: this.targetToken?.actor,
       shouldIgnoreArmor: this.shouldIgnoreArmor,
       isTargetSelectionValid: this.isTargetSelectionValid,
@@ -95,6 +104,44 @@ class AttackDialog extends Application {
 
     html.find(".armor-tier .radio-input").on("change", this._onArmorTierRadioInputChanged.bind(this));
     html.find("#targetArmor").on("change", this._onTargetArmorInputChanged.bind(this));
+
+    html.find(".attack-feature.situational").on("click", this._onAttackFeatureToggled.bind(this));
+    // Any change to the base DR (input or quick-pick) also moves the effective DR.
+    html.find("#attackDr, .attack-dr .radio-input").on("change", () => this._recomputeEffectiveDr(html));
+    this._recomputeEffectiveDr(html);
+  }
+
+  /**
+   * Sum of the DR reductions currently in effect: every auto feature plus each
+   * situational toggle that's active.
+   */
+  _activeAttackDrReduction(html) {
+    let total = 0;
+    html.find(".attack-feature[data-dr]").each((_i, element) => {
+      const el = $(element);
+      const active = el.hasClass("auto") || el.hasClass("active");
+      if (active) {
+        total += Number(el.data("dr")) || 0;
+      }
+    });
+    return total;
+  }
+
+  /**
+   * Updates the live "base → effective" DR readout so the net going into the roll is
+   * always visible (an accidentally-on toggle can't hide).
+   */
+  _recomputeEffectiveDr(html) {
+    const base = parseInt(html.find("#attackDr").val(), 10) || 0;
+    const effective = Math.max(0, base - this._activeAttackDrReduction(html));
+    html.find(".effective-attack-dr").text(effective);
+    html.find(".effective-attack-dr-wrap").toggleClass("changed", effective !== base);
+  }
+
+  _onAttackFeatureToggled(event) {
+    event.preventDefault();
+    $(event.currentTarget).toggleClass("active");
+    this._recomputeEffectiveDr($(event.currentTarget).closest("form"));
   }
 
   _onArmorTierRadioInputChanged(event) {
@@ -153,9 +200,24 @@ class AttackDialog extends Application {
       return;
     }
 
+    // Apply the feature reductions (auto + active toggles) to the base DR, and report
+    // which were applied so the attack card can show them.
+    const baseDR = parseInt(attackDR, 10);
+    const appliedFeatures = [];
+    $(form)
+      .find(".attack-feature[data-dr]")
+      .each((_i, element) => {
+        const el = $(element);
+        if (el.hasClass("auto") || el.hasClass("active")) {
+          appliedFeatures.push({ name: String(el.data("name")), dr: Number(el.data("dr")) || 0 });
+        }
+      });
+    const reduction = appliedFeatures.reduce((sum, feature) => sum + feature.dr, 0);
+
     this.callback({
       targetArmor,
-      attackDR: parseInt(attackDR, 10),
+      attackDR: Math.max(0, baseDR - reduction),
+      appliedFeatures,
       targetToken: this.targetToken,
     });
     await this.close();
@@ -165,7 +227,7 @@ class AttackDialog extends Application {
 /**
  * @param {Object} data
  * @param {Actor} data.actor
- * @returns {Promise.<{targetArmor: String, attackDR: Number, targetToken: Token}>}
+ * @returns {Promise.<{targetArmor: String, attackDR: Number, appliedFeatures: Array.<{name: String, dr: Number}>, targetToken: Token}>}
  */
 export const showAttackDialog = (data = {}) =>
   new Promise((resolve) => {

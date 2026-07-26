@@ -4,6 +4,22 @@ import { findCompendiumItem } from "../api/compendium.js";
 import { normalizeDocumentEffectDurations } from "../api/effect-duration.js";
 
 /**
+ * Whether a weapon counts as "a sword" for sword-gated features (Sword Master).
+ * Weapons carry no sword subtype, so this matches the name against the configurable
+ * keyword list (CONFIG.PB.swordWeaponKeywords).
+ *
+ * @param {PBItem} weapon
+ * @returns {Boolean}
+ */
+const isSwordWeapon = (weapon) => {
+  const name = String(weapon?.name ?? "")
+    .trim()
+    .toLowerCase();
+  const keywords = CONFIG.PB.swordWeaponKeywords ?? [];
+  return Boolean(name) && keywords.some((keyword) => name.includes(keyword));
+};
+
+/**
  * @extends {Actor}
  */
 export class PBActor extends Actor {
@@ -609,6 +625,44 @@ export class PBActor extends Actor {
         name: item.name,
         dr: Number(item.system.drTestReduction) * (item.system.quantity || 1),
       }));
+  }
+
+  /**
+   * The attack-DR features applicable to a given weapon (e.g. Crack Shot, Sword Master,
+   * Focused Aim). Declared on a feature as `system.attackDr`:
+   *
+   *   { "dr": 2, "requires": "ranged", "stacks": true }   // Crack Shot: −2 (−4 at ×2)
+   *   { "dr": 4, "conditional": true }                    // Focused Aim: −4, player opt-in
+   *
+   * `requires` gates the feature on the weapon ("ranged" | "sword"); such features are
+   * "auto" (their requirement is met, so they always apply). Features without a gate are
+   * "situational" — the circumstance (surprise, "already shot this enemy") is the
+   * player's call, so they're offered as opt-in toggles. `dr` scales with the feature's
+   * quantity only when `stacks` is set; otherwise it's flat regardless of copies held.
+   *
+   * @param {PBItem} weapon
+   * @returns {Array.<{id: String, name: String, dr: Number, auto: Boolean}>}
+   */
+  getAttackDrFeatures(weapon) {
+    const meetsWeaponGate = (requires) => {
+      if (!requires) return true;
+      if (requires === "ranged") return Boolean(weapon?.isRanged);
+      if (requires === "sword") return isSwordWeapon(weapon);
+      return false;
+    };
+    return this.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.attackDr && Number(item.system.attackDr.dr) > 0)
+      .filter((item) => meetsWeaponGate(item.system.attackDr.requires))
+      .map((item) => {
+        const spec = item.system.attackDr;
+        const quantity = spec.stacks ? Math.max(1, item.system.quantity || 1) : 1;
+        return {
+          id: item.id,
+          name: item.name,
+          dr: Number(spec.dr) * quantity,
+          auto: Boolean(spec.requires) && !spec.conditional,
+        };
+      });
   }
 
   /**

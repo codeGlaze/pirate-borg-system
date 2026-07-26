@@ -98,6 +98,24 @@
   color: var(--foreground-color);
 }
 
+.pirateborg .effects .condition-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.pirateborg .effects .condition-list .condition {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pirateborg .effects .condition-list .condition img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .pirateborg.sheet {
   margin-top: 0;
 }
@@ -975,26 +993,6 @@ form.vehicle-sheet-form .sheet-tabs .spacer {
 }
 .pirateborg .effect-info:hover {
   opacity: 1;
-}
-
-.pirateborg .effects .condition-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.pirateborg .effects .condition-list .condition {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pirateborg .effects .condition-list .condition img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
 }
 
 .pirateborg.sheet.actor .creature {
@@ -2751,6 +2749,59 @@ li.folder > .folder-header {
 .defense-dialog .radio-group-radio .tier-dmg,
 .attack-dialog .radio-group-radio .tier-dmg {
   line-height: 13px;
+}
+.defense-dialog .form-group-attack-features,
+.attack-dialog .form-group-attack-features {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.defense-dialog .form-group-attack-features .attack-features,
+.attack-dialog .form-group-attack-features .attack-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.defense-dialog .form-group-attack-features .attack-feature,
+.attack-dialog .form-group-attack-features .attack-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 2px 10px;
+  line-height: 1.6;
+  border: 1px solid var(--button-background);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--button-background);
+  cursor: pointer;
+}
+.defense-dialog .form-group-attack-features .attack-feature .attack-feature-dr,
+.attack-dialog .form-group-attack-features .attack-feature .attack-feature-dr {
+  font-family: var(--item-font);
+  font-weight: bold;
+}
+.defense-dialog .form-group-attack-features .attack-feature.active,
+.attack-dialog .form-group-attack-features .attack-feature.active {
+  background: var(--button-background);
+  color: var(--button-color);
+}
+.defense-dialog .form-group-attack-features .attack-feature.auto,
+.attack-dialog .form-group-attack-features .attack-feature.auto {
+  cursor: default;
+  opacity: 0.9;
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap {
+  font-family: var(--item-font);
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap .effective-attack-dr,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap .effective-attack-dr {
+  font-weight: bold;
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap.changed .effective-attack-dr,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap.changed .effective-attack-dr {
+  color: var(--button-background);
 }
 
 #help-dialog .sheet-header {

@@ -37,6 +37,11 @@ PB.abilityKey = {
   [PB.ability.skill]: "PB.AbilitySkill",
 };
 
+// Name fragments that mark a weapon as "a sword" for features gated on swords
+// (Swashbuckler's Sword Master). Weapons carry no sword subtype in their data, so
+// this is a name heuristic; exposed on config so worlds/modules can extend it.
+PB.swordWeaponKeywords = ["sword", "cutlass", "rapier", "scimitar", "sabre", "saber", "falchion", "katana"];
+
 PB.armorTiers = {
   0: {
     key: "PB.ArmorTierNone",
