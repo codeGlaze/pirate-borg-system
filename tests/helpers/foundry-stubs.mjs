@@ -129,6 +129,16 @@ export const installFoundryStubs = () => {
   globalThis.game = {
     release: { generation: 12 },
     i18n: { localize: (key) => key, format: (key) => key },
+    settings: {
+      _values: {},
+      register() {},
+      get(_scope, key) {
+        return this._values[key];
+      },
+      set(_scope, key, value) {
+        this._values[key] = value;
+      },
+    },
     packs: {
       get(id) {
         // Any ".rolls-*" pack holds RollTables; everything else holds Items.

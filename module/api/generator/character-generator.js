@@ -13,6 +13,7 @@ import {
 } from "../compendium.js";
 import { PB } from "../../config.js";
 import { evaluateFormula } from "../utils.js";
+import { chooseGettingBetterFeatureValue } from "../../dialog/get-better-feature-dialog.js";
 import { normalizeItemEffectDurations } from "../effect-duration.js";
 
 /**
@@ -272,9 +273,30 @@ export const handleActorGettingBetterItems = async (actor) => {
  * @returns {Promise.<Array.<PBItem>>}
  */
 export const handleClassGettingBetterItems = async (actor, compendiumTable) => {
-  const items = await drawGettingBetterRollTable(actor, compendiumTable);
+  const items = await resolveGettingBetterItems(actor, compendiumTable);
   await updateOrCreateActorItems(actor, items);
   return items;
+};
+
+/**
+ * Gains the class feature either by rolling (RAW) or by letting the player choose,
+ * per the `getBetterFeatureMode` setting. Choosing falls back to a roll if the
+ * player cancels or the table has no listable rows.
+ *
+ * @param {Actor} actor
+ * @param {String} compendiumTable
+ * @returns {Promise.<Array.<PBItem>>}
+ */
+const resolveGettingBetterItems = async (actor, compendiumTable) => {
+  const [compendium, table] = compendiumInfoFromString(compendiumTable);
+  const chosenValue = await chooseGettingBetterFeatureValue(compendium, table);
+  if (chosenValue != null) {
+    const items = await resolveTablePath(compendium, table, chosenValue);
+    if (items.length) {
+      return items;
+    }
+  }
+  return drawGettingBetterRollTable(actor, compendiumTable);
 };
 
 /**

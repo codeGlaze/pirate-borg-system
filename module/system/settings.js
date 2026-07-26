@@ -203,7 +203,27 @@ export const registerSystemSettings = () => {
     scope: "client",
     config: true,
   });
+
+  /** How a class feature is gained on "Get Better": roll (RAW), always choose, or ask each time. */
+  game.settings.register("pirateborg", "getBetterFeatureMode", {
+    name: "PB.SettingsGetBetterFeatureMode",
+    hint: "PB.SettingsGetBetterFeatureModeHint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      roll: "PB.GetBetterFeatureModeRoll",
+      choose: "PB.GetBetterFeatureModeChoose",
+      ask: "PB.GetBetterFeatureModeAsk",
+    },
+    default: "roll",
+  });
 };
+
+/**
+ * @returns {String} "roll" | "choose" | "ask"
+ */
+export const getBetterFeatureMode = () => game.settings.get("pirateborg", "getBetterFeatureMode");
 
 /**
  * @returns {Boolean}
