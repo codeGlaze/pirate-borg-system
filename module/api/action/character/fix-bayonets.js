@@ -38,7 +38,9 @@ export const isBayonetWeapon = (item) => isWeapon(item) && BAYONET_NAMES.has(nor
 
 export const findEquippedBayonet = (actor) => getActorItems(actor).find((item) => isBayonetWeapon(item) && isEquipped(item));
 
-export const findReloadableGunpowderWeapon = (actor, { excludeItemId } = {}) =>
-  getActorItems(actor).find(
+export const findReloadableGunpowderWeapons = (actor, { excludeItemId } = {}) =>
+  getActorItems(actor).filter(
     (item) => isWeapon(item) && item.id !== excludeItemId && isEquipped(item) && isGunpowderWeapon(item) && needsReloading(item) && getLoadingCount(item) > 0,
   );
+
+export const findReloadableGunpowderWeapon = (actor, { excludeItemId } = {}) => findReloadableGunpowderWeapons(actor, { excludeItemId })[0];

@@ -4,7 +4,7 @@ import { ADVANCED_ANIMATION_TYPE } from "../../animation/advanced-animation.js";
 import { ANIMATION_TYPE } from "../../animation/outcome-animation.js";
 import { testOutcome, withAsyncProps, withAutomations, withButton, withTarget, withWhen } from "../outcome.js";
 import { OUTCOME_BUTTON } from "../../automation/outcome-chat-button.js";
-import { findReloadableGunpowderWeapon, isBayonetWeapon } from "../../action/character/fix-bayonets.js";
+import { findReloadableGunpowderWeapon, findReloadableGunpowderWeapons, isBayonetWeapon } from "../../action/character/fix-bayonets.js";
 
 const localizeWithFallback = (key, data, fallback) => {
   const text = game.i18n.format(key, data);
@@ -75,21 +75,27 @@ const getBayonetReloadSecondaryOutcome = ({ actor, outcome, weapon }) => {
   if (!isBayonetWeapon(weapon)) {
     return null;
   }
+  const reloadables = findReloadableGunpowderWeapons(actor, { excludeItemId: weapon.id });
   const reloadable = findReloadableGunpowderWeapon(actor, { excludeItemId: weapon.id });
   if (!reloadable) {
     return null;
   }
+  const hasChoice = reloadables.length > 1;
   const secondaryOutcomeId = foundry.utils.randomID();
   return {
     id: secondaryOutcomeId,
     type: "reload",
-    title: localizeWithFallback("PB.FixBayonetsReloadPrompt", { item: reloadable.name }, `${reloadable.name} still needs reloading.`),
+    title: hasChoice
+      ? localizeWithFallback("PB.FixBayonetsReloadChoosePrompt", {}, "Choose a weapon to reload.")
+      : localizeWithFallback("PB.FixBayonetsReloadPrompt", { item: reloadable.name }, `${reloadable.name} still needs reloading.`),
     actionItemId: reloadable.id,
     actionItemName: reloadable.name,
     initiatorActor: outcome.initiatorActor,
     initiatorToken: outcome.initiatorToken,
     button: {
-      title: localizeWithFallback("PB.FixBayonetsReloadButton", { item: reloadable.name }, `Reload ${reloadable.name}`),
+      title: hasChoice
+        ? localizeWithFallback("PB.FixBayonetsReloadChooseButton", {}, "Choose weapon to reload")
+        : localizeWithFallback("PB.FixBayonetsReloadButton", { item: reloadable.name }, `Reload ${reloadable.name}`),
       data: {
         type: OUTCOME_BUTTON.RELOAD_ITEM,
         id: foundry.utils.randomID(),
