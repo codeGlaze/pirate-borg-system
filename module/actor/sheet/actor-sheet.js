@@ -112,9 +112,24 @@ export default class PBActorSheet extends (foundry.appv1?.sheets?.ActorSheet ?? 
   constructEffectLists(sheetData) {
     const effects = {};
 
-    effects.temporary = sheetData.actor.effects.filter((i) => i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
-    effects.disabled = sheetData.actor.effects.filter((i) => i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
-    effects.passive = sheetData.actor.effects.filter((i) => !i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
+    // Foundry v13 includes transferred effects through `allApplicableEffects()`.
+    // Fall back to owned effects for older versions.
+    const actorEffects =
+      typeof sheetData.actor.allApplicableEffects === "function"
+        ? Array.from(sheetData.actor.allApplicableEffects())
+        : sheetData.actor.effects.filter(() => true);
+
+    effects.temporary = actorEffects.filter((i) => i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
+    effects.disabled = actorEffects.filter((i) => i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
+    effects.passive = actorEffects.filter((i) => !i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
+    const systemEffects = Object.values(game.pirateborg?.config?.systemEffects ?? {});
+    effects.conditions = [...CONFIG.statusEffects, ...systemEffects].map((effect) => ({
+      ...effect,
+      key: effect.id,
+      img: effect.img || effect.icon,
+      existing: sheetData.actor.hasCondition?.(effect.id),
+      name: game.i18n.localize(effect.name || ""),
+    }));
 
     sheetData.effects = effects;
   }

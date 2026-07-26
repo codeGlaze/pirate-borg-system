@@ -1,5 +1,7 @@
 import { showGenericCard } from "../../../chat-message/generic-card.js";
 import { createReloadingOutcome } from "../../outcome/character/reloading-outcome.js";
+import { OUTCOME_BUTTON } from "../../automation/outcome-chat-button.js";
+import { findEquippedBayonet } from "./fix-bayonets.js";
 import { trackAmmo } from "../../../system/settings.js";
 
 /**
@@ -38,6 +40,18 @@ export const characterReloadAction = async (actor, item) => {
   await item.setLoadingCount(loadingCount);
 
   const outcome = await createReloadingOutcome({ actor });
+  const bayonet = item?.isGunpowderWeapon ? findEquippedBayonet(actor) : null;
+  if (bayonet) {
+    outcome.actionItemId = bayonet.id;
+    outcome.button = {
+      title: game.i18n.format("PB.FixBayonetsAttackButton", { item: bayonet.name }),
+      data: {
+        type: OUTCOME_BUTTON.ATTACK_ITEM,
+        id: foundry.utils.randomID(),
+        outcome: outcome.id,
+      },
+    };
+  }
 
   await showGenericCard({
     actor,

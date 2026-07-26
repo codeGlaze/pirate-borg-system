@@ -4,6 +4,7 @@ import { ADVANCED_ANIMATION_TYPE } from "../../animation/advanced-animation.js";
 import { ANIMATION_TYPE } from "../../animation/outcome-animation.js";
 import { testOutcome, withAsyncProps, withAutomations, withButton, withTarget, withWhen } from "../outcome.js";
 import { OUTCOME_BUTTON } from "../../automation/outcome-chat-button.js";
+import { findReloadableGunpowderWeapon, isBayonetWeapon } from "../../action/character/fix-bayonets.js";
 
 /**
  * @param {Boolean} isFumble
@@ -65,6 +66,33 @@ const getDamageFormula = ({ actor, outcome, weapon, ammo, targetToken } = {}) =>
   return actor.getScaledDamageFormula(targetToken?.actor, damageFormula);
 };
 
+const getBayonetReloadSecondaryOutcome = ({ actor, outcome, weapon }) => {
+  if (!isBayonetWeapon(weapon)) {
+    return null;
+  }
+  const reloadable = findReloadableGunpowderWeapon(actor, { excludeItemId: weapon.id });
+  if (!reloadable) {
+    return null;
+  }
+  const secondaryOutcomeId = foundry.utils.randomID();
+  return {
+    id: secondaryOutcomeId,
+    type: "reload",
+    title: game.i18n.format("PB.FixBayonetsReloadPrompt", { item: reloadable.name }),
+    actionItemId: reloadable.id,
+    initiatorActor: outcome.initiatorActor,
+    initiatorToken: outcome.initiatorToken,
+    button: {
+      title: game.i18n.format("PB.FixBayonetsReloadButton", { item: reloadable.name }),
+      data: {
+        type: OUTCOME_BUTTON.RELOAD_ITEM,
+        id: foundry.utils.randomID(),
+        outcome: secondaryOutcomeId,
+      },
+    },
+  };
+};
+
 /**
  * @param {PBActor} actor
  * @param {Number} dr
@@ -99,6 +127,12 @@ export const createAttackOutcome = async ({ actor, dr = 12, weapon, ammo, target
       withButton({
         title: game.i18n.localize("PB.RollDamageButton"),
         type: OUTCOME_BUTTON.INFLICT_DAMAGE,
+      }),
+    ),
+    withWhen(
+      (outcome) => outcome.isSuccess,
+      withAsyncProps({
+        secondaryOutcome: (outcome) => getBayonetReloadSecondaryOutcome({ actor, outcome, weapon }),
       }),
     ),
     withAutomations(ANIMATION_TYPE.ATTACK, ADVANCED_ANIMATION_TYPE.ITEM),
