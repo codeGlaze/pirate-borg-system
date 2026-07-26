@@ -28,6 +28,41 @@ const ENHANCED = [
   { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel", "description"] },
 ];
 
+const FIX_BAYONET_FLAG = "fixBayonetWeapon";
+const GRANTED_BY_FLAG = "grantedBy";
+
+const normalizeName = (name) =>
+  String(name ?? "")
+    .trim()
+    .toLowerCase();
+
+const isBayonetName = (name) => {
+  const n = normalizeName(name);
+  return n === "bayonet" || n === "bayonets";
+};
+
+const backfillLegacyBayonetMarkers = async (actor) => {
+  const featureType = CONFIG.PB.itemTypes.feature;
+  const weaponType = CONFIG.PB.itemTypes.weapon;
+  const fixBayonetsFeature = actor.items.find((entry) => entry.type === featureType && entry.name === "Fix Bayonets!");
+  if (!fixBayonetsFeature) {
+    return 0;
+  }
+
+  const scope = CONFIG.PB.flagScope;
+  const legacyBayonets = actor.items.filter((entry) => {
+    if (entry.type !== weaponType) return false;
+    if (entry.getFlag(scope, FIX_BAYONET_FLAG)) return false;
+    const grantedByFixBayonets = entry.getFlag(scope, GRANTED_BY_FLAG) === fixBayonetsFeature.id;
+    return grantedByFixBayonets || isBayonetName(entry.name);
+  });
+
+  for (const bayonet of legacyBayonets) {
+    await bayonet.setFlag(scope, FIX_BAYONET_FLAG, true);
+  }
+  return legacyBayonets.length;
+};
+
 /**
  * The `system.<field>` updates needed to bring `embedded` in line with `compendium`
  * for the whitelisted fields. Empty when already current (idempotent).
@@ -134,6 +169,10 @@ export const migrateFeatureMechanics = async () => {
     await run(actor.name, actor.items);
     for (const feature of actor.items.filter((entry) => entry.type === CONFIG.PB.itemTypes.feature && hasGrant(entry))) {
       await reconcileFeatureGrant(feature, { silent: true });
+    }
+    const backfilled = await backfillLegacyBayonetMarkers(actor);
+    if (backfilled) {
+      report.push({ owner: actor.name, item: "Fix Bayonets!", changed: [`updated ${backfilled} legacy bayonet marker(s)`] });
     }
   }
   if (report.length) {

@@ -1,4 +1,5 @@
 const BAYONET_NAMES = new Set(["bayonet", "bayonets"]);
+const FIX_BAYONET_FLAG = "fixBayonetWeapon";
 
 const getActorItems = (actor) => {
   if (!actor?.items) {
@@ -34,7 +35,9 @@ const getLoadingCount = (item) => Number(item?.loadingCount ?? item?.system?.loa
 
 const isGunpowderWeapon = (item) => Boolean(item?.isGunpowderWeapon ?? item?.system?.isGunpowderWeapon);
 
-export const isBayonetWeapon = (item) => isWeapon(item) && BAYONET_NAMES.has(normalizedName(item.name));
+const isFlaggedFixBayonetWeapon = (item) => Boolean(item?.getFlag?.(CONFIG?.PB?.flagScope, FIX_BAYONET_FLAG));
+
+export const isBayonetWeapon = (item) => isWeapon(item) && (isFlaggedFixBayonetWeapon(item) || BAYONET_NAMES.has(normalizedName(item.name)));
 
 export const findEquippedBayonet = (actor) => getActorItems(actor).find((item) => isBayonetWeapon(item) && isEquipped(item));
 

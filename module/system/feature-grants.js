@@ -20,6 +20,7 @@ import { showGenericCard } from "../chat-message/generic-card.js";
 const ADD = 2; // CONST.ACTIVE_EFFECT_MODES.ADD
 const ROLLS_FLAG = "onGainHpRolls";
 const GRANT_EFFECT_FLAG = "featureGrant";
+const FIX_BAYONET_FLAG = "fixBayonetWeapon";
 
 /**
  * Brings the per-application HP rolls in line with how many times the feature is
@@ -60,6 +61,14 @@ export const buildGrantChanges = (spec, rolls, quantity) => {
 };
 
 const GRANTED_BY_FLAG = "grantedBy";
+
+const isFixBayonetGrant = (spec) => {
+  const [, name] = String(spec?.ref ?? "").split(";");
+  const normalized = String(name ?? "")
+    .trim()
+    .toLowerCase();
+  return normalized === "bayonet" || normalized === "bayonets";
+};
 
 const hasNumericGrant = (item) => {
   const spec = item?.system?.onGain;
@@ -151,6 +160,9 @@ const reconcileItemGrants = async (item, silent) => {
     const die = dieForQuantity(spec.dieByQuantity, quantity);
     const granted = item.parent.items.find((i) => i.getFlag(scope, GRANTED_BY_FLAG) === item.id && i.name === name);
     if (granted) {
+      if (isFixBayonetGrant(spec) && !granted.getFlag(scope, FIX_BAYONET_FLAG)) {
+        await granted.setFlag(scope, FIX_BAYONET_FLAG, true);
+      }
       if (die && granted.system.damageDie !== die) {
         await granted.update({ "system.damageDie": die });
       }
@@ -163,6 +175,9 @@ const reconcileItemGrants = async (item, silent) => {
     }
     const data = compendiumItem.toObject(false);
     foundry.utils.setProperty(data, `flags.${scope}.${GRANTED_BY_FLAG}`, item.id);
+    if (isFixBayonetGrant(spec)) {
+      foundry.utils.setProperty(data, `flags.${scope}.${FIX_BAYONET_FLAG}`, true);
+    }
     if (spec.equip) {
       data.system.equipped = true;
     }
