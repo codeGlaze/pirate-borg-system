@@ -70,6 +70,13 @@ const isFixBayonetGrant = (spec) => {
   return normalized === "bayonet" || normalized === "bayonets";
 };
 
+const normalizedName = (name) =>
+  String(name ?? "")
+    .trim()
+    .toLowerCase();
+
+const isLegacyPluralBayonetsName = (name) => normalizedName(name) === "bayonets";
+
 const hasNumericGrant = (item) => {
   const spec = item?.system?.onGain;
   return !!spec && (Object.keys(spec.abilities ?? {}).length > 0 || !!spec.maxHp);
@@ -158,13 +165,44 @@ const reconcileItemGrants = async (item, silent) => {
       continue;
     }
     const die = dieForQuantity(spec.dieByQuantity, quantity);
-    const granted = item.parent.items.find((i) => i.getFlag(scope, GRANTED_BY_FLAG) === item.id && i.name === name);
+    const isFixBayonet = isFixBayonetGrant(spec);
+    let granted = item.parent.items.find((i) => i.getFlag(scope, GRANTED_BY_FLAG) === item.id && i.name === name);
+
+    // Legacy/self-heal path: if a previous feature instance granted a bayonet,
+    // adopt that copy instead of creating another one.
+    if (!granted && isFixBayonet) {
+      granted = item.parent.items.find((entry) => {
+        const grantedBy = entry.getFlag(scope, GRANTED_BY_FLAG);
+        return grantedBy || entry.getFlag(scope, FIX_BAYONET_FLAG) || isLegacyPluralBayonetsName(entry.name);
+      });
+      if (granted) {
+        await granted.setFlag(scope, GRANTED_BY_FLAG, item.id);
+      }
+    }
+
     if (granted) {
-      if (isFixBayonetGrant(spec) && !granted.getFlag(scope, FIX_BAYONET_FLAG)) {
+      if (isFixBayonet && !granted.getFlag(scope, FIX_BAYONET_FLAG)) {
         await granted.setFlag(scope, FIX_BAYONET_FLAG, true);
+      }
+      if (spec.equip && !granted.system.equipped) {
+        await granted.update({ "system.equipped": true });
       }
       if (die && granted.system.damageDie !== die) {
         await granted.update({ "system.damageDie": die });
+      }
+
+      if (isFixBayonet) {
+        const duplicates = item.parent.items.filter((entry) => {
+          if (entry.id === granted.id) return false;
+          const grantedBy = entry.getFlag(scope, GRANTED_BY_FLAG);
+          return Boolean(grantedBy) || isLegacyPluralBayonetsName(entry.name);
+        });
+        if (duplicates.length) {
+          await item.parent.deleteEmbeddedDocuments(
+            "Item",
+            duplicates.map((entry) => entry.id),
+          );
+        }
       }
       continue;
     }
@@ -175,7 +213,7 @@ const reconcileItemGrants = async (item, silent) => {
     }
     const data = compendiumItem.toObject(false);
     foundry.utils.setProperty(data, `flags.${scope}.${GRANTED_BY_FLAG}`, item.id);
-    if (isFixBayonetGrant(spec)) {
+    if (isFixBayonet) {
       foundry.utils.setProperty(data, `flags.${scope}.${FIX_BAYONET_FLAG}`, true);
     }
     if (spec.equip) {

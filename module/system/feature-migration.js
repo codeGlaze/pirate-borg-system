@@ -36,10 +36,7 @@ const normalizeName = (name) =>
     .trim()
     .toLowerCase();
 
-const isBayonetName = (name) => {
-  const n = normalizeName(name);
-  return n === "bayonet" || n === "bayonets";
-};
+const isLegacyPluralBayonetsName = (name) => normalizeName(name) === "bayonets";
 
 const backfillLegacyBayonetMarkers = async (actor) => {
   const featureType = CONFIG.PB.itemTypes.feature;
@@ -53,8 +50,10 @@ const backfillLegacyBayonetMarkers = async (actor) => {
   const legacyBayonets = actor.items.filter((entry) => {
     if (entry.type !== weaponType) return false;
     if (entry.getFlag(scope, FIX_BAYONET_FLAG)) return false;
-    const grantedByFixBayonets = entry.getFlag(scope, GRANTED_BY_FLAG) === fixBayonetsFeature.id;
-    return grantedByFixBayonets || isBayonetName(entry.name);
+    const grantedBy = entry.getFlag(scope, GRANTED_BY_FLAG);
+    const grantedByFixBayonets = grantedBy === fixBayonetsFeature.id;
+    // Only backfill clear legacy/orphan grant copies, not every generic bayonet.
+    return grantedByFixBayonets || Boolean(grantedBy) || isLegacyPluralBayonetsName(entry.name);
   });
 
   for (const bayonet of legacyBayonets) {
