@@ -1,0 +1,44 @@
+name: Sync beta from community
+
+# Keeps beta/community-05 in step with this branch so the beta build always has the
+# latest work. On every push here, merge this branch into beta/community-05 (which
+# carries only the beta build tooling on top) and push it. A real merge conflict fails
+# the run loudly rather than silently drifting. Pushing beta does not re-trigger this
+# workflow (the trigger is this branch only), so there is no loop.
+
+on:
+  push:
+    branches:
+      - community/05-chat-ux-and-bayonets
+  workflow_dispatch:
+
+# Serialize runs so two quick pushes can't race on the beta push.
+concurrency:
+  group: sync-beta
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout beta branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: beta/community-05
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "codeGlaze"
+          git config user.email "github@codeglaze.com"
+
+      - name: Merge community into beta
+        run: |
+          git fetch origin community/05-chat-ux-and-bayonets
+          git merge --no-edit origin/community/05-chat-ux-and-bayonets
+
+      - name: Push beta
+        run: git push origin HEAD:beta/community-05
