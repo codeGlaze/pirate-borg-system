@@ -12,6 +12,7 @@ import * as hybridCharacterGenerator from "../api/generator/hybrid-character-gen
 import * as macros from "../api/macros.js";
 import * as utils from "../api/utils.js";
 import * as compendium from "../api/compendium.js";
+import * as grants from "../api/grants.js";
 import * as actions from "../api/action/actions.js";
 import * as animations from "../api/animation/animation.js";
 import * as advancedAnimations from "../api/animation/advanced-animation.js";
@@ -34,6 +35,7 @@ export const configureSystem = () => {
     api: {
       actions,
       compendium,
+      grants,
       utils,
       animations,
       advancedAnimations,
