@@ -36,7 +36,7 @@ const git = (...args) => {
 const BASE_VERSION = process.argv[2] || "v1.7.1-beta";
 const BUILD_NUM = git("rev-list", "--count", "HEAD") || "0";
 const SHORT_SHA = git("rev-parse", "--short", "HEAD") || "nogit";
-const DIRTY = git("status", "--porcelain") ? "-dirty" : "";
+const DIRTY = git("status", "--porcelain", "--untracked-files=no") ? "-dirty" : "";
 const VERSION = `${BASE_VERSION}.${BUILD_NUM}`;
 const BETA_TITLE = `PIRATE BORG (Beta b${BUILD_NUM} - ${SHORT_SHA}${DIRTY})`;
 const DIST = path.join(ROOT, "dist");
