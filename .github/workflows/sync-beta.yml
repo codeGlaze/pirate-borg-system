@@ -1,10 +1,15 @@
 name: Sync beta from community
 
-# Keeps beta/community-05 in step with this branch so the beta build always has the
-# latest work. On every push here, merge this branch into beta/community-05 (which
-# carries only the beta build tooling on top) and push it. A real merge conflict fails
-# the run loudly rather than silently drifting. Pushing beta does not re-trigger this
-# workflow (the trigger is this branch only), so there is no loop.
+# beta/community is the rolling integration/build branch at the end of the community
+# pipeline: it always mirrors the current community branch plus the beta build tooling.
+# On every push to the current community branch, merge whatever triggered
+# (github.ref_name) into beta/community and push it. A real merge conflict fails the
+# run loudly rather than drifting. Pushing beta/community re-triggers nothing (it's not
+# in the trigger list), so there is no loop.
+#
+# To rotate to a new community branch, change ONLY the branch under `on.push.branches`
+# below — everything else derives from the branch that triggered the run. (GitHub does
+# not allow variables in the `on:` trigger, so this one line is a literal.)
 
 on:
   push:
@@ -20,6 +25,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  BETA_BRANCH: beta/community
+
 jobs:
   sync-beta:
     runs-on: ubuntu-latest
@@ -27,7 +35,7 @@ jobs:
       - name: Checkout beta branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: beta/community-05
+          ref: ${{ env.BETA_BRANCH }}
           fetch-depth: 0
 
       - name: Configure git identity
@@ -35,10 +43,10 @@ jobs:
           git config user.name "codeGlaze"
           git config user.email "github@codeglaze.com"
 
-      - name: Merge community into beta
+      - name: Merge the triggering community branch into beta
         run: |
-          git fetch origin community/05-chat-ux-and-bayonets
-          git merge --no-edit origin/community/05-chat-ux-and-bayonets
+          git fetch origin "${{ github.ref_name }}"
+          git merge --no-edit "origin/${{ github.ref_name }}"
 
       - name: Push beta
-        run: git push origin HEAD:beta/community-05
+        run: git push origin "HEAD:${{ env.BETA_BRANCH }}"
