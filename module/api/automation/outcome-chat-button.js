@@ -13,6 +13,29 @@ export const OUTCOME_BUTTON = {
   APPLY_JOKER_TABLE: "button-apply-joker-table",
 };
 
+const flattenOutcomes = (outcomes = []) => {
+  const flat = [];
+  for (const outcome of outcomes) {
+    if (!outcome) continue;
+    flat.push(outcome);
+    if (outcome.secondaryOutcome) {
+      flat.push(...flattenOutcomes([outcome.secondaryOutcome]));
+    }
+  }
+  return flat;
+};
+
+const findOutcomeById = (outcomes = [], outcomeId) => {
+  for (const outcome of outcomes) {
+    if (!outcome) continue;
+    if (outcome.id === outcomeId) return outcome;
+    if (outcome.secondaryOutcome?.id === outcomeId) return outcome.secondaryOutcome;
+    const nested = findOutcomeById(outcome.secondaryOutcome ? [outcome.secondaryOutcome] : [], outcomeId);
+    if (nested) return nested;
+  }
+  return null;
+};
+
 export class OutcomeChatButton {
   static buttons = [];
   static TEMPLATE = "systems/pirateborg/templates/chat/generic-button-outcome.html";
@@ -43,7 +66,7 @@ export class OutcomeChatButton {
     const outcomeId = htmlButton.dataset.outcomeId ?? htmlButton.dataset.outcome;
     if (!outcomeId) return;
 
-    const outcome = outcomes.find((entry) => entry.id === outcomeId);
+    const outcome = outcomes.find((entry) => entry.id === outcomeId) ?? findOutcomeById(outcomes, outcomeId);
     if (!outcome?.button?.data?.type) return;
 
     const button = OutcomeChatButton.buttons.find((entry) => outcome.button?.data.type === entry.type);
@@ -54,7 +77,7 @@ export class OutcomeChatButton {
 
     await OutcomeChatButton.updateMessageCard(message, outcome, actionOutcomes);
 
-    await setSystemFlag(message, CONFIG.PB.flags.OUTCOMES, [...outcomes, ...actionOutcomes]);
+    await setSystemFlag(message, CONFIG.PB.flags.OUTCOMES, [...flattenOutcomes(outcomes), ...flattenOutcomes(actionOutcomes)]);
   }
 
   /**

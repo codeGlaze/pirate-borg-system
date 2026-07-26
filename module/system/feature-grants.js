@@ -132,7 +132,18 @@ const reconcileGrantInner = async (item, silent) => {
 const reconcileItemGrants = async (item, silent) => {
   const scope = CONFIG.PB.flagScope;
   const quantity = Math.max(1, item.system.quantity || 1);
-  for (const spec of item.system.grantsItems ?? []) {
+  const specs = item.system.grantsItems ?? [];
+  const desiredNames = new Set(specs.map((spec) => String(spec.ref ?? "").split(";")[1]).filter(Boolean));
+
+  const staleGranted = item.parent.items.filter((entry) => entry.getFlag(scope, GRANTED_BY_FLAG) === item.id && !desiredNames.has(entry.name));
+  if (staleGranted.length) {
+    await item.parent.deleteEmbeddedDocuments(
+      "Item",
+      staleGranted.map((entry) => entry.id),
+    );
+  }
+
+  for (const spec of specs) {
     const [compendium, name] = String(spec.ref ?? "").split(";");
     if (!compendium || !name) {
       continue;
@@ -141,12 +152,11 @@ const reconcileItemGrants = async (item, silent) => {
     const granted = item.parent.items.find((i) => i.getFlag(scope, GRANTED_BY_FLAG) === item.id && i.name === name);
     if (granted) {
       if (die && granted.system.damageDie !== die) {
-         
         await granted.update({ "system.damageDie": die });
       }
       continue;
     }
-     
+
     const compendiumItem = await findCompendiumItem(compendium, name);
     if (!compendiumItem) {
       continue;
@@ -159,10 +169,9 @@ const reconcileItemGrants = async (item, silent) => {
     if (die) {
       data.system.damageDie = die;
     }
-     
+
     const [created] = await item.parent.createEmbeddedDocuments("Item", [data]);
     if (!silent && created) {
-       
       await showGenericCard({ actor: item.parent, title: item.name, description: game.i18n.format("PB.FeatureGrantedItem", { item: created.name }) });
     }
   }

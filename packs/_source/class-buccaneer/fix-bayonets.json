@@ -31,7 +31,7 @@
     "flavorText": "",
     "grantsItems": [
       {
-        "ref": "pirateborg.class-buccaneer;Bayonets",
+        "ref": "pirateborg.equipment-melee-weapons;Bayonet",
         "equip": true,
         "dieByQuantity": {
           "1": "1d4",

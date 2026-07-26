@@ -3,6 +3,18 @@ import { createChatMessageWithVisibility } from "./chat-message-visibility.js";
 
 const GENERIC_CARD_TEMPLATE = "systems/pirateborg/templates/chat/generic-card.html";
 
+const flattenOutcomes = (outcomes = []) => {
+  const flat = [];
+  for (const outcome of outcomes) {
+    if (!outcome) continue;
+    flat.push(outcome);
+    if (outcome.secondaryOutcome) {
+      flat.push(...flattenOutcomes([outcome.secondaryOutcome]));
+    }
+  }
+  return flat;
+};
+
 /**
  * @param {PBActor} [actor]
  * @param {Token} [target]
@@ -41,7 +53,7 @@ export const showGenericCard = async ({ actor, target, title, description, outco
     ...(rolls.length ? { sound: diceSound() } : {}),
     flags: {
       [CONFIG.PB.flagScope]: {
-        [CONFIG.PB.flags.OUTCOMES]: outcomes,
+        [CONFIG.PB.flags.OUTCOMES]: flattenOutcomes(outcomes),
       },
     },
   };
