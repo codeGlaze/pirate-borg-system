@@ -6,6 +6,11 @@ import { testOutcome, withAsyncProps, withAutomations, withButton, withTarget, w
 import { OUTCOME_BUTTON } from "../../automation/outcome-chat-button.js";
 import { findReloadableGunpowderWeapon, isBayonetWeapon } from "../../action/character/fix-bayonets.js";
 
+const localizeWithFallback = (key, data, fallback) => {
+  const text = game.i18n.format(key, data);
+  return text === key ? fallback : text;
+};
+
 /**
  * @param {Boolean} isFumble
  * @param {Boolean} isCriticalSuccess
@@ -78,12 +83,13 @@ const getBayonetReloadSecondaryOutcome = ({ actor, outcome, weapon }) => {
   return {
     id: secondaryOutcomeId,
     type: "reload",
-    title: game.i18n.format("PB.FixBayonetsReloadPrompt", { item: reloadable.name }),
+    title: localizeWithFallback("PB.FixBayonetsReloadPrompt", { item: reloadable.name }, `${reloadable.name} still needs reloading.`),
     actionItemId: reloadable.id,
+    actionItemName: reloadable.name,
     initiatorActor: outcome.initiatorActor,
     initiatorToken: outcome.initiatorToken,
     button: {
-      title: game.i18n.format("PB.FixBayonetsReloadButton", { item: reloadable.name }),
+      title: localizeWithFallback("PB.FixBayonetsReloadButton", { item: reloadable.name }, `Reload ${reloadable.name}`),
       data: {
         type: OUTCOME_BUTTON.RELOAD_ITEM,
         id: foundry.utils.randomID(),

@@ -289,6 +289,7 @@
   "PB.OutOfAmmo": "Skończyła ci się amunicja. Wybierz inną amunicję przed ponownym przeładowaniem.",
   "PB.OutOfAmmoReloaded": "Próbowano przeładować {item} bez amunicji.",
   "PB.OutOfAmmoTitle": "Brak Amunicji",
+  "PB.ActionItemMissing": "Ta akcja nie może już znaleźć przedmiotu. Użyj ponownie cechy lub broni, aby utworzyć nowy przycisk.",
   "PB.FixBayonetsAttackButton": "Atakuj używając {item}",
   "PB.FixBayonetsReloadButton": "Przeładuj {item}",
   "PB.FixBayonetsReloadPrompt": "{item} nadal wymaga przeładowania.",

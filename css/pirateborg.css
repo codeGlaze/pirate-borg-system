@@ -977,6 +977,26 @@ form.vehicle-sheet-form .sheet-tabs .spacer {
   opacity: 1;
 }
 
+.pirateborg .effects .condition-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pirateborg .effects .condition-list .condition {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pirateborg .effects .condition-list .condition img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .pirateborg.sheet.actor .creature {
   min-width: 500px;
 }

@@ -107,6 +107,11 @@ export const migrateFeatureMechanics = async () => {
     return;
   }
   const report = [];
+  const hasGrant = (item) => {
+    const spec = item?.system?.onGain;
+    const grantsItems = item?.system?.grantsItems ?? [];
+    return (spec && (Object.keys(spec.abilities ?? {}).length > 0 || !!spec.maxHp)) || (Array.isArray(grantsItems) && grantsItems.length > 0);
+  };
   const run = async (owner, items) => {
     for (const item of items ?? []) {
       const entry = ENHANCED.find((e) => e.name === item.name);
@@ -127,6 +132,9 @@ export const migrateFeatureMechanics = async () => {
     }
 
     await run(actor.name, actor.items);
+    for (const feature of actor.items.filter((entry) => entry.type === CONFIG.PB.itemTypes.feature && hasGrant(entry))) {
+      await reconcileFeatureGrant(feature, { silent: true });
+    }
   }
   if (report.length) {
     await postMigrationReport(report);

@@ -260,6 +260,7 @@
   "PB.OutOfAmmo": "Vous n’avez plus de munitions. Choisissez d’autres munitions avant de recharger.",
   "PB.OutOfAmmoReloaded": "Tentative de rechargement de {item} sans munitions.",
   "PB.OutOfAmmoTitle": "Plus de munitions",
+  "PB.ActionItemMissing": "Cette action ne trouve plus son objet. Relancez la fonctionnalité ou l'arme pour créer un nouveau bouton.",
   "PB.FixBayonetsAttackButton": "Attaquer avec {item}",
   "PB.FixBayonetsReloadButton": "Recharger {item}",
   "PB.FixBayonetsReloadPrompt": "{item} doit encore être rechargé.",

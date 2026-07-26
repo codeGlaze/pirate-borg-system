@@ -4,6 +4,11 @@ import { OUTCOME_BUTTON } from "../../automation/outcome-chat-button.js";
 import { findEquippedBayonet } from "./fix-bayonets.js";
 import { trackAmmo } from "../../../system/settings.js";
 
+const localizeWithFallback = (key, data, fallback) => {
+  const text = game.i18n.format(key, data);
+  return text === key ? fallback : text;
+};
+
 /**
  * @param {PBActor} actor
  * @param {PBItem} item
@@ -43,8 +48,9 @@ export const characterReloadAction = async (actor, item) => {
   const bayonet = item?.isGunpowderWeapon ? findEquippedBayonet(actor) : null;
   if (bayonet) {
     outcome.actionItemId = bayonet.id;
+    outcome.actionItemName = bayonet.name;
     outcome.button = {
-      title: game.i18n.format("PB.FixBayonetsAttackButton", { item: bayonet.name }),
+      title: localizeWithFallback("PB.FixBayonetsAttackButton", { item: bayonet.name }, `Attack with ${bayonet.name}`),
       data: {
         type: OUTCOME_BUTTON.ATTACK_ITEM,
         id: foundry.utils.randomID(),

@@ -13,8 +13,9 @@ const resolveActor = (originalOutcome) => {
  */
 export const chatAttackItemButtonAction = async (originalOutcome) => {
   const actor = resolveActor(originalOutcome);
-  const item = actor?.items?.get(originalOutcome.actionItemId);
+  const item = actor?.items?.get(originalOutcome.actionItemId) ?? actor?.items?.find?.((entry) => entry.name === originalOutcome.actionItemName);
   if (!actor || !item) {
+    ui.notifications?.warn?.(game.i18n.localize("PB.ActionItemMissing"));
     return [];
   }
   await characterAttackAction(actor, item);
