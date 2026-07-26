@@ -38,11 +38,17 @@
     "featureType": "Class",
     "maxQuantity": 2,
     "quantity": 1,
-    "actionMacro": "pirateborg.macros-pirateborg;Generic Item",
-    "actionMacroLabel": "Use",
+    "actionMacro": "",
+    "actionMacroLabel": "",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "onGain": {
+      "abilities": {
+        "toughness": 1
+      },
+      "maxHp": "1d4"
+    }
   },
   "ownership": {
     "default": 0

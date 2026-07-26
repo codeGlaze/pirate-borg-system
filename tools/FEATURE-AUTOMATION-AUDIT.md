@@ -1,6 +1,6 @@
 # Feature automation audit
 
-A map of all **65 class features** by *how* they'd be automated, so we stop
+A map of all **65 class features** by _how_ they'd be automated, so we stop
 one-off-ing and work category by category. "Current" = what the system does
 today; "Approach" = the cleanest implementation; "Effort" = rough cost.
 
@@ -11,11 +11,14 @@ Legend for Current: ✅ automated · 🟡 partial · ⛔ inert (text-only "Use" 
 
 ## Two bugs to fix first (independent of the categories)
 
+> **Both fixed**, plus the Category B mechanism is built (Survivalist is the
+> reference). See `module/system/feature-grants.js`.
+
 1. **Drag-drop doesn't stack same-name features.** `PBActorSheet._onDropItem`
    (`module/actor/sheet/actor-sheet.js:241`) lets `super._onDropItem` create the
    item and never merges. Dropping **Buccan Cook** (or any `maxQuantity > 1`
    feature) twice makes two copies instead of `quantity: 2`. The character
-   *generator* already stacks (`updateOrCreateActorItems`); the drop path should
+   _generator_ already stacks (`updateOrCreateActorItems`); the drop path should
    too — merge into the existing item up to `maxQuantity`, delete the duplicate,
    warn if already at cap. **Fix in `_onDropItem`.**
 
@@ -26,24 +29,24 @@ Legend for Current: ✅ automated · 🟡 partial · ⛔ inert (text-only "Use" 
 
 ---
 
-## A. Persistent numeric via Active Effect — *cleanest*
+## A. Persistent numeric via Active Effect — _cleanest_
 
 The Thick Skinned pattern: an AE on the feature moves a numeric actor field; the
 derived value follows. Single source of truth.
 
-| Feature | Class | Effect | Current | Approach |
-| --- | --- | --- | --- | --- |
-| Thick Skinned | Brute | counts as light armor (-d2) | ✅ AE → `naturalArmorTier` | done |
-| Fast Reloading | Buccaneer | reload 1 action | ✅ AE → `reloadModifier` (on class) | done |
-| Sea Turtle | Tall Tale | "extra -d2 to armor" | ⛔ | **AE → `naturalArmorTier` (identical to Thick Skinned)** |
-| Shakespeare of Insults | Swashbuckler | +1 all damage rolls | ⛔ | AE → a new `damageModifier` field the damage roll reads (med) |
-| Dazzling Acrobatics | Swashbuckler | +2 Agility *when defending* | ⛔ | conditional — AE a `defenseAgilityModifier` the defend flow reads (med) |
+| Feature                | Class        | Effect                      | Current                             | Approach                                                                |
+| ---------------------- | ------------ | --------------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
+| Thick Skinned          | Brute        | counts as light armor (-d2) | ✅ AE → `naturalArmorTier`          | done                                                                    |
+| Fast Reloading         | Buccaneer    | reload 1 action             | ✅ AE → `reloadModifier` (on class) | done                                                                    |
+| Sea Turtle             | Tall Tale    | "extra -d2 to armor"        | ⛔                                  | **AE → `naturalArmorTier` (identical to Thick Skinned)**                |
+| Shakespeare of Insults | Swashbuckler | +1 all damage rolls         | ⛔                                  | AE → a new `damageModifier` field the damage roll reads (med)           |
+| Dazzling Acrobatics    | Swashbuckler | +2 Agility _when defending_ | ⛔                                  | conditional — AE a `defenseAgilityModifier` the defend flow reads (med) |
 
 ## Tracking & reversal (the "remove it if the feature is removed" problem)
 
 Adding a boost is easy; the hard part is **reversing it exactly when the feature
 is removed** — doubly so because part is random (Survivalist's +d4 HP). A naïve
-"subtract a d4" is wrong; you must remove the *specific* amount granted. The
+"subtract a d4" is wrong; you must remove the _specific_ amount granted. The
 answer is not a bespoke ledger — it's **Active Effects as the tracker**:
 
 - A **transfer AE on the feature item** applies its change to the actor and is
@@ -56,14 +59,14 @@ answer is not a bespoke ledger — it's **Active Effects as the tracker**:
 - **Random numeric** (e.g. +d4 HP) → the compendium can't hold a rolled value, so
   **roll once when the feature is gained and store that roll as its own record**,
   not a merged total. Each application = one record holding its own rolled value.
-- **Stacking** (Survivalist ×2) — the important case. A *single accumulated total*
+- **Stacking** (Survivalist ×2) — the important case. A _single accumulated total_
   can't be reversed by one step (you'd have lost how much the 2nd take added). So
   keep **one record per application**: the item carries one transfer AE per take,
   each holding that take's own roll (take 1 → +3 HP AE, take 2 → +2 HP AE). Foundry
   sums ADD-mode AEs, so the actor gets +5. A **reconcile handler** keyed to the
   feature's `quantity` keeps records == takes: quantity rises → roll the delta and
   add a record; quantity falls → drop the newest record(s). So "grabbed 2, want 1"
-  = set quantity to 1, and the *exact* second roll (+2) is removed, leaving +3.
+  = set quantity to 1, and the _exact_ second roll (+2) is removed, leaving +3.
   Deleting the whole feature removes every record at once (core AE auto-revert).
   Fixed parts (+1 Toughness per take) are just `quantity × 1`, recomputed the same way.
 - `hp.max` is a safe AE target (not recomputed in prep); current HP is left alone,
@@ -76,11 +79,11 @@ hook for the source feature. The random quantity is already stored on the item,
 so removal is exact there too.
 
 Net: **one on-gain handler** (roll randoms → write into the item's AE / stamp
-granted items) plus **core AE auto-revert** covers add *and* remove for the whole
+granted items) plus **core AE auto-revert** covers add _and_ remove for the whole
 +stat/+HP/grant family. Build it once, reuse for Survivalist, Sea Turtle, the
 grants, etc.
 
-## B. One-time boost applied on gain — *your Survivalist case*
+## B. One-time boost applied on gain — _your Survivalist case_
 
 Permanent +stat/+HP the moment you gain the feature; then inert. Needs
 **apply-once** logic keyed to the feature's `quantity` so "taken again" applies
@@ -88,9 +91,9 @@ the increment again but a re-render doesn't double it. This is where your
 "make the Use button apply it once" instinct lands — better as automatic on
 gain, with a chat line for feedback.
 
-| Feature | Class | Effect | Current |
-| --- | --- | --- | --- |
-| Survivalist | Buccaneer | +1 Toughness, +d4 max HP, immune infected/sick/poisoned | ⛔ |
+| Feature     | Class     | Effect                                                  | Current                  |
+| ----------- | --------- | ------------------------------------------------------- | ------------------------ |
+| Survivalist | Buccaneer | +1 Toughness, +d4 max HP, immune infected/sick/poisoned | ✅ (immunity still TODO) |
 
 - Toughness +1 → could be an AE (`system.abilities.toughness.value`), but HP +d4
   is a **roll**, so it's not a static AE. Cleanest: on gain, roll d4, raise max
@@ -98,9 +101,9 @@ gain, with a chat line for feedback.
 - Immunity (infected/sick/poisoned) → gate the Rest/infection dialog on a flag.
 - Stacks to 2, so guard with a "applied N times" flag vs. `quantity`.
 
-## C. Creation-time stat blocks (Tall Tale forms) — *applied at build, verify*
+## C. Creation-time stat blocks (Tall Tale forms) — _applied at build, verify_
 
-These set abilities/HP/attack when the character is *created* as that form. They
+These set abilities/HP/attack when the character is _created_ as that form. They
 should already be handled by the hybrid generator; **action item: verify they
 actually apply** (this is where "is it working?" bites hardest).
 
@@ -108,58 +111,58 @@ Anglerfish, Bilge Rat, Clever Monkey, Crab, Crocodile, Electric Eel, Foul Fowl,
 Jaguar, Jellyfish, Lucky Parrot, Merfolk, Octopus, Sea Turtle*, Sentient Animal,
 Shark, Aquatic Mutant, The Great Old One. (*Sea Turtle's armor bit → Category A.)
 
-## D. Opt-in situational modifier at roll time — *Treasure Hunter pattern*
+## D. Opt-in situational modifier at roll time — _Treasure Hunter pattern_
 
 "-X DR when [situation]" the system can't detect, so the player elects it per
 roll (checkbox on the roll dialog). Treasure Hunter already does this for
 **ability tests**; extending to **attack/defense** rolls is the same idea one
 layer over.
 
-| Feature | Class | Effect | Current |
-| --- | --- | --- | --- |
-| Treasure Hunter | Buccaneer | -3/-6 DR on a subset of ability tests | ✅ opt-in `drTestReduction` |
-| Crack Shot | Buccaneer | all ranged -2/-4 DR | ⛔ |
-| Focused Aim | Buccaneer | -4 DR vs already-shot enemy (+d4 dmg if 2×) | ⛔ |
-| Sword Master | Swashbuckler | -2 DR attacking with a sword | ⛔ |
-| Ostentatious Fencer | Swashbuckler | -2 DR rapier/cutlass, +1 dmg dueling | ⛔ |
-| Scurvy Scallywag | Swashbuckler | -2 DR vs already-attacked enemy | ⛔ |
-| Back Stabber | Rapscallion | -2 DR + d2 dmg on surprise | ⛔ |
-| Burglar | Rapscallion | -4 DR pick/disarm/trap (also grants lock picks) | ⛔ |
-| Sneaky Bastard | Rapscallion | auto-crit test from shadows | ⛔ |
-| Skylarker | Rapscallion | Agi test to auto-hit +2 dmg after a maneuver | ⛔ |
+| Feature             | Class        | Effect                                          | Current                     |
+| ------------------- | ------------ | ----------------------------------------------- | --------------------------- |
+| Treasure Hunter     | Buccaneer    | -3/-6 DR on a subset of ability tests           | ✅ opt-in `drTestReduction` |
+| Crack Shot          | Buccaneer    | all ranged -2/-4 DR                             | ⛔                          |
+| Focused Aim         | Buccaneer    | -4 DR vs already-shot enemy (+d4 dmg if 2×)     | ⛔                          |
+| Sword Master        | Swashbuckler | -2 DR attacking with a sword                    | ⛔                          |
+| Ostentatious Fencer | Swashbuckler | -2 DR rapier/cutlass, +1 dmg dueling            | ⛔                          |
+| Scurvy Scallywag    | Swashbuckler | -2 DR vs already-attacked enemy                 | ⛔                          |
+| Back Stabber        | Rapscallion  | -2 DR + d2 dmg on surprise                      | ⛔                          |
+| Burglar             | Rapscallion  | -4 DR pick/disarm/trap (also grants lock picks) | ⛔                          |
+| Sneaky Bastard      | Rapscallion  | auto-crit test from shadows                     | ⛔                          |
+| Skylarker           | Rapscallion  | Agi test to auto-hit +2 dmg after a maneuver    | ⛔                          |
 
-## E. Usable action button — *rolls/effects on demand (Buccan Cook pattern)*
+## E. Usable action button — _rolls/effects on demand (Buccan Cook pattern)_
 
 Press to roll/produce something. Buccan Cook already works this way.
 
-| Feature | Class | Action | Current |
-| --- | --- | --- | --- |
-| Buccan Cook | Buccaneer | eat (heal), cook rations | ✅ macros |
-| Grog Brewer | Rapscallion | brew d4 grog servings | ⛔ (Cook-style) |
-| Drinking Grog | Rapscallion | Toughness test to heal d4 | ⛔ (roll button) |
-| Inspiring Leader | Swashbuckler | roll d4 ally buff | ⛔ (roll button) |
-| Blood Frenzy | Brute | +2 dmg per kill this battle | ⛔ (combat counter) |
-| Grog Breath | Brute | stun once/hour | 📖 mostly reminder |
-| Lucky Devil / Joker Table / Deck of Cards | Rapscallion | card draws | 🟡 tables exist |
-| Ghost / Conduit / Military Mastermind / Eldritch Mind | HS/Swash | timed tests/rolls | 📖 reminder + optional roll button |
+| Feature                                               | Class        | Action                      | Current                            |
+| ----------------------------------------------------- | ------------ | --------------------------- | ---------------------------------- |
+| Buccan Cook                                           | Buccaneer    | eat (heal), cook rations    | ✅ macros                          |
+| Grog Brewer                                           | Rapscallion  | brew d4 grog servings       | ⛔ (Cook-style)                    |
+| Drinking Grog                                         | Rapscallion  | Toughness test to heal d4   | ⛔ (roll button)                   |
+| Inspiring Leader                                      | Swashbuckler | roll d4 ally buff           | ⛔ (roll button)                   |
+| Blood Frenzy                                          | Brute        | +2 dmg per kill this battle | ⛔ (combat counter)                |
+| Grog Breath                                           | Brute        | stun once/hour              | 📖 mostly reminder                 |
+| Lucky Devil / Joker Table / Deck of Cards             | Rapscallion  | card draws                  | 🟡 tables exist                    |
+| Ghost / Conduit / Military Mastermind / Eldritch Mind | HS/Swash     | timed tests/rolls           | 📖 reminder + optional roll button |
 
 ## F. Grant items on gain
 
-| Feature | Class | Grants | Current |
-| --- | --- | --- | --- |
+| Feature           | Class        | Grants                  | Current           |
+| ----------------- | ------------ | ----------------------- | ----------------- |
 | Black Powder Poet | Swashbuckler | d4 rolls on Bombs table | ✅ creation macro |
-| Burglar | Rapscallion | lock picks | ⛔ |
-| Knife Knave | Swashbuckler | 2 knives | ⛔ |
-| Fix Bayonets! | Buccaneer | a bayonet (d4/d6) | ⛔ |
+| Burglar           | Rapscallion  | lock picks              | ⛔                |
+| Knife Knave       | Swashbuckler | 2 knives                | ⛔                |
+| Fix Bayonets!     | Buccaneer    | a bayonet (d4/d6)       | ⛔                |
 
 ## G. Weapon / crit property change
 
-| Feature | Class | Effect | Current |
-| --- | --- | --- | --- |
-| Calculating Cutthroat | Swashbuckler | crit on 19–20 | ⛔ (book even says "update Crit On manually") |
-| Fix Bayonets! | Buccaneer | attack with bayonet same turn as reload | ⛔ (also Category F) |
+| Feature               | Class        | Effect                                  | Current                                       |
+| --------------------- | ------------ | --------------------------------------- | --------------------------------------------- |
+| Calculating Cutthroat | Swashbuckler | crit on 19–20                           | ⛔ (book even says "update Crit On manually") |
+| Fix Bayonets!         | Buccaneer    | attack with bayonet same turn as reload | ⛔ (also Category F)                          |
 
-## H. Reminder-only / GM adjudication — *leave as text*
+## H. Reminder-only / GM adjudication — _leave as text_
 
 No clean numeric hook, cross-actor, or pure flavor.
 

@@ -153,6 +153,8 @@
   "PB.GetBetterFeatureModeAsk": "Ask each time",
   "PB.GetBetterChooseFeatureTitle": "Choose a class feature",
   "PB.GetBetterChooseFeatureHint": "Pick the class feature to gain.",
+  "PB.FeatureAtMaxQuantity": "{name} is already at its maximum ({max}).",
+  "PB.GrantMaxHp": "max HP",
   "PB.GetBetterFeatureMaxed": "(max)",
   "PB.GetBetterAllFeaturesMaxed": "All class features are already at their maximum — rolling instead.",
   "PB.GetBetterRollOrChooseTitle": "Gain a class feature",

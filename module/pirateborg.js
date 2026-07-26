@@ -1,5 +1,6 @@
 import { createPirateBorgMacro } from "./api/macros.js";
 import { migrate } from "./system/migrate.js";
+import { registerFeatureGrantHooks } from "./system/feature-grants.js";
 import { configureHandlebar } from "./system/configure-handlebar.js";
 import { configureSystem } from "./system/configure-system.js";
 import { renderCombatTracker } from "./system/render-combat-tracker.js";
@@ -67,6 +68,7 @@ Hooks.once("init", async () => {
   configureSystem();
   registerSocketHandler();
   registerEnrichers();
+  registerFeatureGrantHooks();
 });
 
 Hooks.once("ready", () => {
