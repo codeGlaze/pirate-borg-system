@@ -11,11 +11,16 @@ const resolveActor = (originalOutcome) => {
   return initiatorToken?.actor ?? game.actors.get(originalOutcome.initiatorActor);
 };
 
+// Prompts the player to pick which black-powder weapon to reload when more than one
+// is eligible (the bayonet follow-up can only reload one). Resolves to the chosen
+// item, or null if cancelled/closed.
 const chooseReloadWeapon = async (reloadables, preferredId) => {
   const selectedByDefault = reloadables.find((entry) => entry.id === preferredId)?.id ?? reloadables[0]?.id;
   const options = reloadables.map((entry) => `<option value="${entry.id}" ${entry.id === selectedByDefault ? "selected" : ""}>${entry.name}</option>`).join("");
 
   return new Promise((resolve) => {
+    // A Dialog can fire both a button callback and its close handler; `settled`
+    // guarantees the promise resolves exactly once (with the choice, not a late null).
     let settled = false;
     const finish = (value) => {
       if (settled) return;
