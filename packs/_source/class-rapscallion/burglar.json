@@ -28,7 +28,13 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "pirateborg.equipment-gear;Lock picks",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "stockOnGain": [
+      {
+        "ref": "pirateborg.equipment-gear;Lock picks",
+        "formula": "1"
+      }
+    ]
   },
   "_key": "!items!uEPa3dSpWelONDim"
 }
