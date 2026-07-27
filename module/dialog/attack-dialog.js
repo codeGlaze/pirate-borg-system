@@ -36,19 +36,23 @@ class AttackDialog extends Application {
     const attackDR = (await getSystemFlag(this.actor, CONFIG.PB.flags.ATTACK_DR)) ?? 12;
     const targetArmor = this.shouldIgnoreArmor ? "0" : await this._getTargetArmor();
 
-    // Attack-DR features applicable to this weapon: auto ones (weapon requirement met)
-    // are pre-applied and locked; situational ones are opt-in toggles.
-    const attackFeatures = (this.actor.getAttackDrFeatures?.(this.weapon) ?? []).map((feature) => ({
-      ...feature,
-      situational: !feature.auto,
-    }));
+    // Attack-DR features applicable to this weapon. Auto ones (weapon requirement met)
+    // are always-on and shown as a passive tally under the DR; situational ones are
+    // opt-in toggles the player taps per swing.
+    const attackFeatures = this.actor.getAttackDrFeatures?.(this.weapon) ?? [];
+    const autoFeatures = attackFeatures.filter((feature) => feature.auto);
+    const situationalFeatures = attackFeatures.filter((feature) => !feature.auto);
+    const autoReduction = autoFeatures.reduce((sum, feature) => sum + feature.dr, 0);
 
     return {
       ...data,
       config: CONFIG.pirateborg,
       attackDR,
       targetArmor,
-      attackFeatures,
+      autoFeatures,
+      situationalFeatures,
+      autoReduction,
+      effectiveAttackDR: Math.max(0, Number(attackDR) - autoReduction),
       hasAttackFeatures: attackFeatures.length > 0,
       target: this.targetToken?.actor,
       shouldIgnoreArmor: this.shouldIgnoreArmor,
@@ -134,6 +138,7 @@ class AttackDialog extends Application {
   _recomputeEffectiveDr(html) {
     const base = parseInt(html.find("#attackDr").val(), 10) || 0;
     const effective = Math.max(0, base - this._activeAttackDrReduction(html));
+    html.find(".base-attack-dr").text(base);
     html.find(".effective-attack-dr").text(effective);
     html.find(".effective-attack-dr-wrap").toggleClass("changed", effective !== base);
   }

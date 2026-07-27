@@ -952,6 +952,10 @@ form.vehicle-sheet-form .sheet-tabs .spacer {
   margin-left: 3px;
   text-align: center;
 }
+.pirateborg .item-list .item-controls .item-control.control-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
 .pirateborg .item-list .equipped {
   color: var(--foreground-color);
 }
@@ -2762,13 +2766,13 @@ li.folder > .folder-header {
   flex-wrap: wrap;
   gap: 6px;
 }
-.defense-dialog .form-group-attack-features .attack-feature,
-.attack-dialog .form-group-attack-features .attack-feature {
+.defense-dialog .form-group-attack-features .attack-feature.situational,
+.attack-dialog .form-group-attack-features .attack-feature.situational {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   width: auto;
-  padding: 2px 10px;
+  padding: 2px 10px 2px 6px;
   line-height: 1.6;
   border: 1px solid var(--button-background);
   border-radius: 4px;
@@ -2776,32 +2780,78 @@ li.folder > .folder-header {
   color: var(--button-background);
   cursor: pointer;
 }
-.defense-dialog .form-group-attack-features .attack-feature .attack-feature-dr,
-.attack-dialog .form-group-attack-features .attack-feature .attack-feature-dr {
+.defense-dialog .form-group-attack-features .attack-feature.situational .attack-feature-check,
+.attack-dialog .form-group-attack-features .attack-feature.situational .attack-feature-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--button-background);
+  border-radius: 3px;
+}
+.defense-dialog .form-group-attack-features .attack-feature.situational .attack-feature-check i,
+.attack-dialog .form-group-attack-features .attack-feature.situational .attack-feature-check i {
+  font-size: 10px;
+  opacity: 0;
+}
+.defense-dialog .form-group-attack-features .attack-feature.situational .attack-feature-dr,
+.attack-dialog .form-group-attack-features .attack-feature.situational .attack-feature-dr {
   font-family: var(--item-font);
   font-weight: bold;
 }
-.defense-dialog .form-group-attack-features .attack-feature.active,
-.attack-dialog .form-group-attack-features .attack-feature.active {
+.defense-dialog .form-group-attack-features .attack-feature.situational.active,
+.attack-dialog .form-group-attack-features .attack-feature.situational.active {
   background: var(--button-background);
   color: var(--button-color);
 }
-.defense-dialog .form-group-attack-features .attack-feature.auto,
-.attack-dialog .form-group-attack-features .attack-feature.auto {
-  cursor: default;
-  opacity: 0.9;
+.defense-dialog .form-group-attack-features .attack-feature.situational.active .attack-feature-check,
+.attack-dialog .form-group-attack-features .attack-feature.situational.active .attack-feature-check {
+  border-color: var(--button-color);
+}
+.defense-dialog .form-group-attack-features .attack-feature.situational.active .attack-feature-check i,
+.attack-dialog .form-group-attack-features .attack-feature.situational.active .attack-feature-check i {
+  opacity: 1;
 }
 .defense-dialog .form-group-attack-features .effective-attack-dr-wrap,
 .attack-dialog .form-group-attack-features .effective-attack-dr-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
   font-family: var(--item-font);
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap .base-attack-dr,
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap .dr-arrow,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap .base-attack-dr,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap .dr-arrow {
+  opacity: 0.6;
 }
 .defense-dialog .form-group-attack-features .effective-attack-dr-wrap .effective-attack-dr,
 .attack-dialog .form-group-attack-features .effective-attack-dr-wrap .effective-attack-dr {
   font-weight: bold;
+  font-size: 1.1em;
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap:not(.changed) .dr-arrow,
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap:not(.changed) .base-attack-dr,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap:not(.changed) .dr-arrow,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap:not(.changed) .base-attack-dr {
+  display: none;
 }
 .defense-dialog .form-group-attack-features .effective-attack-dr-wrap.changed .effective-attack-dr,
 .attack-dialog .form-group-attack-features .effective-attack-dr-wrap.changed .effective-attack-dr {
   color: var(--button-background);
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap .attack-feature.auto,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap .attack-feature.auto {
+  font-family: var(--font-primary, inherit);
+  font-size: 0.9em;
+  opacity: 0.75;
+}
+.defense-dialog .form-group-attack-features .effective-attack-dr-wrap .attack-feature.auto em,
+.attack-dialog .form-group-attack-features .effective-attack-dr-wrap .attack-feature.auto em {
+  font-style: normal;
+  opacity: 0.7;
 }
 
 #help-dialog .sheet-header {
