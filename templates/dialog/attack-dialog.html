@@ -55,20 +55,30 @@
 
   {{#if hasAttackFeatures}}
     <div class="form-group form-group-attack-features">
-      <label>{{localize "PB.AttackFeatures"}}:</label>
-      <div class="attack-features">
-        {{#each attackFeatures}}
-          <button type="button"
-            class="attack-feature {{#if auto}}auto active{{else}}situational{{/if}}"
-            data-feature-id="{{this.id}}" data-name="{{this.name}}" data-dr="{{this.dr}}"
-            {{#if auto}}disabled title="{{localize "PB.AttackFeatureAuto"}}"{{/if}}>
-            <span class="attack-feature-name">{{this.name}}</span>
-            <span class="attack-feature-dr">&minus;{{this.dr}}</span>
-          </button>
+      {{#if situationalFeatures.length}}
+        <label>{{localize "PB.AttackFeatures"}}:</label>
+        <div class="attack-features">
+          {{#each situationalFeatures}}
+            <button type="button" class="attack-feature situational" data-feature-id="{{this.id}}" data-name="{{this.name}}" data-dr="{{this.dr}}"
+              title="{{localize "PB.AttackFeatureToggle"}}">
+              <span class="attack-feature-check"><i class="fas fa-check"></i></span>
+              <span class="attack-feature-name">{{this.name}}</span>
+              <span class="attack-feature-dr">&minus;{{this.dr}}</span>
+            </button>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      <div class="effective-attack-dr-wrap {{#if autoReduction}}changed{{/if}}">
+        <span class="dr-summary-label">{{localize "PB.Attack"}} {{localize "PB.DR"}}:</span>
+        <span class="base-attack-dr">{{attackDR}}</span>
+        <i class="fas fa-arrow-right dr-arrow"></i>
+        <span class="effective-attack-dr">{{effectiveAttackDR}}</span>
+        {{#each autoFeatures}}
+          <span class="attack-feature auto" data-name="{{this.name}}" data-dr="{{this.dr}}">
+            {{this.name}} &minus;{{this.dr}} <em>{{localize "PB.AttackFeatureAlwaysOn"}}</em>
+          </span>
         {{/each}}
-      </div>
-      <div class="effective-attack-dr-wrap">
-        {{localize "PB.Attack"}} {{localize "PB.DR"}}: <span class="effective-attack-dr">{{attackDR}}</span>
       </div>
     </div>
   {{/if}}

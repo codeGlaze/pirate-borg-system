@@ -354,9 +354,10 @@
     }
   }
 
-  // Attack-DR feature toggles: outline = off, filled = on. Auto (weapon-gated)
-  // toggles are filled and locked; situational ones toggle on click. The running
-  // "effective DR" readout below makes the net reduction impossible to miss.
+  // Situational attack-DR features are checkbox-style toggles (empty box = off,
+  // checked + filled = on). Auto (weapon-gated) features aren't tappable — they show
+  // as a passive tally beside the running "base -> effective" DR readout, so the net
+  // reduction is always visible and nothing that's always-on masquerades as a button.
   .form-group-attack-features {
     flex-direction: column;
     align-items: flex-start;
@@ -368,18 +369,33 @@
       gap: 6px;
     }
 
-    .attack-feature {
+    .attack-feature.situational {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       width: auto;
-      padding: 2px 10px;
+      padding: 2px 10px 2px 6px;
       line-height: 1.6;
       border: 1px solid var(--button-background);
       border-radius: 4px;
       background: transparent;
       color: var(--button-background);
       cursor: pointer;
+
+      .attack-feature-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 15px;
+        height: 15px;
+        border: 1px solid var(--button-background);
+        border-radius: 3px;
+
+        i {
+          font-size: 10px;
+          opacity: 0; // unchecked: empty box
+        }
+      }
 
       .attack-feature-dr {
         font-family: var(--item-font);
@@ -389,23 +405,55 @@
       &.active {
         background: var(--button-background);
         color: var(--button-color);
-      }
 
-      &.auto {
-        cursor: default;
-        opacity: 0.9;
+        .attack-feature-check {
+          border-color: var(--button-color);
+
+          i {
+            opacity: 1; // checked
+          }
+        }
       }
     }
 
     .effective-attack-dr-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px;
       font-family: var(--item-font);
+
+      .base-attack-dr,
+      .dr-arrow {
+        opacity: 0.6;
+      }
 
       .effective-attack-dr {
         font-weight: bold;
+        font-size: 1.1em;
+      }
+
+      // No net change yet: hide the "-> effective" so it doesn't read as a reduction.
+      &:not(.changed) {
+        .dr-arrow,
+        .base-attack-dr {
+          display: none;
+        }
       }
 
       &.changed .effective-attack-dr {
         color: var(--button-background);
+      }
+
+      .attack-feature.auto {
+        font-family: var(--font-primary, inherit);
+        font-size: 0.9em;
+        opacity: 0.75;
+
+        em {
+          font-style: normal;
+          opacity: 0.7;
+        }
       }
     }
   }
