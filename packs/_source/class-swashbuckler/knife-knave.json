@@ -16,7 +16,13 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "pirateborg.equipment-melee-weapons;Knife\npirateborg.equipment-melee-weapons;Knife",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "stockOnGain": [
+      {
+        "ref": "pirateborg.equipment-melee-weapons;Knife",
+        "formula": "2"
+      }
+    ]
   },
   "ownership": {
     "default": 0

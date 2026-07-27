@@ -33,6 +33,9 @@ const ENHANCED = [
   { pack: "pirateborg.class-swashbuckler", name: "Sword Master", fields: ["attackDr"] },
   { pack: "pirateborg.class-swashbuckler", name: "Scurvy Scallywag", fields: ["attackDr"] },
   { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr"] },
+  // Starting-gear grants (stockOnGain fires on gain, not migration — this just syncs the field).
+  { pack: "pirateborg.class-swashbuckler", name: "Knife Knave", fields: ["stockOnGain"] },
+  { pack: "pirateborg.class-rapscallion", name: "Burglar", fields: ["stockOnGain"] },
 ];
 
 const FIX_BAYONET_FLAG = "fixBayonetWeapon";
