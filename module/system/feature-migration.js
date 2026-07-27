@@ -19,7 +19,7 @@ const ENHANCED = [
   { pack: "pirateborg.class-tall-tale", name: "Sea Turtle", syncEffects: true }, // armorTierModifier AE (extra -d2)
   { pack: "pirateborg.class-buccaneer", name: "Treasure Hunter", fields: ["drTestReduction"] },
   { pack: "pirateborg.class-buccaneer", name: "Survivalist", fields: ["onGain", "actionMacro", "actionMacroLabel"], reconcileGrant: true },
-  { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel"] },
+  { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel", "stockOnGain"] },
   {
     pack: "pirateborg.class-buccaneer",
     name: "Fix Bayonets!",

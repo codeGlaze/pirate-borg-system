@@ -28,7 +28,13 @@
     "actionMacroLabel": "Cook",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "stockOnGain": [
+      {
+        "ref": "pirateborg.class-buccaneer;Exquisite smoked meat",
+        "formula": "1d8"
+      }
+    ]
   },
   "_key": "!items!F8mnXcDUFOeAp141"
 }
