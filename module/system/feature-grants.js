@@ -1,5 +1,6 @@
 import { evaluateFormula } from "../api/utils.js";
 import { findCompendiumItem } from "../api/compendium.js";
+import { grantItem } from "../api/grants.js";
 import { showGenericCard } from "../chat-message/generic-card.js";
 
 /**
@@ -21,6 +22,42 @@ const ADD = 2; // CONST.ACTIVE_EFFECT_MODES.ADD
 const ROLLS_FLAG = "onGainHpRolls";
 const GRANT_EFFECT_FLAG = "featureGrant";
 const FIX_BAYONET_FLAG = "fixBayonetWeapon";
+// Shared with the Stock Buccan Cook rations macro, so whichever path runs first
+// (dragging the feature on, generation, or the class macro) stocks exactly once.
+const STOCKED_FLAG = "rationsStocked";
+
+const hasStockOnGain = (item) => (item?.system?.stockOnGain ?? []).length > 0;
+
+/**
+ * Grants a feature's one-time starting stock the moment it's gained (dragged on,
+ * generated, gained at level-up) rather than only from a class macro — the fix for
+ * "dragging Buccan Cook doesn't grant its d8 rations". Declared on the feature as
+ * `system.stockOnGain`:
+ *
+ *   [{ "ref": "pirateborg.class-buccaneer;Exquisite smoked meat", "formula": "1d8" }]
+ *
+ * Each entry rolls `formula` for a quantity and stacks it onto the actor. A flag makes
+ * it idempotent, so it never re-stocks (level-up, re-open, or the class macro).
+ *
+ * @param {PBItem} item
+ */
+export const applyStockOnGain = async (item) => {
+  if (!hasStockOnGain(item) || !item.parent) {
+    return;
+  }
+  const scope = CONFIG.PB.flagScope;
+  if (item.getFlag(scope, STOCKED_FLAG)) {
+    return;
+  }
+  for (const spec of item.system.stockOnGain) {
+    if (!spec?.ref || !spec?.formula) {
+      continue;
+    }
+    const quantity = (await evaluateFormula(spec.formula, item.parent.getRollData?.() ?? {})).total;
+    await grantItem(item.parent, spec.ref, { quantity, stack: true });
+  }
+  await item.setFlag(scope, STOCKED_FLAG, true);
+};
 
 /**
  * Brings the per-application HP rolls in line with how many times the feature is
@@ -336,7 +373,13 @@ export const registerFeatureGrantHooks = () => {
     }
     reconcileFeatureGrant(item);
   };
-  Hooks.on("createItem", (item, options, userId) => onChange(item, null, options, userId));
+  Hooks.on("createItem", (item, options, userId) => {
+    onChange(item, null, options, userId);
+    // Starting stock fires only on genuine gain (create) — not on updates or migration.
+    if (game.user?.id === userId && !options?.pbMigration && item?.type === CONFIG.PB.itemTypes.feature && item.parent) {
+      applyStockOnGain(item);
+    }
+  });
   Hooks.on("updateItem", (item, change, options, userId) => onChange(item, change, options, userId));
 
   // Auto-revert item grants: deleting a feature removes the items it granted.

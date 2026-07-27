@@ -255,7 +255,8 @@
       "drTestReduction": 0,
       "onGain": {},
       "grantsItems": [],
-      "attackDr": {}
+      "attackDr": {},
+      "stockOnGain": []
     },
     "class": {
       "description": "",
