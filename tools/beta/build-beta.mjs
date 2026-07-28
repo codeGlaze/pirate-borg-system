@@ -33,7 +33,7 @@ const git = (...args) => {
   }
 };
 
-const BASE_VERSION = process.argv[2] || "v1.7.1-beta";
+const BASE_VERSION = process.argv[2] || "v1.8.0-beta";
 const BUILD_NUM = git("rev-list", "--count", "HEAD") || "0";
 const SHORT_SHA = git("rev-parse", "--short", "HEAD") || "nogit";
 const DIRTY = git("status", "--porcelain", "--untracked-files=no") ? "-dirty" : "";
