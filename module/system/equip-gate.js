@@ -23,3 +23,15 @@ export const weaponNameMatches = (weapon, keywords = []) => {
  */
 export const isWieldingGatedWeapon = (actor, keywords = []) =>
   (actor?.items ?? []).some((item) => item.type === CONFIG.PB.itemTypes.weapon && item.system?.equipped && weaponNameMatches(item, keywords));
+
+/**
+ * Reads an effect's `equipGate` flag. The flag is baked into shipped compendium data
+ * under the literal upstream scope `pirateborg`, and the betaify build does NOT rescope
+ * flag-namespace keys (`"pirateborg":`) — only `pirateborg.<pack>` refs and the JS
+ * flagScope. So in the beta build the flag lives under `pirateborg` while
+ * `CONFIG.PB.flagScope` is `pirate-borg-beta`. Read both so it resolves in either build.
+ *
+ * @param {ActiveEffect} effect
+ * @returns {Object|undefined} the gate config, or undefined when not gated.
+ */
+export const readEquipGate = (effect) => effect?.getFlag?.(CONFIG.PB.flagScope, "equipGate") ?? effect?.getFlag?.("pirateborg", "equipGate");
