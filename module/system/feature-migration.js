@@ -167,6 +167,49 @@ const migrateItem = async (item, entry) => {
   return changed;
 };
 
+// Match the default class-feature icon regardless of system id (pirateborg vs
+// pirate-borg-beta), so this works in the beta build too.
+const usesDefaultFeatureIcon = (img) => String(img ?? "").endsWith("icons/misc/class-feature.png");
+
+/**
+ * Builds a name → improved-icon map from the class compendia (features whose shipped
+ * icon is no longer the default). Cached for the run.
+ */
+let featureIconMapCache = null;
+const featureIconMap = async () => {
+  if (featureIconMapCache) {
+    return featureIconMapCache;
+  }
+  featureIconMapCache = new Map();
+  for (const pack of game.packs) {
+    if (pack.metadata?.type !== "Item" || !pack.metadata?.name?.startsWith("class-")) {
+      continue;
+    }
+    for (const doc of await pack.getDocuments()) {
+      if (doc.type === CONFIG.PB.itemTypes.feature && doc.img && !usesDefaultFeatureIcon(doc.img)) {
+        featureIconMapCache.set(doc.name, doc.img);
+      }
+    }
+  }
+  return featureIconMapCache;
+};
+
+/**
+ * Adopts the improved feature icon for embedded copies still on the default icon.
+ * @returns {Promise<Number>} how many were updated
+ */
+const migrateFeatureIcons = async (items) => {
+  const map = await featureIconMap();
+  let updated = 0;
+  for (const item of items ?? []) {
+    if (item.type === CONFIG.PB.itemTypes.feature && usesDefaultFeatureIcon(item.img) && map.has(item.name)) {
+      await item.update({ img: map.get(item.name) }, { pbMigration: true });
+      updated += 1;
+    }
+  }
+  return updated;
+};
+
 /**
  * Runs the re-sync across world items and every actor's embedded items. GM-only and
  * idempotent, so it can run on every load and self-heals imported actors. Reports
@@ -195,13 +238,22 @@ export const migrateFeatureMechanics = async () => {
       }
     }
   };
-  await run(game.i18n.localize("PB.MigrationWorldItems"), game.items);
+  const worldOwner = game.i18n.localize("PB.MigrationWorldItems");
+  await run(worldOwner, game.items);
+  const worldIcons = await migrateFeatureIcons(game.items);
+  if (worldIcons) {
+    report.push({ owner: worldOwner, item: `${worldIcons} feature icon(s)`, changed: ["icon"] });
+  }
   for (const actor of game.actors) {
     for (const merge of await mergeDuplicateFeatures(actor)) {
       report.push({ owner: actor.name, item: merge.name, changed: [`merged ${merge.from} copies → quantity ${merge.to}`] });
     }
 
     await run(actor.name, actor.items);
+    const actorIcons = await migrateFeatureIcons(actor.items);
+    if (actorIcons) {
+      report.push({ owner: actor.name, item: `${actorIcons} feature icon(s)`, changed: ["icon"] });
+    }
     for (const feature of actor.items.filter((entry) => entry.type === CONFIG.PB.itemTypes.feature && hasGrant(entry))) {
       await reconcileFeatureGrant(feature, { silent: true });
     }

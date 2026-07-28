@@ -2,12 +2,12 @@
   "_id": "lco7XqcFzkaMkw0W",
   "name": "Ostentatious Fencer",
   "type": "feature",
-  "img": "systems/pirateborg/icons/misc/class-feature.png",
+  "img": "systems/pirateborg/icons/equipment/melee-weapons/finely-crafted-rapier.png",
   "effects": [
     {
       "_id": "pbEffOstentati1",
       "name": "Ostentatious Fencer",
-      "img": "systems/pirateborg/icons/misc/class-feature.png",
+      "img": "systems/pirateborg/icons/equipment/melee-weapons/finely-crafted-rapier.png",
       "changes": [
         {
           "key": "system.attributes.combat.defenseModifier",
@@ -34,7 +34,10 @@
       "flags": {
         "pirateborg": {
           "equipGate": {
-            "weaponNameIncludes": ["rapier", "cutlass"]
+            "weaponNameIncludes": [
+              "rapier",
+              "cutlass"
+            ]
           }
         }
       },
@@ -69,7 +72,10 @@
     "attackDr": {
       "dr": 2,
       "requires": {
-        "nameIncludes": ["rapier", "cutlass"]
+        "nameIncludes": [
+          "rapier",
+          "cutlass"
+        ]
       }
     }
   },

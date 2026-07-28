@@ -2,12 +2,12 @@
   "_id": "R7LoinR3FpkCnwQK",
   "name": "Shakespeare of Insults",
   "type": "feature",
-  "img": "systems/pirateborg/icons/misc/class-feature.png",
+  "img": "systems/pirateborg/icons/equipment/gear/worn-out-book.png",
   "effects": [
     {
       "_id": "pbEffShakespr01",
       "name": "Shakespeare of Insults",
-      "icon": "systems/pirateborg/icons/misc/class-feature.png",
+      "icon": "systems/pirateborg/icons/equipment/gear/worn-out-book.png",
       "changes": [
         {
           "key": "system.attributes.combat.damageModifier",

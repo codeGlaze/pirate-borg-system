@@ -2,11 +2,11 @@
   "_id": "KxOX04r930J39HiU",
   "name": "Thick Skinned",
   "type": "feature",
-  "img": "systems/pirateborg/icons/misc/class-feature.png",
+  "img": "systems/pirateborg/icons/misc/armor.png",
   "effects": [
     {
       "name": "Thick Skinned",
-      "img": "systems/pirateborg/icons/misc/class-feature.png",
+      "img": "systems/pirateborg/icons/misc/armor.png",
       "changes": [
         {
           "key": "system.attributes.naturalArmorTier.value",

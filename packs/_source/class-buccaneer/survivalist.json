@@ -2,12 +2,12 @@
   "_id": "aLnujMWeM7tsNsek",
   "name": "Survivalist",
   "type": "feature",
-  "img": "systems/pirateborg/icons/misc/class-feature.png",
+  "img": "systems/pirateborg/icons/misc/camping-tent.png",
   "effects": [
     {
       "_id": "pbEffSurvival01",
       "name": "Survivalist",
-      "icon": "systems/pirateborg/icons/misc/class-feature.png",
+      "icon": "systems/pirateborg/icons/misc/camping-tent.png",
       "changes": [
         {
           "key": "system.abilities.toughness.value",
