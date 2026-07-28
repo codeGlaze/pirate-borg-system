@@ -2,6 +2,7 @@ import { trackCarryingCapacity, isGrogEnabled } from "../system/settings.js";
 import { getActorDefaults, setSystemFlag } from "../api/utils.js";
 import { findCompendiumItem } from "../api/compendium.js";
 import { normalizeDocumentEffectDurations } from "../api/effect-duration.js";
+import { weaponNameMatches } from "../system/equip-gate.js";
 
 /**
  * Whether a weapon counts as "a sword" for sword-gated features (Sword Master).
@@ -648,6 +649,8 @@ export class PBActor extends Actor {
       if (!requires) return true;
       if (requires === "ranged") return Boolean(weapon?.isRanged);
       if (requires === "sword") return isSwordWeapon(weapon);
+      // { nameIncludes: [...] } — gate on the weapon name (e.g. rapier/cutlass).
+      if (Array.isArray(requires?.nameIncludes)) return weaponNameMatches(weapon, requires.nameIncludes);
       return false;
     };
     return this.items
