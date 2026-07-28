@@ -2,12 +2,12 @@
   "_id": "MX7IBXzkNpkY3an3",
   "name": "Dazzling Acrobatics",
   "type": "feature",
-  "img": "systems/pirateborg/icons/misc/class-feature.png",
+  "img": "systems/pirateborg/icons/equipment/gear/spinning-top.png",
   "effects": [
     {
       "_id": "pbEffDazzling01",
       "name": "Dazzling Acrobatics",
-      "icon": "systems/pirateborg/icons/misc/class-feature.png",
+      "icon": "systems/pirateborg/icons/equipment/gear/spinning-top.png",
       "changes": [
         {
           "key": "system.attributes.combat.defenseModifier",
