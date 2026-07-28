@@ -1,7 +1,5 @@
 import { normalizeEffectDuration } from "../api/effect-duration.js";
-import { isWieldingGatedWeapon } from "../system/equip-gate.js";
-
-const EQUIP_GATE_FLAG = "equipGate";
+import { isWieldingGatedWeapon, readEquipGate } from "../system/equip-gate.js";
 
 /**
  * @extends {ActiveEffect}
@@ -26,7 +24,7 @@ export class PBActiveEffect extends ActiveEffect {
    * @override
    */
   get isSuppressed() {
-    const gate = this.getFlag(CONFIG.PB.flagScope, EQUIP_GATE_FLAG);
+    const gate = readEquipGate(this);
     if (gate?.weaponNameIncludes?.length) {
       const actor = this.target ?? (this.parent?.documentName === "Actor" ? this.parent : this.parent?.parent);
       if (actor?.items && !isWieldingGatedWeapon(actor, gate.weaponNameIncludes)) {

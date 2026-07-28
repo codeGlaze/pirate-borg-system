@@ -1,5 +1,6 @@
 import { findCompendiumItem } from "../api/compendium.js";
 import { reconcileFeatureGrant } from "./feature-grants.js";
+import { readEquipGate } from "./equip-gate.js";
 
 /**
  * Re-syncs the *mechanical* bits of features/classes that already live on existing
@@ -140,8 +141,16 @@ const migrateItem = async (item, entry) => {
   // single equip-gated transfer effect, which key-based syncEffects can't detect).
   // Idempotent: once the item carries the equip-gated effect, it's left alone.
   if (entry.replaceEffects) {
-    const scope = CONFIG.PB.flagScope;
-    const alreadyMigrated = [...item.effects].some((effect) => effect.getFlag(scope, "equipGate"));
+    // Sweep orphaned actor-level copies of this feature's effect (Source "None" —
+    // no origin item), left behind by an earlier non-idempotent migration run.
+    const actor = item.parent;
+    const orphanIds = [...(actor?.effects ?? [])].filter((effect) => effect.name === item.name && !effect.origin).map((effect) => effect.id);
+    if (orphanIds.length) {
+      await actor.deleteEmbeddedDocuments("ActiveEffect", orphanIds);
+      changed.push("removed orphan effect");
+    }
+
+    const alreadyMigrated = [...item.effects].some((effect) => readEquipGate(effect));
     if (!alreadyMigrated) {
       const existingIds = item.effects.map((effect) => effect.id);
       if (existingIds.length) {
