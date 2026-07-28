@@ -73,6 +73,18 @@
     ui.notifications.info(`Removed ${ids.length} bench item(s). (Granted consumables like rations/knives may remain.)`);
   };
 
+  const listTokens = () => {
+    const rows = (canvas.tokens?.placeables ?? []).map((t) => `${t.name}${t.actor ? ` — ${t.actor.type}` : ""}${t.controlled ? " (selected)" : ""}`);
+    const report = rows.length ? rows.map((r, i) => `${i + 1}. ${r}`).join("\n") : "(no tokens on this scene)";
+    console.log(`=== Tokens on "${canvas.scene?.name}" (${rows.length}) ===\n${report}`);
+    ChatMessage.create({
+      content: `<b>Tokens on ${foundry.utils.escapeHTML?.(canvas.scene?.name ?? "scene") ?? canvas.scene?.name} (${rows.length}):</b><br>${rows
+        .map((r) => (foundry.utils.escapeHTML ? foundry.utils.escapeHTML(r) : r))
+        .join("<br>")}`,
+      whisper: [game.user.id],
+    });
+  };
+
   const btn = (action, arg, label) => `<button type="button" data-action="${action}" data-arg="${arg}" style="flex:0 0 auto;margin:2px;">${label}</button>`;
   const content = `
     <div style="font-size:12px">
@@ -83,7 +95,7 @@
       <div style="display:flex;flex-wrap:wrap">${WEAPONS.map(([n, p]) => btn("weap", `${p}|${n}`, `+ ${n}`)).join("")}</div>
       <p style="margin-top:8px"><b>Toggle equip</b></p>
       <div style="display:flex;flex-wrap:wrap">${["rapier", "cutlass", "dagger", "knife", "musket"].map((k) => btn("equip", k, `⇄ ${k}`)).join("")}</div>
-      <p style="margin-top:8px">${btn("clear", "", "🗑 Clear bench items")}</p>
+      <p style="margin-top:8px">${btn("tokens", "", "📋 List token names")} ${btn("clear", "", "🗑 Clear bench items")}</p>
     </div>`;
 
   new Dialog(
@@ -101,6 +113,8 @@
             await add(name, pack, { equip: action === "weap" });
           } else if (action === "equip") {
             await toggleEquip(arg);
+          } else if (action === "tokens") {
+            listTokens();
           } else if (action === "clear") {
             await clear();
           }
