@@ -45,7 +45,8 @@
   ];
 
   const add = async (name, pack, { equip = false } = {}) => {
-    const doc = await game.pirateborg.api.compendium.findCompendiumItem(`pirateborg.${pack}`, name);
+    // Use the live system id so this works in the beta build too (pirate-borg-beta.*).
+    const doc = await game.pirateborg.api.compendium.findCompendiumItem(`${game.system.id}.${pack}`, name);
     if (!doc) return ui.notifications.warn(`Not found: ${name}`);
     const data = doc.toObject(false);
     foundry.utils.setProperty(data, `flags.${scope}.testBench`, true);
