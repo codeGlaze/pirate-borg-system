@@ -33,6 +33,9 @@ const ENHANCED = [
   { pack: "pirateborg.class-swashbuckler", name: "Sword Master", fields: ["attackDr"] },
   { pack: "pirateborg.class-swashbuckler", name: "Scurvy Scallywag", fields: ["attackDr"] },
   { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr"] },
+  // Ostentatious Fencer: attack DR gate + swap the legacy inert effects for the
+  // equip-gated defense effect.
+  { pack: "pirateborg.class-swashbuckler", name: "Ostentatious Fencer", fields: ["attackDr"], replaceEffects: true },
   // Starting-gear grants (stockOnGain fires on gain, not migration — this just syncs the field).
   { pack: "pirateborg.class-swashbuckler", name: "Knife Knave", fields: ["stockOnGain"] },
   { pack: "pirateborg.class-rapscallion", name: "Burglar", fields: ["stockOnGain"] },
@@ -130,6 +133,29 @@ const migrateItem = async (item, entry) => {
     if (missing.length) {
       await item.createEmbeddedDocuments("ActiveEffect", missing);
       changed.push("effect");
+    }
+  }
+  // Replace legacy effects wholesale (used when an effect's *shape* changed, not just
+  // its keys — e.g. Ostentatious Fencer's inert transfer:false effects becoming a
+  // single equip-gated transfer effect, which key-based syncEffects can't detect).
+  // Idempotent: once the item carries the equip-gated effect, it's left alone.
+  if (entry.replaceEffects) {
+    const scope = CONFIG.PB.flagScope;
+    const alreadyMigrated = [...item.effects].some((effect) => effect.getFlag(scope, "equipGate"));
+    if (!alreadyMigrated) {
+      const existingIds = item.effects.map((effect) => effect.id);
+      if (existingIds.length) {
+        await item.deleteEmbeddedDocuments("ActiveEffect", existingIds);
+      }
+      const replacement = [...(compendium.effects ?? [])].map((effect) => {
+        const data = effect.toObject ? effect.toObject() : { ...effect };
+        delete data._id;
+        return data;
+      });
+      if (replacement.length) {
+        await item.createEmbeddedDocuments("ActiveEffect", replacement);
+      }
+      changed.push("effects replaced");
     }
   }
   if (entry.reconcileGrant) {

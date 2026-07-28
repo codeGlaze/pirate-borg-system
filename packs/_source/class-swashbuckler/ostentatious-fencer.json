@@ -7,47 +7,38 @@
     {
       "_id": "pbEffOstentati1",
       "name": "Ostentatious Fencer",
-      "icon": "systems/pirateborg/icons/misc/class-feature.png",
+      "img": "systems/pirateborg/icons/misc/class-feature.png",
       "changes": [
-        {
-          "key": "system.attributes.combat.attackModifier",
-          "mode": 2,
-          "value": 2
-        },
         {
           "key": "system.attributes.combat.defenseModifier",
           "mode": 2,
-          "value": 2
+          "value": "2",
+          "priority": 20
         }
       ],
       "disabled": false,
-      "transfer": false,
+      "transfer": true,
       "duration": {
-        "value": null,
-        "units": "seconds"
+        "startTime": null,
+        "seconds": null,
+        "combat": null,
+        "rounds": null,
+        "turns": null,
+        "startRound": null,
+        "startTurn": null
       },
-      "flags": {},
-      "_key": "!items.effects!lco7XqcFzkaMkw0W.pbEffOstentati1"
-    },
-    {
-      "_id": "pbEffOstentati2",
-      "name": "One-on-One Damage Bonus",
-      "icon": "systems/pirateborg/icons/misc/class-feature.png",
-      "changes": [
-        {
-          "key": "system.attributes.combat.damageModifier",
-          "mode": 2,
-          "value": 1
+      "description": "Defense -2 DR while wielding a rapier or cutlass.",
+      "origin": null,
+      "tint": "#ffffff",
+      "statuses": [],
+      "flags": {
+        "pirateborg": {
+          "equipGate": {
+            "weaponNameIncludes": ["rapier", "cutlass"]
+          }
         }
-      ],
-      "disabled": true,
-      "transfer": false,
-      "duration": {
-        "value": null,
-        "units": "seconds"
       },
-      "flags": {},
-      "_key": "!items.effects!lco7XqcFzkaMkw0W.pbEffOstentati2"
+      "_key": "!items.effects!lco7XqcFzkaMkw0W.pbEffOstentati1"
     }
   ],
   "folder": null,
@@ -74,7 +65,13 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "attackDr": {
+      "dr": 2,
+      "requires": {
+        "nameIncludes": ["rapier", "cutlass"]
+      }
+    }
   },
   "_key": "!items!lco7XqcFzkaMkw0W"
 }
