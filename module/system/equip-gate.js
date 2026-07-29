@@ -29,9 +29,16 @@ export const isWieldingGatedWeapon = (actor, keywords = []) =>
  * under the literal upstream scope `pirateborg`, and the betaify build does NOT rescope
  * flag-namespace keys (`"pirateborg":`) — only `pirateborg.<pack>` refs and the JS
  * flagScope. So in the beta build the flag lives under `pirateborg` while
- * `CONFIG.PB.flagScope` is `pirate-borg-beta`. Read both so it resolves in either build.
+ * `CONFIG.PB.flagScope` is `pirate-borg-beta`.
+ *
+ * Read the raw `flags` object rather than `getFlag()` — `getFlag()` validates the scope
+ * against registered packages and THROWS for `"pirateborg"` in the beta build (it isn't
+ * an active package there). Raw access resolves the flag under either scope safely.
  *
  * @param {ActiveEffect} effect
  * @returns {Object|undefined} the gate config, or undefined when not gated.
  */
-export const readEquipGate = (effect) => effect?.getFlag?.(CONFIG.PB.flagScope, "equipGate") ?? effect?.getFlag?.("pirateborg", "equipGate");
+export const readEquipGate = (effect) => {
+  const flags = effect?.flags ?? {};
+  return flags[CONFIG.PB.flagScope]?.equipGate ?? flags.pirateborg?.equipGate;
+};

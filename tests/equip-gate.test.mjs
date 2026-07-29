@@ -11,7 +11,21 @@ installFoundryStubs();
 globalThis.CONFIG.PB.itemTypes = { ...(globalThis.CONFIG.PB.itemTypes ?? {}), feature: "feature", weapon: "weapon" };
 globalThis.CONFIG.PB.swordWeaponKeywords = ["sword", "cutlass", "rapier"];
 
-const { weaponNameMatches, isWieldingGatedWeapon } = await import(path.join(REPO_ROOT, "module/system/equip-gate.js"));
+globalThis.CONFIG.PB.flagScope = "pirate-borg-beta";
+const { weaponNameMatches, isWieldingGatedWeapon, readEquipGate } = await import(path.join(REPO_ROOT, "module/system/equip-gate.js"));
+
+const gate = { weaponNameIncludes: ["rapier"] };
+test("readEquipGate resolves the flag under the shipped 'pirateborg' scope (beta build)", () => {
+  // In beta, CONFIG.PB.flagScope is pirate-borg-beta but shipped data keeps flags.pirateborg.
+  assert.deepEqual(readEquipGate({ flags: { pirateborg: { equipGate: gate } } }), gate);
+});
+test("readEquipGate resolves the flag under the active flagScope too", () => {
+  assert.deepEqual(readEquipGate({ flags: { "pirate-borg-beta": { equipGate: gate } } }), gate);
+});
+test("readEquipGate returns undefined when there's no gate (never throws on scope)", () => {
+  assert.equal(readEquipGate({ flags: {} }), undefined);
+  assert.equal(readEquipGate({}), undefined);
+});
 const { PBActor } = await import(path.join(REPO_ROOT, "module/actor/actor.js"));
 
 const RC = ["rapier", "cutlass"];
