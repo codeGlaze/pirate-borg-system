@@ -81,6 +81,13 @@ function transform(text, ext) {
   text = text.replaceAll('PB.flagScope = "pirateborg"', `PB.flagScope = "${BETA_ID}"`);
   text = text.replaceAll('=== "pirateborg"', `=== "${BETA_ID}"`);
 
+  // Rescope flag namespaces baked into shipped data (`"flags": { "pirateborg": {…} }`)
+  // to the beta id, so getFlag(CONFIG.PB.flagScope) resolves them under the beta system
+  // instead of silently missing (e.g. weapon animations, the Ostentatious Fencer
+  // equip-gate). In shipped data `"pirateborg":` only ever appears as a flags-namespace
+  // key — the system id value is `"id": "pirateborg"` (no trailing colon), untouched.
+  text = text.replaceAll('"pirateborg":', `"${BETA_ID}":`);
+
   if (ext !== ".css") {
     text = text.replace(/(?<!game\.)(?<!\/)pirateborg\./g, `${BETA_ID}.`);
   }
