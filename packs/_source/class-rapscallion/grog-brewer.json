@@ -28,7 +28,11 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "brew": {
+      "formula": "1d4",
+      "ref": "pirateborg.equipment-gear;Grog"
+    }
   },
   "_key": "!items!KLIZ1qvZj09FHC19"
 }

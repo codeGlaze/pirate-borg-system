@@ -4,9 +4,11 @@ import { trackAmmo, trackCarryingCapacity, isGrogEnabled } from "../../system/se
 import {
   actorPartyInitiativeAction,
   characterAttackAction,
+  characterBrewGrogAction,
   characterBrokenAction,
   characterDefendAction,
   characterDrinkGrogAction,
+  findGrogBrewerFeature,
   characterExtraResourcePerDayAction,
   characterGetBetterAction,
   characterInvokeExtraResourceAction,
@@ -207,6 +209,8 @@ export class PBActorSheetCharacter extends PBActorSheet {
     // Find all grog items in inventory
     data.grog = sheetData.data.items.filter((item) => item.type === CONFIG.PB.itemTypes.grog).sort(byName);
     data.hasGrog = data.grog.some((item) => item.system.quantity > 0);
+    // Grog Brewer unlocks the Brew button (produce grog) on the Combat tab.
+    data.hasGrogBrewer = sheetData.data.items.some((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.brew?.formula);
     data.grogCount = data.grog.reduce((sum, item) => sum + (item.system.quantity || 0), 0);
     data.grogEnabled = isGrogEnabled();
 
@@ -240,6 +244,7 @@ export class PBActorSheetCharacter extends PBActorSheet {
       ".action-macro-button": this._onActionMacroRoll,
       ".ability-test-feature": this._onAbilityTestFeature,
       ".active-effect-dismiss": this._onActiveEffectDismiss,
+      ".brew-grog-button": this._onBrewGrog,
       ".action-invokable": this._onActionInvokable,
       ".ritual-per-day-text": this._onRitualPerDay,
       ".extra-resources-per-day-text": this._onExtraResourcePerDay,
@@ -560,6 +565,12 @@ export class PBActorSheetCharacter extends PBActorSheet {
     event.stopPropagation();
     const item = this.actor.items.get($(event.currentTarget).data("itemId"));
     await item?.unsetFlag(CONFIG.PB.flagScope, "activeRoll");
+  }
+
+  /** On-demand Grog Brewer brew (fallback to the automatic brew-on-rest). */
+  async _onBrewGrog(event) {
+    event.preventDefault();
+    await characterBrewGrogAction(this.actor, findGrogBrewerFeature(this.actor));
   }
 
   /**

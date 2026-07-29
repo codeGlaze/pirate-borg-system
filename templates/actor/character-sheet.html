@@ -207,6 +207,19 @@
         </ol>
       </ol>
 
+      {{!-- Grog Brewer: brew the day's grog. Also fires automatically on a long rest;
+            this button is the on-demand fallback (prompts if already brewed today). --}}
+      {{#if data.system.dynamic.hasGrogBrewer}}
+      <ol class="items-list inventory-list">
+        <li class="items-header flexrow">
+          <h3 class="item-name flexrow">{{localize "PB.GrogBrew"}}</h3>
+          <div class="item-buttons">
+            <button type="button" class="button item-button brew-grog-button rollable" title="{{localize 'PB.GrogBrewHint'}}">{{localize "PB.GrogBrewButton"}}</button>
+          </div>
+        </li>
+      </ol>
+      {{/if}}
+
       {{!-- Weapons --}}
       <ol class="items-list inventory-list">
         <li class="items-header flexrow">

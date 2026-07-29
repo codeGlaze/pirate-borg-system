@@ -6,6 +6,7 @@ import { createStarvationOutcome } from "../../outcome/character/starvation-outc
 import { characterExtraResourcePerDayAction } from "./character-extra-resource-per-day-action.js";
 import { characterLuckPerDayAction } from "./character-luck-per-day-action.js";
 import { characterRitualsPerDayAction } from "./character-rituals-per-day-action.js";
+import { brewGrogForRest } from "./character-brew-grog-action.js";
 import { clearGrogEffects, decrementGrogHours } from "./character-drink-grog-action.js";
 import { isGrogEnabled } from "../../../system/settings.js";
 
@@ -98,6 +99,12 @@ const longRest = async (actor, foodAndDrink, infected) => {
 
   if (actor.luck.value === 0) {
     outcomes.push(await characterLuckPerDayAction(actor, { silent: true }));
+  }
+
+  // A new day: Grog Brewer auto-brews the day's grog (once/day, resets here).
+  const brew = await brewGrogForRest(actor);
+  if (brew) {
+    outcomes.push(brew);
   }
 
   // Clear all grog effects during long rest
