@@ -1,2 +1,27 @@
 #!/usr/bin/env sh
+
+# Keep generated artifacts in lock-step with their sources so nobody has to remember
+# to run the compilers. Each block only fires when its sources are actually staged,
+# compiles just those, and stages the result; a compile failure blocks the commit.
+staged() {
+  git diff --cached --name-only --diff-filter=ACMR
+}
+
+# SCSS → CSS
+if staged | grep -q '^scss/.*\.scss$'; then
+  echo "↻ husky: compiling SCSS…"
+  npm run --silent sass || { echo "✖ sass compile failed"; exit 1; }
+  git add -A css
+fi
+
+# Compendium _source JSON → packs/<name> (LevelDB), only for changed packs.
+packs=$(staged | sed -n 's#^packs/_source/\([^/]*\)/.*#\1#p' | sort -u)
+if [ -n "$packs" ]; then
+  for pack in $packs; do
+    echo "↻ husky: compiling pack $pack…"
+    node ./utils/packs.mjs package pack "$pack" || { echo "✖ pack compile failed: $pack"; exit 1; }
+    git add -A "packs/$pack"
+  done
+fi
+
 npm run precommit

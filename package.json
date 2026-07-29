@@ -4,6 +4,7 @@
   "description": "Official system for PIRATE BORG on Foundry VTT.",
   "main": "./module/pirateborg.js",
   "scripts": {
+    "build": "npm run sass && npm run build:db",
     "build:clean": "node ./utils/packs.mjs package clean",
     "build:db": "node ./utils/packs.mjs package pack",
     "build:json": "node ./utils/packs.mjs package unpack",
