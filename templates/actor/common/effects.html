@@ -1,17 +1,15 @@
 <div class="effects">
-  <div class="condition-list">
-    {{#each effects.conditions as |effect e|}}
-    <div class="condition" data-tooltip="{{effect.name}}" data-key={{effect.key}} {{#unless effect.existing}}style="opacity:0.5"{{/unless}}>
-      <a class="condition-click"><img src="{{effect.img}}"/></a>
-      <a class="condition-toggle">
-        {{#if effect.existing}}
-        <i class="far fa-check-square"></i>
-        {{else}}
-        <i class="far fa-square"></i>
-        {{/if}}
-      </a>
-    </div>
-    {{/each}}
+  {{!-- Condition picker. A labeled dropdown (not an icon grid) so conditions are
+        findable by name without hover-guessing. The `.effect-select` change handler
+        (_onEffectSelect → actor.addCondition) is what wires this; already-applied
+        conditions are disabled here and removed via their row in the lists below. --}}
+  <div class="condition-add">
+    <select class="effect-select">
+      <option value="">{{localize "PB.EffectsAddCondition"}}</option>
+      {{#each effects.conditions as |effect|}}
+      <option value="{{effect.key}}" {{#if effect.existing}}disabled{{/if}}>{{effect.name}}{{#if effect.existing}} ✓{{/if}}</option>
+      {{/each}}
+    </select>
   </div>
 
   <ol class="items-list flexcol">

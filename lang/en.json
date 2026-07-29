@@ -112,6 +112,7 @@
   "PB.EditAnimation": "Animation",
   "PB.EditButton": "Edit",
   "PB.EffectExpired": "{effect} has expired on {actor}",
+  "PB.EffectsAddCondition": "Add a condition…",
   "PB.EffectsConditionIDMissing": "Conditions require an id field",
   "PB.EffectsCreate": "Create Effect",
   "PB.EffectsDelete": "Delete Effect",

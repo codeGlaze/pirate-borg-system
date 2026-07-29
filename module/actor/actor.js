@@ -971,9 +971,16 @@ export class PBActor extends Actor {
       luckDie: [],
     };
 
-    // Find effects that are actively modifying combat attributes
-    this.effects.forEach((effect) => {
-      if (effect.disabled) return;
+    // Find effects that are actively modifying combat attributes. Use
+    // `allApplicableEffects()` (not `this.effects`) so item transfer effects are
+    // included — on Foundry v13 (`legacyTransferral: false`) those live on the item
+    // and never appear in `this.effects`, so a feature bonus like Ostentatious
+    // Fencer's +2 defense would otherwise be missing from the chat readout even
+    // though it's applied. Skip suppressed effects so the readout matches what
+    // actually landed (e.g. an equip-gated effect with no matching weapon in hand).
+    const applicableEffects = typeof this.allApplicableEffects === "function" ? [...this.allApplicableEffects()] : [...this.effects];
+    applicableEffects.forEach((effect) => {
+      if (effect.disabled || effect.isSuppressed) return;
 
       effect.changes.forEach((change) => {
         const sourceName = effect.label || effect.name || `Unknown (${effect.id})`;
