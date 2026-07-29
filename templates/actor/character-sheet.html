@@ -76,6 +76,21 @@
       </div>
       {{/if}}
 
+      {{!-- Active-effect chips: transient, dismissible readouts of a rolled feature value
+            still in play (Inspiring Leader's d4). Renders nothing when none are active,
+            so it never clutters the header. --}}
+      {{#if data.system.dynamic.activeEffects.length}}
+      <div class="header-stats-row active-effects-row">
+        {{#each data.system.dynamic.activeEffects as |eff|}}
+        <span class="active-effect-chip" title="{{eff.label}} — {{localize 'PB.RolledAt'}} {{eff.atLabel}}">
+          <span class="active-effect-label">{{eff.label}}</span>
+          <span class="active-effect-value">{{eff.display}}</span>
+          <a class="active-effect-dismiss" data-item-id="{{eff.id}}" title="{{localize 'PB.Dismiss'}}"><i class="fas fa-times"></i></a>
+        </span>
+        {{/each}}
+      </div>
+      {{/if}}
+
       <div class="header-buttons-row">
         <button type="button" class="button item-button broken-button rollable" title="{{localize 'PB.Broken'}}">{{localize 'PB.Broken'}}</button>
         <button type="button" class="button item-button rest-button rollable" title="{{localize 'PB.Rest'}}">{{localize 'PB.Rest'}}</button>

@@ -584,6 +584,32 @@
 .pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button:active {
   transform: translateY(2px);
 }
+.pirateborg.sheet.actor.character .sheet-header .active-effects-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pirateborg.sheet.actor.character .sheet-header .active-effects-row .active-effect-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 4px 1px 8px;
+  border: 1px solid var(--button-background);
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.pirateborg.sheet.actor.character .sheet-header .active-effects-row .active-effect-chip .active-effect-value {
+  font-weight: 700;
+}
+.pirateborg.sheet.actor.character .sheet-header .active-effects-row .active-effect-chip .active-effect-dismiss {
+  display: inline-flex;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.pirateborg.sheet.actor.character .sheet-header .active-effects-row .active-effect-chip .active-effect-dismiss:hover {
+  opacity: 1;
+}
 .pirateborg.sheet.actor.character .sheet-header .grog-status-row .grog-block {
   gap: 6px;
 }

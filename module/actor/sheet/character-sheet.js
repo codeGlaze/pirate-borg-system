@@ -188,6 +188,19 @@ export class PBActorSheetCharacter extends PBActorSheet {
       .map((item) => ({ id: item._id, name: item.name, dr: abilityTestDrValue(item.system) }))
       .sort(byName);
 
+    // Active-roll results still in effect (Inspiring Leader's rolled d4) surface as
+    // dismissible header chips. Only present when something is active, so the strip
+    // stays empty — and out of the way — the rest of the time.
+    const scope = CONFIG.PB.flagScope;
+    data.activeEffects = sheetData.data.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && item.flags?.[scope]?.activeRoll)
+      .map((item) => {
+        const result = item.flags[scope].activeRoll;
+        const value = Number(result.value);
+        const display = result.signed ? `±${Math.abs(value)}` : `${value >= 0 ? "+" : ""}${value}`;
+        return { id: item._id, label: item.name, display, atLabel: new Date(result.at).toLocaleTimeString() };
+      });
+
     data.trackCarryingCapacity = trackCarryingCapacity();
     data.trackAmmo = trackAmmo();
 
@@ -226,6 +239,7 @@ export class PBActorSheetCharacter extends PBActorSheet {
       ".get-better-button": this._onGetBetter,
       ".action-macro-button": this._onActionMacroRoll,
       ".ability-test-feature": this._onAbilityTestFeature,
+      ".active-effect-dismiss": this._onActiveEffectDismiss,
       ".action-invokable": this._onActionInvokable,
       ".ritual-per-day-text": this._onRitualPerDay,
       ".extra-resources-per-day-text": this._onExtraResourcePerDay,
@@ -538,6 +552,14 @@ export class PBActorSheetCharacter extends PBActorSheet {
     if (item) {
       await characterUseItemAction(this.actor, item);
     }
+  }
+
+  /** Clears a feature's stored active-roll result (dismisses its header chip). */
+  async _onActiveEffectDismiss(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const item = this.actor.items.get($(event.currentTarget).data("itemId"));
+    await item?.unsetFlag(CONFIG.PB.flagScope, "activeRoll");
   }
 
   /**

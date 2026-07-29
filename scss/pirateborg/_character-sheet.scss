@@ -58,6 +58,37 @@
           }
         }
 
+        .active-effects-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+
+          .active-effect-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 1px 4px 1px 8px;
+            border: 1px solid var(--button-background);
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+
+            .active-effect-value {
+              font-weight: 700;
+            }
+
+            .active-effect-dismiss {
+              display: inline-flex;
+              cursor: pointer;
+              opacity: 0.7;
+
+              &:hover {
+                opacity: 1;
+              }
+            }
+          }
+        }
+
         .grog-status-row {
           .grog-block {
             gap: 6px;

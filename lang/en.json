@@ -85,6 +85,8 @@
   "PB.ClickToRollSave": "Click to roll {ability} save",
   "PB.Combat": "Combat",
   "PB.ConditionImmune": "{actor} is immune to {condition}.",
+  "PB.Dismiss": "Dismiss",
+  "PB.RolledAt": "rolled at",
   "PB.CombatBonuses": "Combat Bonuses",
   "PB.ContainerEmptyHelpText": "Drag items into this container.",
   "PB.ContainerHolding": "Holding",

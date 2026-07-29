@@ -3,6 +3,7 @@ import { executeMacro } from "../../macros.js";
 import { isJokerTableItem, isLuckyDevilItem } from "../../luck/luck-consume-features.js";
 import { characterShowDevilLuckAction } from "./character-show-devil-luck-action.js";
 import { characterShowJokerTableAction } from "./character-show-joker-table-action.js";
+import { characterActiveRollAction } from "./character-active-roll-action.js";
 
 /**
  * @param {PBActor} actor
@@ -17,6 +18,10 @@ export const characterUseItemAction = async (actor, item, outcome = null, chatMe
   }
   if (isJokerTableItem(item)) {
     return characterShowJokerTableAction(actor);
+  }
+  // Active-roll features (Inspiring Leader): roll + store instead of running a macro.
+  if (item.system?.activeRoll?.formula) {
+    return characterActiveRollAction(actor, item);
   }
 
   if (!item.actionMacro) {

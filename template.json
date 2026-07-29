@@ -256,6 +256,7 @@
       "drTestReductionExtra": 0,
       "critThreshold": 0,
       "conditionImmunity": [],
+      "activeRoll": {},
       "onGain": {},
       "grantsItems": [],
       "attackDr": {},
