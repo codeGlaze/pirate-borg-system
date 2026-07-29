@@ -113,6 +113,13 @@
     </div>
   {{/if}}
 
+  {{#if canSoakGrog}}
+  <div class="form-group">
+    <label>{{localize "PB.GrogSoak"}}:</label>
+    <input id="soakGrog" type="checkbox" name="soakGrog" value="true" data-dtype="Boolean" title="{{localize 'PB.GrogSoakHint'}}" />
+  </div>
+  {{/if}}
+
   <div class="form-group">
     <label>{{localize "PB.TargetArmor"}}:</label>
     <div class="form-fields">

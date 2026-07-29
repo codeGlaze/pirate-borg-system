@@ -32,6 +32,10 @@
     "brew": {
       "formula": "1d4",
       "ref": "pirateborg.equipment-gear;Grog"
+    },
+    "poison": {
+      "saveDr": 14,
+      "damage": "1d6"
     }
   },
   "_key": "!items!KLIZ1qvZj09FHC19"

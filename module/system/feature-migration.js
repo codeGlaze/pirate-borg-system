@@ -28,7 +28,7 @@ const ENHANCED = [
   { pack: "pirateborg.class-swashbuckler", name: "Calculating Cutthroat", fields: ["critThreshold"] },
   { pack: "pirateborg.class-brute", name: "Blood Frenzy", fields: ["damageRider"] },
   { pack: "pirateborg.class-swashbuckler", name: "Inspiring Leader", fields: ["activeRoll"] },
-  { pack: "pirateborg.class-rapscallion", name: "Grog Brewer", fields: ["brew"] },
+  { pack: "pirateborg.class-rapscallion", name: "Grog Brewer", fields: ["brew", "poison"] },
   { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel", "stockOnGain"] },
   {
     pack: "pirateborg.class-buccaneer",

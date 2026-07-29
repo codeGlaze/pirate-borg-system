@@ -2,7 +2,30 @@ import { showAttackDialog } from "../../../dialog/attack-dialog.js";
 import { PBItem } from "../../../item/item.js";
 import { trackAmmo } from "../../../system/settings.js";
 import { createAttackOutcome } from "../../outcome/character/attack-outcome.js";
+import { createGrogPoisonOutcome } from "../../outcome/character/grog-poison-outcome.js";
 import { showGenericCard } from "../../../chat-message/generic-card.js";
+
+/**
+ * Soaking a blade spends one serving of grog (whether the swing lands or not — the blade
+ * was coated). Returns the feature's poison spec so the caller can add the rider on a hit.
+ *
+ * @param {PBActor} actor
+ * @returns {Promise<Object|null>} the poison spec, or null if nothing to soak with
+ */
+const consumeGrogForSoak = async (actor) => {
+  const feature = actor.items.find((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.poison?.damage);
+  const grog = actor.items.find((item) => item.type === CONFIG.PB.itemTypes.grog && (item.system?.quantity ?? 0) > 0);
+  if (!feature || !grog) {
+    return null;
+  }
+  const quantity = (grog.system.quantity ?? 1) - 1;
+  if (quantity > 0) {
+    await grog.update({ "system.quantity": quantity });
+  } else {
+    await actor.deleteEmbeddedDocuments("Item", [grog.id]);
+  }
+  return feature.system.poison;
+};
 
 /**
  * @param {PBActor} actor
@@ -21,6 +44,7 @@ export const characterAttackAction = async (actor, weapon) => {
     targetToken,
     appliedFeatures = [],
     appliedDamageRiders = [],
+    soakGrog = false,
   } = await showAttackDialog({
     actor,
     weapon,
@@ -45,12 +69,25 @@ export const characterAttackAction = async (actor, weapon) => {
   const damageNote = appliedDamageRiders.map((rider) => game.i18n.format("PB.DamageFeatureApplied", { name: rider.name, damage: rider.damage })).join(", ");
   const ammoDescription = weapon.useAmmoDamage ? ammo.description : "";
 
+  // Grog-soaked blade: spend a serving, and on a hit add the poison rider to the card.
+  const outcomes = [outcome];
+  let soakNote = "";
+  if (soakGrog) {
+    const poison = await consumeGrogForSoak(actor);
+    if (poison) {
+      soakNote = game.i18n.localize("PB.GrogSoakApplied");
+      if (outcome.isSuccess) {
+        outcomes.push(await createGrogPoisonOutcome({ actor, targetToken, poison }));
+      }
+    }
+  }
+
   await showGenericCard({
     actor,
     title: `${game.i18n.localize(weapon.isRanged ? "PB.WeaponTypeRanged" : "PB.WeaponTypeMelee")} ${game.i18n.localize("PB.Attack")}`,
-    outcomes: [outcome],
+    outcomes,
     items: await getItems(weapon, ammo),
-    description: [featureNote, damageNote, ammoDescription].filter(Boolean).join("<br/>"),
+    description: [featureNote, damageNote, soakNote, ammoDescription].filter(Boolean).join("<br/>"),
     target: targetToken,
   });
 

@@ -258,6 +258,7 @@
       "conditionImmunity": [],
       "activeRoll": {},
       "brew": {},
+      "poison": {},
       "onGain": {},
       "grantsItems": [],
       "attackDr": {},
