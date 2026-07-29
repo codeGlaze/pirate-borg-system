@@ -3,6 +3,7 @@ import { PBItem } from "../../../item/item.js";
 import { trackAmmo } from "../../../system/settings.js";
 import { createAttackOutcome } from "../../outcome/character/attack-outcome.js";
 import { createGrogPoisonOutcome } from "../../outcome/character/grog-poison-outcome.js";
+import { grogPoisonSpec } from "../../../system/feature-grants.js";
 import { showGenericCard } from "../../../chat-message/generic-card.js";
 
 /**
@@ -24,7 +25,7 @@ const consumeGrogForSoak = async (actor) => {
   } else {
     await actor.deleteEmbeddedDocuments("Item", [grog.id]);
   }
-  return feature.system.poison;
+  return grogPoisonSpec(feature);
 };
 
 /**

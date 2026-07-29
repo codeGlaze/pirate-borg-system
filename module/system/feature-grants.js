@@ -1,5 +1,5 @@
-import { evaluateFormula } from "../api/utils.js";
-import { findCompendiumItem, drawTableItems } from "../api/compendium.js";
+import { evaluateFormula, getResultText } from "../api/utils.js";
+import { findCompendiumItem, drawTableItems, drawDeckOfCards } from "../api/compendium.js";
 import { grantItem } from "../api/grants.js";
 import { showGenericCard } from "../chat-message/generic-card.js";
 
@@ -82,6 +82,72 @@ export const applyStockOnGain = async (item) => {
     }
   }
   await item.setFlag(scope, STOCKED_FLAG, true);
+};
+
+const DIE_STEPS = ["1d2", "1d4", "1d6", "1d8", "1d10", "1d12"];
+const stepUpDie = (die) => {
+  const index = DIE_STEPS.indexOf(String(die));
+  return index >= 0 && index < DIE_STEPS.length - 1 ? DIE_STEPS[index + 1] : die;
+};
+const POISON_UPGRADE_FLAG = "poisonUpgrade";
+const upgradingPoison = new Set();
+
+/**
+ * Grog Brewer's rank-2 upgrade: taken a second time, draw one card and store the result
+ * on the feature — Red (hearts/diamonds) steps the poison die up, Black (spades/clubs)
+ * adds +2 to the save DR. Dropping back below 2 clears it. `grogPoisonSpec` folds the
+ * stored upgrade into the base poison when a blade is soaked. The draw fires once
+ * (guarded by the flag); the flag write is a flags-only change, so it doesn't re-trigger.
+ *
+ * @param {PBItem} item - the Grog Brewer feature
+ */
+export const reconcileGrogPoisonUpgrade = async (item) => {
+  if (!item?.parent || !item.system?.poison?.damage || upgradingPoison.has(item.id)) {
+    return;
+  }
+  const scope = CONFIG.PB.flagScope;
+  const quantity = item.quantity || item.system?.quantity || 1;
+  const existing = item.getFlag(scope, POISON_UPGRADE_FLAG);
+
+  if (quantity >= 2 && !existing) {
+    upgradingPoison.add(item.id);
+    try {
+      const draw = await drawDeckOfCards();
+      const card = (draw.results ?? []).map(getResultText).filter(Boolean).join(" ");
+      const suit = card.match(/of\s+(\w+)/i)?.[1]?.toLowerCase();
+      const isRed = suit === "hearts" || suit === "diamonds";
+      const upgrade = isRed ? { card, damageDie: stepUpDie(item.system.poison.damage) } : { card, saveDrBonus: 2 };
+      await item.setFlag(scope, POISON_UPGRADE_FLAG, upgrade);
+      await showGenericCard({
+        actor: item.parent,
+        title: item.name,
+        description: game.i18n.format(isRed ? "PB.GrogPoisonUpgradeRed" : "PB.GrogPoisonUpgradeBlack", { card, die: upgrade.damageDie ?? "" }),
+      });
+    } finally {
+      upgradingPoison.delete(item.id);
+    }
+  } else if (quantity < 2 && existing) {
+    await item.unsetFlag(scope, POISON_UPGRADE_FLAG);
+  }
+};
+
+/**
+ * The effective poison spec for a soaked blade: the feature's base poison with any
+ * rank-2 card upgrade folded in (+2 DR or a bigger die).
+ *
+ * @param {PBItem} feature
+ * @returns {Object}
+ */
+export const grogPoisonSpec = (feature) => {
+  const base = { ...(feature?.system?.poison ?? {}) };
+  const upgrade = feature?.getFlag?.(CONFIG.PB.flagScope, POISON_UPGRADE_FLAG);
+  if (upgrade?.saveDrBonus) {
+    base.saveDr = (base.saveDr ?? 14) + upgrade.saveDrBonus;
+  }
+  if (upgrade?.damageDie) {
+    base.damage = upgrade.damageDie;
+  }
+  return base;
 };
 
 /**
@@ -398,14 +464,26 @@ export const registerFeatureGrantHooks = () => {
     }
     reconcileFeatureGrant(item);
   };
+  const isOwnFeatureEdit = (item, options, userId) =>
+    game.user?.id === userId && !options?.pbMigration && item?.type === CONFIG.PB.itemTypes.feature && item.parent;
+
   Hooks.on("createItem", (item, options, userId) => {
     onChange(item, null, options, userId);
     // Starting stock fires only on genuine gain (create) — not on updates or migration.
-    if (game.user?.id === userId && !options?.pbMigration && item?.type === CONFIG.PB.itemTypes.feature && item.parent) {
+    if (isOwnFeatureEdit(item, options, userId)) {
       applyStockOnGain(item);
+      if (item.system?.poison?.damage) {
+        reconcileGrogPoisonUpgrade(item);
+      }
     }
   });
-  Hooks.on("updateItem", (item, change, options, userId) => onChange(item, change, options, userId));
+  Hooks.on("updateItem", (item, change, options, userId) => {
+    onChange(item, change, options, userId);
+    // Grog Brewer's rank-2 card upgrade tracks its quantity.
+    if (isOwnFeatureEdit(item, options, userId) && item.system?.poison?.damage && change?.system?.quantity !== undefined) {
+      reconcileGrogPoisonUpgrade(item);
+    }
+  });
 
   // Auto-revert item grants: deleting a feature removes the items it granted.
   Hooks.on("deleteItem", (item, _options, userId) => {

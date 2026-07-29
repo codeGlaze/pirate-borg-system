@@ -202,6 +202,8 @@
   "PB.GrogSoakApplied": "☠ Blade soaked in grog (one serving spent).",
   "PB.GrogPoisonPrompt": "☠ Grog poison — Toughness DR{dr} or −{damage} HP",
   "PB.GrogPoisonButton": "Roll poison damage",
+  "PB.GrogPoisonUpgradeRed": "Grog Brewer drew {card} (Red): the poison die increases to {die}.",
+  "PB.GrogPoisonUpgradeBlack": "Grog Brewer drew {card} (Black): the poison save DR increases by 2.",
   "PB.GrogDrink": "Drink",
   "PB.GrogDrinkButton": "Drink grog and test Toughness",
   "PB.GrogDrinkDescription": "{drinks} drink(s) in the last hour (Agility -{drinks})",
