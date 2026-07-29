@@ -88,12 +88,21 @@
       <label>{{localize "PB.DamageFeatures"}}:</label>
       <div class="attack-features">
         {{#each situationalDamageRiders}}
-          <button type="button" class="attack-feature situational damage-rider" data-name="{{this.name}}" data-damage="{{this.damage}}"
-            title="{{localize "PB.DamageFeatureToggle"}}">
-            <span class="attack-feature-check"><i class="fas fa-check"></i></span>
-            <span class="attack-feature-name">{{this.name}}</span>
-            <span class="attack-feature-dr">+{{this.damage}}</span>
-          </button>
+          {{#if this.countable}}
+            <div class="attack-feature damage-rider countable" data-name="{{this.name}}" data-damage="{{this.damage}}"
+              title="{{localize "PB.DamageFeatureCount"}}">
+              <span class="attack-feature-name">{{this.name}}</span>
+              <input type="number" class="damage-rider-count" min="0" step="1" value="0" />
+              <span class="attack-feature-dr">&times;{{this.damage}}</span>
+            </div>
+          {{else}}
+            <button type="button" class="attack-feature situational damage-rider" data-name="{{this.name}}" data-damage="{{this.damage}}"
+              title="{{localize "PB.DamageFeatureToggle"}}">
+              <span class="attack-feature-check"><i class="fas fa-check"></i></span>
+              <span class="attack-feature-name">{{this.name}}</span>
+              <span class="attack-feature-dr">+{{this.damage}}</span>
+            </button>
+          {{/if}}
         {{/each}}
         {{#each autoDamageRiders}}
           <span class="attack-feature auto damage-rider" data-name="{{this.name}}" data-damage="{{this.damage}}">

@@ -24,13 +24,13 @@ const dagger = { name: "Dagger", isRanged: false };
 
 test("Back Stabber (conditional, no gate) rides any weapon and is opt-in (auto:false)", () => {
   const actor = actorWithItems([feature("Back Stabber", "bs", { damage: "1d2", conditional: true })]);
-  assert.deepEqual(actor.getDamageRiderFeatures(dagger), [{ id: "bs", name: "Back Stabber", damage: "1d2", auto: false }]);
-  assert.deepEqual(actor.getDamageRiderFeatures(rangedWeapon), [{ id: "bs", name: "Back Stabber", damage: "1d2", auto: false }]);
+  assert.deepEqual(actor.getDamageRiderFeatures(dagger), [{ id: "bs", name: "Back Stabber", damage: "1d2", countable: false, auto: false }]);
+  assert.deepEqual(actor.getDamageRiderFeatures(rangedWeapon), [{ id: "bs", name: "Back Stabber", damage: "1d2", countable: false, auto: false }]);
 });
 
 test("Ostentatious Fencer's +1 rides only rapier/cutlass, opt-in for the duel", () => {
   const actor = actorWithItems([feature("Ostentatious Fencer", "of", { damage: "1", requires: { nameIncludes: ["rapier", "cutlass"] }, conditional: true })]);
-  assert.deepEqual(actor.getDamageRiderFeatures(rapier), [{ id: "of", name: "Ostentatious Fencer", damage: "1", auto: false }]);
+  assert.deepEqual(actor.getDamageRiderFeatures(rapier), [{ id: "of", name: "Ostentatious Fencer", damage: "1", countable: false, auto: false }]);
   assert.deepEqual(actor.getDamageRiderFeatures(dagger), []);
 });
 
@@ -38,7 +38,7 @@ test("Focused Aim's +d4 is withheld until rank 2 (minQuantity) and requires rang
   const rider = { damage: "1d4", requires: "ranged", conditional: true, minQuantity: 2 };
   assert.deepEqual(actorWithItems([feature("Focused Aim", "fa", rider, 1)]).getDamageRiderFeatures(rangedWeapon), []);
   assert.deepEqual(actorWithItems([feature("Focused Aim", "fa", rider, 2)]).getDamageRiderFeatures(rangedWeapon), [
-    { id: "fa", name: "Focused Aim", damage: "1d4", auto: false },
+    { id: "fa", name: "Focused Aim", damage: "1d4", countable: false, auto: false },
   ]);
   // Even at rank 2, a melee weapon fails the ranged gate.
   assert.deepEqual(actorWithItems([feature("Focused Aim", "fa", rider, 2)]).getDamageRiderFeatures(dagger), []);
@@ -47,6 +47,11 @@ test("Focused Aim's +d4 is withheld until rank 2 (minQuantity) and requires rang
 test("a gated, non-conditional rider is auto:true", () => {
   const actor = actorWithItems([feature("Sharpshooter", "sh", { damage: "1d4", requires: "ranged" })]);
   assert.equal(actor.getDamageRiderFeatures(rangedWeapon)[0].auto, true);
+});
+
+test("a countable rider (Blood Frenzy +2/kill) is flagged countable and never auto", () => {
+  const actor = actorWithItems([feature("Blood Frenzy", "bf", { damage: "2", countable: true, conditional: true })]);
+  assert.deepEqual(actor.getDamageRiderFeatures(dagger), [{ id: "bf", name: "Blood Frenzy", damage: "2", countable: true, auto: false }]);
 });
 
 test("features without a damageRider.damage are ignored", () => {

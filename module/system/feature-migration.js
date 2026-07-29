@@ -26,6 +26,7 @@ const ENHANCED = [
     reconcileGrant: true,
   },
   { pack: "pirateborg.class-swashbuckler", name: "Calculating Cutthroat", fields: ["critThreshold"] },
+  { pack: "pirateborg.class-brute", name: "Blood Frenzy", fields: ["damageRider"] },
   { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel", "stockOnGain"] },
   {
     pack: "pirateborg.class-buccaneer",

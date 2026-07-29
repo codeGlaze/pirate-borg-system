@@ -28,7 +28,12 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "damageRider": {
+      "damage": "2",
+      "countable": true,
+      "conditional": true
+    }
   },
   "_key": "!items!FZXm37HkCs8KyETv"
 }
