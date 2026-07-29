@@ -21,6 +21,19 @@ const isSwordWeapon = (weapon) => {
 };
 
 /**
+ * Effective ability-test DR reduction for a feature: a base plus a per-extra-rank
+ * increment. `drTestReductionExtra` defaults to the base, so a flat/multiplying feature
+ * (Treasure Hunter −3/−6) is unchanged, while an uneven one (Burglar −4/−6) sets its own
+ * increment. Shared by the actor resolver and the sheet's button label so the two can't
+ * drift.
+ *
+ * @param {Object} system - a feature's `system` data
+ * @returns {Number}
+ */
+export const abilityTestDrValue = (system) =>
+  Number(system.drTestReduction) + (Number(system.drTestReductionExtra) || Number(system.drTestReduction)) * ((system.quantity || 1) - 1);
+
+/**
  * @extends {Actor}
  */
 export class PBActor extends Actor {
@@ -248,6 +261,13 @@ export class PBActor extends Actor {
       return game.i18n.localize("PB.EffectsConditionIDMissing");
     }
 
+    // Feature-granted immunity (e.g. Survivalist: infected/sick/poisoned) blocks the
+    // condition outright rather than applying then suppressing it.
+    if (this.isImmuneToCondition(effect.id)) {
+      ui.notifications?.info?.(game.i18n.format("PB.ConditionImmune", { condition: game.i18n.localize(effect.name), actor: this.name }));
+      return;
+    }
+
     if (!effect.flags) {
       effect.flags = flags;
     } else {
@@ -264,6 +284,31 @@ export class PBActor extends Actor {
 
   hasCondition(conditionKey) {
     return this.effects.find((e) => e.statuses.has(conditionKey));
+  }
+
+  /**
+   * Whether an owned feature grants immunity to a condition (its
+   * `system.conditionImmunity` lists the id) — e.g. Survivalist vs infected/sick/poison.
+   *
+   * @param {String} conditionId
+   * @returns {Boolean}
+   */
+  isImmuneToCondition(conditionId) {
+    return this.items.some((item) => item.type === CONFIG.PB.itemTypes.feature && (item.system?.conditionImmunity ?? []).includes(conditionId));
+  }
+
+  /**
+   * The natural d20 result at or above which the character critically succeeds on attack
+   * and defense rolls — 20 by default, lowered by features (Calculating Cutthroat → 19).
+   * The lowest (most generous) feature threshold wins.
+   *
+   * @returns {Number}
+   */
+  getCritThreshold() {
+    const thresholds = this.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && Number(item.system?.critThreshold) > 0)
+      .map((item) => Number(item.system.critThreshold));
+    return thresholds.length ? Math.min(20, ...thresholds) : 20;
   }
 
   async removeCondition(effect) {
@@ -628,7 +673,7 @@ export class PBActor extends Actor {
       .map((item) => ({
         id: item.id,
         name: item.name,
-        dr: Number(item.system.drTestReduction) * (item.system.quantity || 1),
+        dr: abilityTestDrValue(item.system),
       }));
   }
 
@@ -648,18 +693,28 @@ export class PBActor extends Actor {
    * @param {PBItem} weapon
    * @returns {Array.<{id: String, name: String, dr: Number, auto: Boolean}>}
    */
+  /**
+   * Whether `weapon` satisfies a feature's `requires` gate ("ranged" | "sword" |
+   * { nameIncludes: [...] }). No gate ⇒ always applies. Shared by the attack-DR and
+   * damage-rider resolvers so both read the same weapon rules.
+   *
+   * @param {PBItem} weapon
+   * @param {String|Object} [requires]
+   * @returns {Boolean}
+   */
+  _meetsWeaponRequirement(weapon, requires) {
+    if (!requires) return true;
+    if (requires === "ranged") return Boolean(weapon?.isRanged);
+    if (requires === "sword") return isSwordWeapon(weapon);
+    // { nameIncludes: [...] } — gate on the weapon name (e.g. rapier/cutlass).
+    if (Array.isArray(requires?.nameIncludes)) return weaponNameMatches(weapon, requires.nameIncludes);
+    return false;
+  }
+
   getAttackDrFeatures(weapon) {
-    const meetsWeaponGate = (requires) => {
-      if (!requires) return true;
-      if (requires === "ranged") return Boolean(weapon?.isRanged);
-      if (requires === "sword") return isSwordWeapon(weapon);
-      // { nameIncludes: [...] } — gate on the weapon name (e.g. rapier/cutlass).
-      if (Array.isArray(requires?.nameIncludes)) return weaponNameMatches(weapon, requires.nameIncludes);
-      return false;
-    };
     return this.items
       .filter((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.attackDr && Number(item.system.attackDr.dr) > 0)
-      .filter((item) => meetsWeaponGate(item.system.attackDr.requires))
+      .filter((item) => this._meetsWeaponRequirement(weapon, item.system.attackDr.requires))
       .map((item) => {
         const spec = item.system.attackDr;
         const quantity = spec.stacks ? Math.max(1, item.system.quantity || 1) : 1;
@@ -667,6 +722,33 @@ export class PBActor extends Actor {
           id: item.id,
           name: item.name,
           dr: Number(spec.dr) * quantity,
+          auto: Boolean(spec.requires) && !spec.conditional,
+        };
+      });
+  }
+
+  /**
+   * Feature damage riders applicable to `weapon` — bonus damage a feature adds on a hit
+   * (Back Stabber +d2, Focused Aim +d4, Ostentatious Fencer +1 dueling). Mirrors
+   * `getAttackDrFeatures`: `damageRider: { damage, requires, conditional, minQuantity }`.
+   * `requires` gates on the weapon (auto when met + unconditional); `conditional`
+   * features are opt-in toggles; `minQuantity` withholds the rider until the feature has
+   * been taken that many times (Focused Aim's +d4 only at rank 2).
+   *
+   * @param {PBItem} weapon
+   * @returns {Array.<{id: String, name: String, damage: String, auto: Boolean}>}
+   */
+  getDamageRiderFeatures(weapon) {
+    return this.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.damageRider?.damage)
+      .filter((item) => (item.system.quantity || 1) >= (Number(item.system.damageRider.minQuantity) || 1))
+      .filter((item) => this._meetsWeaponRequirement(weapon, item.system.damageRider.requires))
+      .map((item) => {
+        const spec = item.system.damageRider;
+        return {
+          id: item.id,
+          name: item.name,
+          damage: String(spec.damage),
           auto: Boolean(spec.requires) && !spec.conditional,
         };
       });

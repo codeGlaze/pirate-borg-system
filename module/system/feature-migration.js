@@ -19,7 +19,13 @@ const ENHANCED = [
   { pack: "pirateborg.class-brute", name: "Thick Skinned", syncEffects: true }, // naturalArmorTier AE (else lost -d2)
   { pack: "pirateborg.class-tall-tale", name: "Sea Turtle", syncEffects: true }, // armorTierModifier AE (extra -d2)
   { pack: "pirateborg.class-buccaneer", name: "Treasure Hunter", fields: ["drTestReduction"] },
-  { pack: "pirateborg.class-buccaneer", name: "Survivalist", fields: ["onGain", "actionMacro", "actionMacroLabel"], reconcileGrant: true },
+  {
+    pack: "pirateborg.class-buccaneer",
+    name: "Survivalist",
+    fields: ["onGain", "actionMacro", "actionMacroLabel", "conditionImmunity"],
+    reconcileGrant: true,
+  },
+  { pack: "pirateborg.class-swashbuckler", name: "Calculating Cutthroat", fields: ["critThreshold"] },
   { pack: "pirateborg.class-buccaneer", name: "Buccan Cook", fields: ["actionMacro", "actionMacroLabel", "stockOnGain"] },
   {
     pack: "pirateborg.class-buccaneer",
@@ -30,16 +36,17 @@ const ENHANCED = [
   { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel", "description"] },
   // Attack-DR features: sync the attackDr spec so existing characters gain the toggle.
   { pack: "pirateborg.class-buccaneer", name: "Crack Shot", fields: ["attackDr"] },
-  { pack: "pirateborg.class-buccaneer", name: "Focused Aim", fields: ["attackDr"] },
+  { pack: "pirateborg.class-buccaneer", name: "Focused Aim", fields: ["attackDr", "damageRider"] },
   { pack: "pirateborg.class-swashbuckler", name: "Sword Master", fields: ["attackDr"] },
   { pack: "pirateborg.class-swashbuckler", name: "Scurvy Scallywag", fields: ["attackDr"] },
-  { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr"] },
-  // Ostentatious Fencer: attack DR gate + swap the legacy inert effects for the
-  // equip-gated defense effect.
-  { pack: "pirateborg.class-swashbuckler", name: "Ostentatious Fencer", fields: ["attackDr"], replaceEffects: true },
+  { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr", "damageRider"] },
+  // Ostentatious Fencer: attack DR gate + dueling damage rider + swap the legacy inert
+  // effects for the equip-gated defense effect.
+  { pack: "pirateborg.class-swashbuckler", name: "Ostentatious Fencer", fields: ["attackDr", "damageRider"], replaceEffects: true },
   // Starting-gear grants (stockOnGain fires on gain, not migration — this just syncs the field).
   { pack: "pirateborg.class-swashbuckler", name: "Knife Knave", fields: ["stockOnGain"] },
-  { pack: "pirateborg.class-rapscallion", name: "Burglar", fields: ["stockOnGain"] },
+  { pack: "pirateborg.class-swashbuckler", name: "Black Powder Poet", fields: ["stockOnGainTable"] },
+  { pack: "pirateborg.class-rapscallion", name: "Burglar", fields: ["stockOnGain", "drTestReduction", "drTestReductionExtra", "maxQuantity"] },
 ];
 
 const FIX_BAYONET_FLAG = "fixBayonetWeapon";

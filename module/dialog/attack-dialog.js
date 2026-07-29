@@ -44,6 +44,12 @@ class AttackDialog extends Application {
     const situationalFeatures = attackFeatures.filter((feature) => !feature.auto);
     const autoReduction = autoFeatures.reduce((sum, feature) => sum + feature.dr, 0);
 
+    // Damage riders (Back Stabber +d2, Focused Aim +d4, OF +1 dueling). Same auto-vs-
+    // situational split as the DR features, shown as their own toggles/tally.
+    const damageRiders = this.actor.getDamageRiderFeatures?.(this.weapon) ?? [];
+    const autoDamageRiders = damageRiders.filter((rider) => rider.auto);
+    const situationalDamageRiders = damageRiders.filter((rider) => !rider.auto);
+
     return {
       ...data,
       config: CONFIG.pirateborg,
@@ -54,6 +60,9 @@ class AttackDialog extends Application {
       autoReduction,
       effectiveAttackDR: Math.max(0, Number(attackDR) - autoReduction),
       hasAttackFeatures: attackFeatures.length > 0,
+      autoDamageRiders,
+      situationalDamageRiders,
+      hasDamageRiders: damageRiders.length > 0,
       target: this.targetToken?.actor,
       shouldIgnoreArmor: this.shouldIgnoreArmor,
       isTargetSelectionValid: this.isTargetSelectionValid,
@@ -219,10 +228,22 @@ class AttackDialog extends Application {
       });
     const reduction = appliedFeatures.reduce((sum, feature) => sum + feature.dr, 0);
 
+    // Damage riders in effect (auto + active toggles), for the roll and the card note.
+    const appliedDamageRiders = [];
+    $(form)
+      .find(".damage-rider[data-damage]")
+      .each((_i, element) => {
+        const el = $(element);
+        if (el.hasClass("auto") || el.hasClass("active")) {
+          appliedDamageRiders.push({ name: String(el.data("name")), damage: String(el.data("damage")) });
+        }
+      });
+
     this.callback({
       targetArmor,
       attackDR: Math.max(0, baseDR - reduction),
       appliedFeatures,
+      appliedDamageRiders,
       targetToken: this.targetToken,
     });
     await this.close();

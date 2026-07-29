@@ -28,7 +28,13 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "stockOnGainTable": [
+      {
+        "ref": "pirateborg.rolls-character-creation;d6 Grenades & Bombs",
+        "formula": "1d4"
+      }
+    ]
   },
   "_key": "!items!llfwA4T1PokLgWkS"
 }

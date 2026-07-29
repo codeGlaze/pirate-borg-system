@@ -253,10 +253,15 @@
       "startingBonusRolls": "",
       "flavorText": "",
       "drTestReduction": 0,
+      "drTestReductionExtra": 0,
+      "critThreshold": 0,
+      "conditionImmunity": [],
       "onGain": {},
       "grantsItems": [],
       "attackDr": {},
-      "stockOnGain": []
+      "damageRider": {},
+      "stockOnGain": [],
+      "stockOnGainTable": []
     },
     "class": {
       "description": "",

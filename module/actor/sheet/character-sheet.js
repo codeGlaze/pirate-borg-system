@@ -1,4 +1,5 @@
 import PBActorSheet from "./actor-sheet.js";
+import { abilityTestDrValue } from "../actor.js";
 import { trackAmmo, trackCarryingCapacity, isGrogEnabled } from "../../system/settings.js";
 import {
   actorPartyInitiativeAction,
@@ -184,7 +185,7 @@ export class PBActorSheetCharacter extends PBActorSheet {
     // next to the ability scores, so the DR reduction is one obvious click away.
     data.abilityTestFeatures = sheetData.data.items
       .filter((item) => item.type === CONFIG.PB.itemTypes.feature && Number(item.system.drTestReduction) > 0)
-      .map((item) => ({ id: item._id, name: item.name, dr: Number(item.system.drTestReduction) * (item.system.quantity || 1) }))
+      .map((item) => ({ id: item._id, name: item.name, dr: abilityTestDrValue(item.system) }))
       .sort(byName);
 
     data.trackCarryingCapacity = trackCarryingCapacity();

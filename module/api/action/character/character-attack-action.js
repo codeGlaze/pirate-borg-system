@@ -20,6 +20,7 @@ export const characterAttackAction = async (actor, weapon) => {
     targetArmor,
     targetToken,
     appliedFeatures = [],
+    appliedDamageRiders = [],
   } = await showAttackDialog({
     actor,
     weapon,
@@ -32,6 +33,7 @@ export const characterAttackAction = async (actor, weapon) => {
     dr: attackDR,
     targetToken,
     armorFormula: targetArmor,
+    damageRiders: appliedDamageRiders,
   });
 
   await handleWeaponReloading(actor, weapon);
@@ -40,6 +42,7 @@ export const characterAttackAction = async (actor, weapon) => {
   // Note any attack-DR features that were applied (Crack Shot, Focused Aim, …) so the
   // card shows why the DR was lowered rather than a silently different number.
   const featureNote = appliedFeatures.map((feature) => game.i18n.format("PB.AttackFeatureApplied", { name: feature.name, dr: feature.dr })).join(", ");
+  const damageNote = appliedDamageRiders.map((rider) => game.i18n.format("PB.DamageFeatureApplied", { name: rider.name, damage: rider.damage })).join(", ");
   const ammoDescription = weapon.useAmmoDamage ? ammo.description : "";
 
   await showGenericCard({
@@ -47,7 +50,7 @@ export const characterAttackAction = async (actor, weapon) => {
     title: `${game.i18n.localize(weapon.isRanged ? "PB.WeaponTypeRanged" : "PB.WeaponTypeMelee")} ${game.i18n.localize("PB.Attack")}`,
     outcomes: [outcome],
     items: await getItems(weapon, ammo),
-    description: [featureNote, ammoDescription].filter(Boolean).join("<br/>"),
+    description: [featureNote, damageNote, ammoDescription].filter(Boolean).join("<br/>"),
     target: targetToken,
   });
 
