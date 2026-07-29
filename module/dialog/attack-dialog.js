@@ -50,6 +50,12 @@ class AttackDialog extends Application {
     const autoDamageRiders = damageRiders.filter((rider) => rider.auto);
     const situationalDamageRiders = damageRiders.filter((rider) => !rider.auto);
 
+    // Grog Brewer can soak a melee blade in grog to poison it: offer the toggle only
+    // with the feature's poison capability, a serving in stock, and a melee weapon.
+    const grogPoison = this.actor.items.find((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.poison?.damage)?.system?.poison;
+    const hasGrogServing = this.actor.items.some((item) => item.type === CONFIG.PB.itemTypes.grog && (item.system?.quantity ?? 0) > 0);
+    const canSoakGrog = Boolean(grogPoison) && hasGrogServing && !this.weapon?.isRanged;
+
     return {
       ...data,
       config: CONFIG.pirateborg,
@@ -63,6 +69,7 @@ class AttackDialog extends Application {
       autoDamageRiders,
       situationalDamageRiders,
       hasDamageRiders: damageRiders.length > 0,
+      canSoakGrog,
       target: this.targetToken?.actor,
       shouldIgnoreArmor: this.shouldIgnoreArmor,
       isTargetSelectionValid: this.isTargetSelectionValid,
@@ -254,6 +261,7 @@ class AttackDialog extends Application {
       attackDR: Math.max(0, baseDR - reduction),
       appliedFeatures,
       appliedDamageRiders,
+      soakGrog: $(form).find("#soakGrog").is(":checked"),
       targetToken: this.targetToken,
     });
     await this.close();
