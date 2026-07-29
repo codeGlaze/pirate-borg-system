@@ -465,6 +465,8 @@
   "PB.SettingsAutomaticDamageHint": "Automatically apply damage and heal on corresponding rolls. A valid target is required.",
   "PB.SettingsCreateLootFromDrop": "Create Loot from Canvas Drop",
   "PB.SettingsCreateLootFromDropHint": "When enabled, dropping items onto the canvas creates a loot container with the dropped item.",
+  "PB.SettingsDefendButtonBlack": "Black Defend Button",
+  "PB.SettingsDefendButtonBlackHint": "Render the character sheet's Defend button as black instead of the default deep red.",
   "PB.SettingsEnableGrog": "Enable Grog Mechanics",
   "PB.SettingsEnableGrogHint": "When enabled, characters can drink grog for healing with intoxication effects. Disable for a family-friendly experience.",
   "PB.SettingsEnforceTarget": "Enforce target selection",

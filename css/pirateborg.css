@@ -542,6 +542,48 @@
   min-width: 700px;
   min-height: 700px;
 }
+.pirateborg.sheet.actor.character .sheet-header .header-col1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  max-width: 132px;
+  margin-top: 4px;
+  padding: 9px 8px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: #f4e4c2;
+  font-family: var(--h2-font);
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
+  transition: transform 0.05s ease, filter 0.1s ease;
+}
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--pb-defend-color, #8f0f0f) url(../ui/parchment-2.jpg) center/300px;
+  background-blend-mode: multiply;
+  border: 2px solid #240404;
+  filter: url("#pb-defend-rough");
+}
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button:hover {
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6)) brightness(1.08);
+}
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button:active {
+  transform: translateY(2px);
+}
 .pirateborg.sheet.actor.character .sheet-header .grog-status-row .grog-block {
   gap: 6px;
 }
