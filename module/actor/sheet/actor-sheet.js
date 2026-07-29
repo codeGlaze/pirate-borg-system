@@ -185,6 +185,22 @@ export default class PBActorSheet extends (foundry.appv1?.sheets?.ActorSheet ?? 
     html.find(".effect-delete").click(this._onEffectDelete.bind(this));
     html.find(".effect-toggle").click(this._onEffectToggle.bind(this));
     html.find(".effect-select").change(this._onEffectSelect.bind(this));
+    html.find(".condition-click, .condition-toggle").click(this._onConditionToggle.bind(this));
+  }
+
+  /**
+   * Toggle a condition on/off from the visual condition grid. Clicking any cell (icon
+   * or checkbox) applies the condition when absent and removes it when present, so the
+   * grid doubles as an at-a-glance status readout and a toggle. The dropdown above adds
+   * by name; this is the see-and-flip counterpart.
+   *
+   * @param {MouseEvent} ev
+   */
+  _onConditionToggle(ev) {
+    ev.preventDefault();
+    const key = ev.currentTarget.closest(".condition")?.dataset.key;
+    if (!key) return;
+    return this.actor.hasCondition(key) ? this.actor.removeCondition(key) : this.actor.addCondition(key);
   }
 
   async _onEffectCreate(ev) {
