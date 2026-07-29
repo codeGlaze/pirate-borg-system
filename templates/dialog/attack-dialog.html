@@ -83,6 +83,27 @@
     </div>
   {{/if}}
 
+  {{#if hasDamageRiders}}
+    <div class="form-group form-group-attack-features">
+      <label>{{localize "PB.DamageFeatures"}}:</label>
+      <div class="attack-features">
+        {{#each situationalDamageRiders}}
+          <button type="button" class="attack-feature situational damage-rider" data-name="{{this.name}}" data-damage="{{this.damage}}"
+            title="{{localize "PB.DamageFeatureToggle"}}">
+            <span class="attack-feature-check"><i class="fas fa-check"></i></span>
+            <span class="attack-feature-name">{{this.name}}</span>
+            <span class="attack-feature-dr">+{{this.damage}}</span>
+          </button>
+        {{/each}}
+        {{#each autoDamageRiders}}
+          <span class="attack-feature auto damage-rider" data-name="{{this.name}}" data-damage="{{this.damage}}">
+            {{this.name}} +{{this.damage}} <em>{{localize "PB.AttackFeatureAlwaysOn"}}</em>
+          </span>
+        {{/each}}
+      </div>
+    </div>
+  {{/if}}
+
   <div class="form-group">
     <label>{{localize "PB.TargetArmor"}}:</label>
     <div class="form-fields">

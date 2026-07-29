@@ -648,18 +648,28 @@ export class PBActor extends Actor {
    * @param {PBItem} weapon
    * @returns {Array.<{id: String, name: String, dr: Number, auto: Boolean}>}
    */
+  /**
+   * Whether `weapon` satisfies a feature's `requires` gate ("ranged" | "sword" |
+   * { nameIncludes: [...] }). No gate ⇒ always applies. Shared by the attack-DR and
+   * damage-rider resolvers so both read the same weapon rules.
+   *
+   * @param {PBItem} weapon
+   * @param {String|Object} [requires]
+   * @returns {Boolean}
+   */
+  _meetsWeaponRequirement(weapon, requires) {
+    if (!requires) return true;
+    if (requires === "ranged") return Boolean(weapon?.isRanged);
+    if (requires === "sword") return isSwordWeapon(weapon);
+    // { nameIncludes: [...] } — gate on the weapon name (e.g. rapier/cutlass).
+    if (Array.isArray(requires?.nameIncludes)) return weaponNameMatches(weapon, requires.nameIncludes);
+    return false;
+  }
+
   getAttackDrFeatures(weapon) {
-    const meetsWeaponGate = (requires) => {
-      if (!requires) return true;
-      if (requires === "ranged") return Boolean(weapon?.isRanged);
-      if (requires === "sword") return isSwordWeapon(weapon);
-      // { nameIncludes: [...] } — gate on the weapon name (e.g. rapier/cutlass).
-      if (Array.isArray(requires?.nameIncludes)) return weaponNameMatches(weapon, requires.nameIncludes);
-      return false;
-    };
     return this.items
       .filter((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.attackDr && Number(item.system.attackDr.dr) > 0)
-      .filter((item) => meetsWeaponGate(item.system.attackDr.requires))
+      .filter((item) => this._meetsWeaponRequirement(weapon, item.system.attackDr.requires))
       .map((item) => {
         const spec = item.system.attackDr;
         const quantity = spec.stacks ? Math.max(1, item.system.quantity || 1) : 1;
@@ -667,6 +677,33 @@ export class PBActor extends Actor {
           id: item.id,
           name: item.name,
           dr: Number(spec.dr) * quantity,
+          auto: Boolean(spec.requires) && !spec.conditional,
+        };
+      });
+  }
+
+  /**
+   * Feature damage riders applicable to `weapon` — bonus damage a feature adds on a hit
+   * (Back Stabber +d2, Focused Aim +d4, Ostentatious Fencer +1 dueling). Mirrors
+   * `getAttackDrFeatures`: `damageRider: { damage, requires, conditional, minQuantity }`.
+   * `requires` gates on the weapon (auto when met + unconditional); `conditional`
+   * features are opt-in toggles; `minQuantity` withholds the rider until the feature has
+   * been taken that many times (Focused Aim's +d4 only at rank 2).
+   *
+   * @param {PBItem} weapon
+   * @returns {Array.<{id: String, name: String, damage: String, auto: Boolean}>}
+   */
+  getDamageRiderFeatures(weapon) {
+    return this.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && item.system?.damageRider?.damage)
+      .filter((item) => (item.system.quantity || 1) >= (Number(item.system.damageRider.minQuantity) || 1))
+      .filter((item) => this._meetsWeaponRequirement(weapon, item.system.damageRider.requires))
+      .map((item) => {
+        const spec = item.system.damageRider;
+        return {
+          id: item.id,
+          name: item.name,
+          damage: String(spec.damage),
           auto: Boolean(spec.requires) && !spec.conditional,
         };
       });

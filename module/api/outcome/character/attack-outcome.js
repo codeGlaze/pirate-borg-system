@@ -57,7 +57,7 @@ const getDescription = async ({ isGunpowderWeapon = false, isFumble = false, isC
  * @param {Token} targetToken
  * @return {String}
  */
-const getDamageFormula = ({ actor, outcome, weapon, ammo, targetToken } = {}) => {
+const getDamageFormula = ({ actor, outcome, weapon, ammo, targetToken, damageRiders = [] } = {}) => {
   let damageFormula = weapon.useAmmoDamage ? ammo.damageDie : weapon.damageDie;
   damageFormula = outcome.isCriticalSuccess ? `(${weapon.damageDie}) * 2` : damageFormula;
   damageFormula = outcome.isCriticalSuccess && weapon.critExtraDamage ? `(${damageFormula}) + ${weapon.critExtraDamage}` : damageFormula;
@@ -66,6 +66,14 @@ const getDamageFormula = ({ actor, outcome, weapon, ammo, targetToken } = {}) =>
   const damageModifier = actor.attributes?.combat?.damageModifier || 0;
   if (damageModifier !== 0) {
     damageFormula = `(${damageFormula}) + ${damageModifier}`;
+  }
+
+  // Feature damage riders (Back Stabber +d2, Focused Aim +d4, OF +1). Flat additions,
+  // applied after any crit doubling — same as the damage modifier.
+  for (const rider of damageRiders) {
+    if (rider?.damage) {
+      damageFormula = `(${damageFormula}) + ${rider.damage}`;
+    }
   }
 
   return actor.getScaledDamageFormula(targetToken?.actor, damageFormula);
@@ -114,7 +122,7 @@ const getBayonetReloadSecondaryOutcome = ({ actor, outcome, weapon }) => {
  * @param {String} armorFormula
  * @return {Promise<Object>}
  */
-export const createAttackOutcome = async ({ actor, dr = 12, weapon, ammo, targetToken, armorFormula = "" }) =>
+export const createAttackOutcome = async ({ actor, dr = 12, weapon, ammo, targetToken, armorFormula = "", damageRiders = [] }) =>
   asyncPipe(
     testOutcome({
       type: "attack",
@@ -132,7 +140,7 @@ export const createAttackOutcome = async ({ actor, dr = 12, weapon, ammo, target
     withAsyncProps({
       title: (outcome) => game.i18n.localize(getTitle(outcome)),
       description: async (outcome) => game.i18n.localize(await getDescription(outcome)),
-      damageFormula: (outcome) => getDamageFormula({ actor, outcome, weapon, ammo, targetToken }),
+      damageFormula: (outcome) => getDamageFormula({ actor, outcome, weapon, ammo, targetToken, damageRiders }),
     }),
     withWhen(
       (outcome) => outcome.isSuccess,

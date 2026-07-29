@@ -20,6 +20,10 @@
     "attackDr": {
       "dr": 2,
       "conditional": true
+    },
+    "damageRider": {
+      "damage": "1d2",
+      "conditional": true
     }
   },
   "ownership": {

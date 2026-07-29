@@ -30,13 +30,13 @@ const ENHANCED = [
   { pack: "pirateborg.class-buccaneer", name: "Exquisite smoked meat", fields: ["actionMacro", "actionMacroLabel", "description"] },
   // Attack-DR features: sync the attackDr spec so existing characters gain the toggle.
   { pack: "pirateborg.class-buccaneer", name: "Crack Shot", fields: ["attackDr"] },
-  { pack: "pirateborg.class-buccaneer", name: "Focused Aim", fields: ["attackDr"] },
+  { pack: "pirateborg.class-buccaneer", name: "Focused Aim", fields: ["attackDr", "damageRider"] },
   { pack: "pirateborg.class-swashbuckler", name: "Sword Master", fields: ["attackDr"] },
   { pack: "pirateborg.class-swashbuckler", name: "Scurvy Scallywag", fields: ["attackDr"] },
-  { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr"] },
-  // Ostentatious Fencer: attack DR gate + swap the legacy inert effects for the
-  // equip-gated defense effect.
-  { pack: "pirateborg.class-swashbuckler", name: "Ostentatious Fencer", fields: ["attackDr"], replaceEffects: true },
+  { pack: "pirateborg.class-rapscallion", name: "Back Stabber", fields: ["attackDr", "damageRider"] },
+  // Ostentatious Fencer: attack DR gate + dueling damage rider + swap the legacy inert
+  // effects for the equip-gated defense effect.
+  { pack: "pirateborg.class-swashbuckler", name: "Ostentatious Fencer", fields: ["attackDr", "damageRider"], replaceEffects: true },
   // Starting-gear grants (stockOnGain fires on gain, not migration — this just syncs the field).
   { pack: "pirateborg.class-swashbuckler", name: "Knife Knave", fields: ["stockOnGain"] },
   { pack: "pirateborg.class-rapscallion", name: "Burglar", fields: ["stockOnGain"] },

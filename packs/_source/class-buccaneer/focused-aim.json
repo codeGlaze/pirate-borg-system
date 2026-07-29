@@ -31,7 +31,14 @@
     "flavorText": "",
     "attackDr": {
       "dr": 4,
+      "requires": "ranged",
       "conditional": true
+    },
+    "damageRider": {
+      "damage": "1d4",
+      "requires": "ranged",
+      "conditional": true,
+      "minQuantity": 2
     }
   },
   "_key": "!items!vKcCqgp5tTmwYaWd"

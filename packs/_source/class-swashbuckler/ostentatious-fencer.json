@@ -77,6 +77,16 @@
           "cutlass"
         ]
       }
+    },
+    "damageRider": {
+      "damage": "1",
+      "requires": {
+        "nameIncludes": [
+          "rapier",
+          "cutlass"
+        ]
+      },
+      "conditional": true
     }
   },
   "_key": "!items!lco7XqcFzkaMkw0W"
