@@ -107,6 +107,17 @@ export const registerSystemSettings = () => {
     default: true,
   });
 
+  /** Client: render the sheet Defend button as black instead of the default deep red. */
+  game.settings.register("pirateborg", "blackDefendButton", {
+    name: "PB.SettingsDefendButtonBlack",
+    hint: "PB.SettingsDefendButtonBlackHint",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: (value) => applyDefendButtonAppearance(value),
+  });
+
   /** Whether to enable grog drinking mechanics */
   game.settings.register("pirateborg", "enableGrog", {
     name: "PB.SettingsEnableGrog",
@@ -355,3 +366,19 @@ export const isLootAllEnabled = () => game.settings.get("pirateborg", "lootAll")
  * @returns {Boolean}
  */
 export const isCreateLootFromDropEnabled = () => game.settings.get("pirateborg", "createLootFromDrop");
+
+/**
+ * @returns {Boolean}
+ */
+export const isBlackDefendButtonEnabled = () => game.settings.get("pirateborg", "blackDefendButton");
+
+/**
+ * Reflects the "black Defend button" client setting into the `--pb-defend-color` CSS
+ * variable the character sheet reads. Only the base colour changes here — the parchment
+ * grain and torn edge come from the stylesheet. Deep red by default, near-black when set.
+ *
+ * @param {Boolean} [black]
+ */
+export const applyDefendButtonAppearance = (black = isBlackDefendButtonEnabled()) => {
+  document.documentElement?.style?.setProperty("--pb-defend-color", black ? "#1a140e" : "#8f0f0f");
+};

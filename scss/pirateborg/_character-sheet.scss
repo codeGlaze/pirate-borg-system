@@ -5,6 +5,59 @@
       min-height: 700px;
 
       .sheet-header {
+        // Defend button under the portrait: a torn parchment scrap. The ::before is the
+        // paper (deep-red-tinted parchment via multiply, with an SVG turbulence filter
+        // chipping its edges); the label rides crisply on top. --pb-defend-color is the
+        // only knob the "black Defend button" client setting turns.
+        .header-col1 {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+
+          .defend-button {
+            position: relative;
+            z-index: 0;
+            width: 100%;
+            max-width: 132px;
+            margin-top: 4px;
+            padding: 9px 8px;
+            border: none;
+            border-radius: 0;
+            background: none;
+            color: #f4e4c2;
+            font-family: var(--h2-font);
+            font-size: 18px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
+            transition:
+              transform 0.05s ease,
+              filter 0.1s ease;
+
+            &::before {
+              content: "";
+              position: absolute;
+              inset: 0;
+              z-index: -1;
+              background: var(--pb-defend-color, #8f0f0f) url(../ui/parchment-2.jpg) center / 300px;
+              background-blend-mode: multiply;
+              border: 2px solid #240404;
+              filter: url("#pb-defend-rough");
+            }
+
+            &:hover {
+              filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6)) brightness(1.08);
+            }
+
+            &:active {
+              transform: translateY(2px);
+            }
+          }
+        }
+
         .grog-status-row {
           .grog-block {
             gap: 6px;
