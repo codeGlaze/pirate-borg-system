@@ -39,6 +39,7 @@ const ENHANCED = [
   { pack: "pirateborg.class-swashbuckler", name: "Ostentatious Fencer", fields: ["attackDr", "damageRider"], replaceEffects: true },
   // Starting-gear grants (stockOnGain fires on gain, not migration — this just syncs the field).
   { pack: "pirateborg.class-swashbuckler", name: "Knife Knave", fields: ["stockOnGain"] },
+  { pack: "pirateborg.class-swashbuckler", name: "Black Powder Poet", fields: ["stockOnGainTable"] },
   { pack: "pirateborg.class-rapscallion", name: "Burglar", fields: ["stockOnGain", "drTestReduction", "drTestReductionExtra", "maxQuantity"] },
 ];
 

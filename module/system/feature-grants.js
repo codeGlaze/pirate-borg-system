@@ -1,5 +1,5 @@
 import { evaluateFormula } from "../api/utils.js";
-import { findCompendiumItem } from "../api/compendium.js";
+import { findCompendiumItem, drawTableItems } from "../api/compendium.js";
 import { grantItem } from "../api/grants.js";
 import { showGenericCard } from "../chat-message/generic-card.js";
 
@@ -27,6 +27,7 @@ const FIX_BAYONET_FLAG = "fixBayonetWeapon";
 const STOCKED_FLAG = "rationsStocked";
 
 const hasStockOnGain = (item) => (item?.system?.stockOnGain ?? []).length > 0;
+const hasStockOnGainTable = (item) => (item?.system?.stockOnGainTable ?? []).length > 0;
 
 /**
  * Grants a feature's one-time starting stock the moment it's gained (dragged on,
@@ -39,22 +40,46 @@ const hasStockOnGain = (item) => (item?.system?.stockOnGain ?? []).length > 0;
  * Each entry rolls `formula` for a quantity and stacks it onto the actor. A flag makes
  * it idempotent, so it never re-stocks (level-up, re-open, or the class macro).
  *
+ * A sibling `system.stockOnGainTable` grants random starting gear by rolling on a
+ * compendium roll table instead of stacking a fixed item (Black Powder Poet: roll d4
+ * times on the bombs table). Each entry is `{ ref, formula }` where `ref` is
+ * `pirateborg.<pack>;<Table Name>` and `formula` is the number of draws. The drawn
+ * items are embedded once, guarded by the same one-time flag.
+ *
  * @param {PBItem} item
  */
 export const applyStockOnGain = async (item) => {
-  if (!hasStockOnGain(item) || !item.parent) {
+  if ((!hasStockOnGain(item) && !hasStockOnGainTable(item)) || !item.parent) {
     return;
   }
   const scope = CONFIG.PB.flagScope;
   if (item.getFlag(scope, STOCKED_FLAG)) {
     return;
   }
-  for (const spec of item.system.stockOnGain) {
+  const rollData = item.parent.getRollData?.() ?? {};
+  for (const spec of item.system.stockOnGain ?? []) {
     if (!spec?.ref || !spec?.formula) {
       continue;
     }
-    const quantity = (await evaluateFormula(spec.formula, item.parent.getRollData?.() ?? {})).total;
+    const quantity = (await evaluateFormula(spec.formula, rollData)).total;
     await grantItem(item.parent, spec.ref, { quantity, stack: true });
+  }
+  for (const spec of item.system.stockOnGainTable ?? []) {
+    if (!spec?.ref || !spec?.formula) {
+      continue;
+    }
+    const [compendium, table] = String(spec.ref).split(";");
+    if (!compendium || !table) {
+      continue;
+    }
+    const draws = Math.max(0, (await evaluateFormula(spec.formula, rollData)).total);
+    const drawn = await drawTableItems(compendium, table, draws);
+    if (drawn.length) {
+      await item.parent.createEmbeddedDocuments(
+        "Item",
+        drawn.map((doc) => doc.toObject()),
+      );
+    }
   }
   await item.setFlag(scope, STOCKED_FLAG, true);
 };
