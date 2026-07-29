@@ -1,4 +1,4 @@
-import { actorInitiativeAction, creatureAttackAction, creatureMoraleAction, creatureReactionAction } from "../../api/action/actions.js";
+import { actorInitiativeAction, creatureMoraleAction, creatureReactionAction } from "../../api/action/actions.js";
 import PBActorSheet from "./actor-sheet.js";
 
 /**
@@ -30,20 +30,10 @@ export class PBActorSheetCreature extends PBActorSheet {
     if (!this.options.editable) return;
 
     this.bindSelectorsEvent("click", {
-      ".attack": this._onAttackRoll,
       ".morale": this._onMoraleRoll,
       ".reaction": this._onReactionRoll,
       ".initiative-button": this._onInitiativeRoll,
     });
-  }
-
-  /**
-   * @param {MouseEvent} event
-   * @private
-   */
-  async _onAttackRoll(event) {
-    event.preventDefault();
-    await creatureAttackAction(this.actor);
   }
 
   /**

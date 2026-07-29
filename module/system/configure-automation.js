@@ -41,7 +41,6 @@ import { chatTestRelicButtonAction } from "../api/action/chat/chat-test-relic-bu
 import { chatMysticalMyshapButtonAction } from "../api/action/chat/chat-mystical-mishap-button-action.js";
 import { chatShipRepairButtonAction } from "../api/action/chat/chat-ship-repair-button-action.js";
 import { chatTakeDamageButtonAction } from "../api/action/chat/chat-take-damage-button-action.js";
-import { chatDefendButtonAction } from "../api/action/chat/chat-defend-button-action.js";
 import { chatInflictDamageButtonAction } from "../api/action/chat/chat-inflict-damage-button-action.js";
 import { chatAttackItemButtonAction } from "../api/action/chat/chat-attack-item-button-action.js";
 import { chatReloadItemButtonAction } from "../api/action/chat/chat-reload-item-button-action.js";
@@ -96,7 +95,6 @@ export const configureAutomation = () => {
   OutcomeChatButton.register({ type: OUTCOME_BUTTON.MYSTICAL_MISHAP, execute: chatMysticalMyshapButtonAction });
   OutcomeChatButton.register({ type: OUTCOME_BUTTON.REPAIR_CREW_ACTION, execute: chatShipRepairButtonAction });
   OutcomeChatButton.register({ type: OUTCOME_BUTTON.TAKE_DAMAGE, execute: chatTakeDamageButtonAction });
-  OutcomeChatButton.register({ type: OUTCOME_BUTTON.DEFEND, execute: chatDefendButtonAction });
   OutcomeChatButton.register({ type: OUTCOME_BUTTON.INFLICT_DAMAGE, execute: chatInflictDamageButtonAction });
   OutcomeChatButton.register({ type: OUTCOME_BUTTON.ATTACK_ITEM, execute: chatAttackItemButtonAction });
   OutcomeChatButton.register({ type: OUTCOME_BUTTON.RELOAD_ITEM, execute: chatReloadItemButtonAction });
