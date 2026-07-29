@@ -20,6 +20,9 @@
         </div>
       </div>
       <div class="header-buttons-row">
+        {{!-- Target a player token, then Attack: posts a card with a Defend button the
+              target clicks to roll their defense (Pirate Borg is defender-rolled). --}}
+        <button type="button" class="roll-button attack rollable" title="{{localize 'PB.Attack'}}">{{localize "PB.Attack"}}</button>
         <button type="button" class="roll-button reaction rollable">{{localize "PB.Reaction"}}</button>
         <button type="button" class="roll-button morale rollable">{{localize "PB.Morale"}}</button>
         <button type="button" class="button item-button initiative-button" title="{{localize 'PB.Initiative'}}">{{localize "PB.Initiative"}}</button>

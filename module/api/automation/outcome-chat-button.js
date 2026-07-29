@@ -8,6 +8,7 @@ export const OUTCOME_BUTTON = {
   TAKE_DAMAGE: "button-take-damage",
   INFLICT_DAMAGE: "button-inflict-damage",
   ATTACK_ITEM: "button-attack-item",
+  DEFEND: "button-defend",
   RELOAD_ITEM: "button-reload-item",
   CONSUME_LUCK: "button-consume-luck",
   APPLY_JOKER_TABLE: "button-apply-joker-table",
