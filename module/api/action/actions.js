@@ -20,6 +20,7 @@ export * from "./character/grog-stack.js";
 export * from "./character/character-rest-action.js";
 export * from "./character/character-rituals-per-day-action.js";
 export * from "./character/character-roll-ability-action.js";
+export * from "./character/character-active-roll-action.js";
 
 export * from "./creature/creature-morale-action.js";
 export * from "./creature/creature-reaction-action.js";

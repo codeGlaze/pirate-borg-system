@@ -28,7 +28,12 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "activeRoll": {
+      "formula": "1d4",
+      "label": "Inspiring Leader",
+      "signed": true
+    }
   },
   "_key": "!items!nP40GEWA0xBuWXTH"
 }
