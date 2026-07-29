@@ -51,6 +51,11 @@
       {{/if}}
 
       <div class="header-buttons-row">
+        {{!-- Defend lives in the header (not buried at the bottom of the Combat tab)
+              so this reactive, most-used action is one click away from any tab. The
+              .defend-button click + drag handlers are class-based, so it works here
+              unchanged and stays hotbar-draggable. --}}
+        <button type="button" class="button item-button defend-button rollable" title="{{localize 'PB.Defend'}}" draggable="true" data-action="defend">{{localize 'PB.Defend'}}</button>
         <button type="button" class="button item-button broken-button rollable" title="{{localize 'PB.Broken'}}">{{localize 'PB.Broken'}}</button>
         <button type="button" class="button item-button rest-button rollable" title="{{localize 'PB.Rest'}}">{{localize 'PB.Rest'}}</button>
         <button type="button" class="button item-button get-better-button rollable" title="{{localize 'PB.GetBetter'}}">{{localize 'PB.GetBetter'}}</button>
@@ -308,14 +313,6 @@
           {{/unless}}
         </ol>
       </ol>
-
-      <div class="underarmor-row">
-        <div class="incoming-attack">
-          <div>
-            <button type="button" class="item-button rollable defend-button button" title="{{localize 'PB.Defend'}}" draggable="true" data-action="defend">{{localize "PB.Defend"}}</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     {{!-- Features Tab --}}
