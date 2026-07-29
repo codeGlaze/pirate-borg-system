@@ -22,13 +22,15 @@
   "system": {
     "description": "<p>You begin with lock picks.</p>\n<p>Pickpocket, disarm an enemy, or disable a trap: -4 to DR.</p>\n<p>If taken again: additional -2 to DR.</p>",
     "featureType": "Class",
-    "maxQuantity": 0,
+    "maxQuantity": 2,
     "quantity": 1,
     "actionMacro": "pirateborg.macros-pirateborg;Generic Item",
     "actionMacroLabel": "Use",
     "startingBonusItems": "pirateborg.equipment-gear;Lock picks",
     "startingBonusRolls": "",
     "flavorText": "",
+    "drTestReduction": 4,
+    "drTestReductionExtra": 2,
     "stockOnGain": [
       {
         "ref": "pirateborg.equipment-gear;Lock picks",

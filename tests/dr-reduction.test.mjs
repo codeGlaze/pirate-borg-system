@@ -37,6 +37,12 @@ test("taken twice, it stacks by quantity to -6 (the reported bug)", () => {
   assert.equal(actor.getAbilityTestDrReductions()[0].dr, 6);
 });
 
+test("Burglar uses a base + uneven increment: -4 at rank 1, -6 at rank 2", () => {
+  const burglar = (quantity) => ({ id: "b", name: "Burglar", type: "feature", system: { drTestReduction: 4, drTestReductionExtra: 2, quantity } });
+  assert.equal(actorWithItems([burglar(1)]).getAbilityTestDrReductions()[0].dr, 4);
+  assert.equal(actorWithItems([burglar(2)]).getAbilityTestDrReductions()[0].dr, 6);
+});
+
 test("non-feature items and zero-reduction features are ignored", () => {
   const actor = actorWithItems([
     { id: "w", name: "Musket", type: "weapon", system: { drTestReduction: 3 } },
@@ -45,7 +51,7 @@ test("non-feature items and zero-reduction features are ignored", () => {
   ]);
   assert.deepEqual(
     actor.getAbilityTestDrReductions().map((m) => m.id),
-    ["th"]
+    ["th"],
   );
 });
 

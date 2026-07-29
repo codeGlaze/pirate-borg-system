@@ -21,6 +21,19 @@ const isSwordWeapon = (weapon) => {
 };
 
 /**
+ * Effective ability-test DR reduction for a feature: a base plus a per-extra-rank
+ * increment. `drTestReductionExtra` defaults to the base, so a flat/multiplying feature
+ * (Treasure Hunter −3/−6) is unchanged, while an uneven one (Burglar −4/−6) sets its own
+ * increment. Shared by the actor resolver and the sheet's button label so the two can't
+ * drift.
+ *
+ * @param {Object} system - a feature's `system` data
+ * @returns {Number}
+ */
+export const abilityTestDrValue = (system) =>
+  Number(system.drTestReduction) + (Number(system.drTestReductionExtra) || Number(system.drTestReduction)) * ((system.quantity || 1) - 1);
+
+/**
  * @extends {Actor}
  */
 export class PBActor extends Actor {
@@ -628,7 +641,7 @@ export class PBActor extends Actor {
       .map((item) => ({
         id: item.id,
         name: item.name,
-        dr: Number(item.system.drTestReduction) * (item.system.quantity || 1),
+        dr: abilityTestDrValue(item.system),
       }));
   }
 
