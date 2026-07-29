@@ -257,6 +257,7 @@
       "critThreshold": 0,
       "conditionImmunity": [],
       "activeRoll": {},
+      "brew": {},
       "onGain": {},
       "grantsItems": [],
       "attackDr": {},
