@@ -98,6 +98,10 @@ export class PBActor extends Actor {
     this.dynamic.extraResourceTestFormulaLabel = this.characterClass?.extraResourceTestFormulaLabel || this.characterBaseClass?.extraResourceTestFormulaLabel;
 
     this.dynamic.luckDie = this.characterClass?.luckDie || this.characterBaseClass?.luckDie;
+
+    // Effective armor damage-reduction die for the sheet readout. Already accounts for
+    // equipped armor tier plus any armorTierModifier effects (Sea Turtle, Thick Skinned).
+    this.dynamic.armorDR = this.getCharacterArmorFormula();
   }
 
   /**
