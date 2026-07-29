@@ -2685,6 +2685,12 @@ li.folder > .folder-header {
 .attack-dialog .form-group .form-fields #defenseModifiedDr {
   flex: 0 0 32px;
 }
+.defense-dialog .form-group.form-group-defense-bonus .form-fields,
+.attack-dialog .form-group.form-group-defense-bonus .form-fields {
+  font-weight: 700;
+  font-size: 1.15em;
+  color: var(--highlight-background-color);
+}
 .defense-dialog .form-group.form-group-target,
 .attack-dialog .form-group.form-group-target {
   margin: 0 16px 0 16px;

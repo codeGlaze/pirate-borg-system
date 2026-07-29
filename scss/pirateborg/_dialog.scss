@@ -285,6 +285,14 @@
       }
     }
 
+    &.form-group-defense-bonus {
+      .form-fields {
+        font-weight: 700;
+        font-size: 1.15em;
+        color: var(--highlight-background-color);
+      }
+    }
+
     &.form-group-target {
       margin: 0 16px 0 16px;
 
