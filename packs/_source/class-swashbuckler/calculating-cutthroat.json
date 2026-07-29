@@ -28,7 +28,8 @@
     "actionMacroLabel": "Use",
     "startingBonusItems": "",
     "startingBonusRolls": "",
-    "flavorText": ""
+    "flavorText": "",
+    "critThreshold": 19
   },
   "_key": "!items!LDoVK8giitqlSfDt"
 }

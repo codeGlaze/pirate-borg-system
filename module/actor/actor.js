@@ -261,6 +261,13 @@ export class PBActor extends Actor {
       return game.i18n.localize("PB.EffectsConditionIDMissing");
     }
 
+    // Feature-granted immunity (e.g. Survivalist: infected/sick/poisoned) blocks the
+    // condition outright rather than applying then suppressing it.
+    if (this.isImmuneToCondition(effect.id)) {
+      ui.notifications?.info?.(game.i18n.format("PB.ConditionImmune", { condition: game.i18n.localize(effect.name), actor: this.name }));
+      return;
+    }
+
     if (!effect.flags) {
       effect.flags = flags;
     } else {
@@ -277,6 +284,31 @@ export class PBActor extends Actor {
 
   hasCondition(conditionKey) {
     return this.effects.find((e) => e.statuses.has(conditionKey));
+  }
+
+  /**
+   * Whether an owned feature grants immunity to a condition (its
+   * `system.conditionImmunity` lists the id) — e.g. Survivalist vs infected/sick/poison.
+   *
+   * @param {String} conditionId
+   * @returns {Boolean}
+   */
+  isImmuneToCondition(conditionId) {
+    return this.items.some((item) => item.type === CONFIG.PB.itemTypes.feature && (item.system?.conditionImmunity ?? []).includes(conditionId));
+  }
+
+  /**
+   * The natural d20 result at or above which the character critically succeeds on attack
+   * and defense rolls — 20 by default, lowered by features (Calculating Cutthroat → 19).
+   * The lowest (most generous) feature threshold wins.
+   *
+   * @returns {Number}
+   */
+  getCritThreshold() {
+    const thresholds = this.items
+      .filter((item) => item.type === CONFIG.PB.itemTypes.feature && Number(item.system?.critThreshold) > 0)
+      .map((item) => Number(item.system.critThreshold));
+    return thresholds.length ? Math.min(20, ...thresholds) : 20;
   }
 
   async removeCondition(effect) {

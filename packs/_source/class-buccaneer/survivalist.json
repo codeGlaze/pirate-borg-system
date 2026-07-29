@@ -48,7 +48,8 @@
         "toughness": 1
       },
       "maxHp": "1d4"
-    }
+    },
+    "conditionImmunity": ["infected", "disease", "poison"]
   },
   "ownership": {
     "default": 0

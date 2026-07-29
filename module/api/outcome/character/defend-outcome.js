@@ -68,6 +68,7 @@ export const createDefendOutcome = async ({ actor, dr = 12, damageFormula = "", 
       }`,
       data: actor.getRollData(),
       dr,
+      critOn: actor.getCritThreshold?.() ?? 20,
     }),
     withAsyncProps({
       title: (outcome) => game.i18n.localize(getTitle(outcome)),

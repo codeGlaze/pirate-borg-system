@@ -83,6 +83,7 @@
   "PB.ClickToRollHeal": "Click to roll healing",
   "PB.ClickToRollSave": "Click to roll {ability} save",
   "PB.Combat": "Combat",
+  "PB.ConditionImmune": "{actor} is immune to {condition}.",
   "PB.CombatBonuses": "Combat Bonuses",
   "PB.ContainerEmptyHelpText": "Drag items into this container.",
   "PB.ContainerHolding": "Holding",

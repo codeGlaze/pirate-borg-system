@@ -133,6 +133,7 @@ export const createAttackOutcome = async ({ actor, dr = 12, weapon, ammo, target
       }`,
       data: actor.getRollData(),
       dr,
+      critOn: actor.getCritThreshold?.() ?? 20,
       item: weapon?.id,
       isGunpowderWeapon: weapon?.isGunpowderWeapon,
     }),

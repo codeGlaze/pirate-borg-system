@@ -254,6 +254,8 @@
       "flavorText": "",
       "drTestReduction": 0,
       "drTestReductionExtra": 0,
+      "critThreshold": 0,
+      "conditionImmunity": [],
       "onGain": {},
       "grantsItems": [],
       "attackDr": {},
