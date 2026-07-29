@@ -500,19 +500,8 @@
   text-align: center;
   line-height: 21px;
 }
-.pirateborg.sheet.actor .sheet-body .combat-tab .underarmor-row {
-  padding: 8px 8px 8px 0;
-  text-align: right;
-}
-.pirateborg.sheet.actor .sheet-body .combat-tab .underarmor-row button {
-  width: 100px;
-}
 .pirateborg.sheet.actor .sheet-body .combat-tab .hat-rule {
   margin-top: 5px;
-}
-.pirateborg.sheet.actor .sheet-body .combat-tab .defend-rule {
-  text-align: center;
-  margin-top: 16px;
 }
 .pirateborg.sheet.actor .sheet-body .equipment-top-row {
   display: flex;
