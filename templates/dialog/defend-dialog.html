@@ -56,6 +56,12 @@
       </li>
     </ul>
   </div>
+  {{#if defenseBonuses.length}}
+  <div class="form-group form-group-defense-bonus">
+    <label>{{localize "PB.DefenseBonus"}}:</label>
+    <div class="form-fields">{{#each defenseBonuses}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>
+  </div>
+  {{/if}}
   <div class="form-group">
     <label>{{localize "PB.IncomingAttack"}}:</label>
     <input id="incomingAttack" type="text" name="incomingattack" value="{{incomingAttack}}" placeholder="1d6" data-dtype="String" />

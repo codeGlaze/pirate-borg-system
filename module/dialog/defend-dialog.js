@@ -45,6 +45,12 @@ class DefendDialog extends Application {
       defendDR,
       defendArmor,
       drModifiers: this.modifiers.warning,
+      // Active defense-roll bonuses (e.g. Ostentatious Fencer +2). These add to the
+      // roll — d20 + agility + defenseModifier — not to the DR, so they're shown as
+      // their own line rather than folded into the modified-DR total.
+      defenseBonuses: (this.actor.getCombatEffectInfo?.().defense ?? []).map(
+        (effect) => `${Number(effect.value) > 0 ? "+" : ""}${effect.value} ${effect.name}`,
+      ),
       target: this.targetToken?.actor,
       ignoreArmor: this.ignoreArmor,
       isTargetSelectionValid: this.isTargetSelectionValid,

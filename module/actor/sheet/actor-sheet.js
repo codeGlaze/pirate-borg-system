@@ -128,8 +128,10 @@ export default class PBActorSheet extends (foundry.appv1?.sheets?.ActorSheet ?? 
     effects.temporary = actorEffects.filter((i) => i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
     effects.disabled = actorEffects.filter((i) => i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
     effects.passive = actorEffects.filter((i) => !i.isTemporary && !i.disabled && !i.isCondition).map(PBActorSheet.addModifierDisplay);
-    const systemEffects = Object.values(game.pirateborg?.config?.systemEffects ?? {});
-    effects.conditions = [...CONFIG.statusEffects, ...systemEffects].map((effect) => ({
+    // `CONFIG.statusEffects` is already built as [...systemEffects, ...coloredMarkers]
+    // in configure-system.js, so it IS the full condition list. Spreading the system
+    // effects in again here listed every one of them twice in the grid/dropdown.
+    effects.conditions = [...CONFIG.statusEffects].map((effect) => ({
       ...effect,
       key: effect.id,
       img: effect.img || effect.icon,
