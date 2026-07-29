@@ -918,8 +918,7 @@ export class PBItem extends Item {
       const existingEffects = actor.effects.filter((effect) => effect.origin === this.uuid || effect.flags?.core?.sourceId === this.uuid);
 
       if (existingEffects.length > 0) {
-        console.log(`Effects already applied for ${this.name}, skipping duplicate creation`);
-        return;
+        return; // already copied — don't double-apply
       }
 
       // Add item effects to actor when equipped
@@ -941,7 +940,6 @@ export class PBItem extends Item {
       }
 
       if (effectsToAdd.length) {
-        console.log(`Adding ${effectsToAdd.length} effects from ${this.name} to ${actor.name}`);
         await actor.createEmbeddedDocuments("ActiveEffect", effectsToAdd);
 
         // Force actor to refresh derived data after adding effects
@@ -955,7 +953,6 @@ export class PBItem extends Item {
         .map((effect) => effect.id);
 
       if (effectsToRemove.length) {
-        console.log(`Removing ${effectsToRemove.length} effects from ${this.name} on ${actor.name}`);
         await actor.deleteEmbeddedDocuments("ActiveEffect", effectsToRemove);
 
         // Force actor to refresh derived data after effect removal
