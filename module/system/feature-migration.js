@@ -141,15 +141,6 @@ const migrateItem = async (item, entry) => {
   // single equip-gated transfer effect, which key-based syncEffects can't detect).
   // Idempotent: once the item carries the equip-gated effect, it's left alone.
   if (entry.replaceEffects) {
-    // Sweep orphaned actor-level copies of this feature's effect (Source "None" —
-    // no origin item), left behind by an earlier non-idempotent migration run.
-    const actor = item.parent;
-    const orphanIds = [...(actor?.effects ?? [])].filter((effect) => effect.name === item.name && !effect.origin).map((effect) => effect.id);
-    if (orphanIds.length) {
-      await actor.deleteEmbeddedDocuments("ActiveEffect", orphanIds);
-      changed.push("removed orphan effect");
-    }
-
     const alreadyMigrated = [...item.effects].some((effect) => readEquipGate(effect));
     if (!alreadyMigrated) {
       const existingIds = item.effects.map((effect) => effect.id);
@@ -220,6 +211,50 @@ const migrateFeatureIcons = async (items) => {
 };
 
 /**
+ * One-time cleanup of stale hook copies left by the pre–Option-B effect system.
+ *
+ * The fork's `_transferEffectsToActor` hook (item.js) used to copy *every* feature
+ * effect onto the actor as an actor-owned document — including `transfer: true`
+ * effects that Foundry ALSO applies natively. The result was a visible duplicate
+ * (e.g. two "Ostentatious Fencer" defense rows, one showing Source "None").
+ *
+ * The hook now stands down for `transfer: true` effects (core owns those), but
+ * characters created before that fix still carry the redundant actor-owned copy.
+ * This removes any actor-owned effect that duplicates a `transfer: true` effect on
+ * its own source item. Item-owned effects (the legit transfer effects themselves)
+ * live on the feature, not on `actor.effects`, so they're never touched.
+ * Idempotent: once the copies are gone the hook never remakes them.
+ *
+ * @param {PBActor} actor
+ * @returns {Promise<String[]>} names of the stale copies removed
+ */
+const cleanupTransferEffectDuplicates = async (actor) => {
+  const stale = [];
+  for (const effect of actor.effects) {
+    const sourceUuid = effect.origin ?? effect.flags?.core?.sourceId;
+    if (!sourceUuid) {
+      continue;
+    }
+    const source = actor.items.find((item) => item.uuid === sourceUuid);
+    if (!source) {
+      continue;
+    }
+    // Only a duplicate when the source item carries a transfer:true effect of the
+    // same name — that's the one core applies for us, making this copy redundant.
+    if ([...source.effects].some((sourceEffect) => sourceEffect.transfer && sourceEffect.name === effect.name)) {
+      stale.push(effect);
+    }
+  }
+  if (stale.length) {
+    await actor.deleteEmbeddedDocuments(
+      "ActiveEffect",
+      stale.map((effect) => effect.id),
+    );
+  }
+  return stale.map((effect) => effect.name);
+};
+
+/**
  * Runs the re-sync across world items and every actor's embedded items. GM-only and
  * idempotent, so it can run on every load and self-heals imported actors. Reports
  * once (a GM whisper) when it actually changed something.
@@ -256,6 +291,15 @@ export const migrateFeatureMechanics = async () => {
   for (const actor of game.actors) {
     for (const merge of await mergeDuplicateFeatures(actor)) {
       report.push({ owner: actor.name, item: merge.name, changed: [`merged ${merge.from} copies → quantity ${merge.to}`] });
+    }
+
+    const duplicateEffects = await cleanupTransferEffectDuplicates(actor);
+    if (duplicateEffects.length) {
+      report.push({
+        owner: actor.name,
+        item: [...new Set(duplicateEffects)].join(", "),
+        changed: [`removed ${duplicateEffects.length} duplicate transfer effect(s)`],
+      });
     }
 
     await run(actor.name, actor.items);

@@ -925,6 +925,13 @@ export class PBItem extends Item {
       // Add item effects to actor when equipped
       const effectsToAdd = [];
       for (const effect of this.effects) {
+        // Skip effects Foundry already applies natively. `transfer: true` effects are
+        // transferred to the actor by the core engine, so copying them here would
+        // double-apply them (e.g. Ostentatious Fencer). This hook only owns the
+        // `transfer: false` effects — the ones core leaves for the system to manage.
+        if (effect.transfer) {
+          continue;
+        }
         const effectData = effect.toObject();
         effectData.origin = this.uuid; // Mark the source
         effectData.flags = foundry.utils.mergeObject(effectData.flags || {}, {
