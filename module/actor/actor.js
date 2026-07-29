@@ -749,7 +749,10 @@ export class PBActor extends Actor {
           id: item.id,
           name: item.name,
           damage: String(spec.damage),
-          auto: Boolean(spec.requires) && !spec.conditional,
+          // `countable` riders scale by a player-entered count (Blood Frenzy: +2 per
+          // kill). They always need input, so they're never auto.
+          countable: Boolean(spec.countable),
+          auto: Boolean(spec.requires) && !spec.conditional && !spec.countable,
         };
       });
   }

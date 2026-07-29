@@ -228,13 +228,23 @@ class AttackDialog extends Application {
       });
     const reduction = appliedFeatures.reduce((sum, feature) => sum + feature.dr, 0);
 
-    // Damage riders in effect (auto + active toggles), for the roll and the card note.
+    // Damage riders in effect, for the roll and the card note. Toggle/auto riders
+    // contribute their flat value; countable riders (Blood Frenzy) multiply their
+    // per-unit value by the entered count.
     const appliedDamageRiders = [];
     $(form)
       .find(".damage-rider[data-damage]")
       .each((_i, element) => {
         const el = $(element);
-        if (el.hasClass("auto") || el.hasClass("active")) {
+        if (el.hasClass("countable")) {
+          const count = parseInt(el.find(".damage-rider-count").val(), 10) || 0;
+          if (count > 0) {
+            const per = String(el.data("damage"));
+            const numeric = Number(per);
+            const damage = Number.isFinite(numeric) ? String(numeric * count) : `(${per}) * ${count}`;
+            appliedDamageRiders.push({ name: String(el.data("name")), damage });
+          }
+        } else if (el.hasClass("auto") || el.hasClass("active")) {
           appliedDamageRiders.push({ name: String(el.data("name")), damage: String(el.data("damage")) });
         }
       });

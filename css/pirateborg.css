@@ -2814,6 +2814,23 @@ li.folder > .folder-header {
   flex-wrap: wrap;
   gap: 6px;
 }
+.defense-dialog .form-group-attack-features .attack-feature.countable,
+.attack-dialog .form-group-attack-features .attack-feature.countable {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 2px 10px;
+  line-height: 1.6;
+  border: 1px solid var(--button-background);
+  border-radius: 4px;
+  color: var(--button-background);
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .damage-rider-count,
+.attack-dialog .form-group-attack-features .attack-feature.countable .damage-rider-count {
+  width: 44px;
+  text-align: center;
+}
 .defense-dialog .form-group-attack-features .attack-feature.situational,
 .attack-dialog .form-group-attack-features .attack-feature.situational {
   display: inline-flex;
