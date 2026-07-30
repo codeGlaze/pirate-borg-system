@@ -1,7 +1,7 @@
 <form class="{{cssClass}} flexcol" autocomplete="off">
   {{!-- Torn-edge filter for the Defend button: displaces the box's straight edges into
         chipped/cracked shapes. Lives here so `filter: url(#pb-defend-rough)` resolves. --}}
-  <svg class="pb-svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <svg class="pb-svg-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position: absolute; width: 0; height: 0; overflow: hidden">
     <filter id="pb-defend-rough">
       <feTurbulence type="fractalNoise" baseFrequency="0.02 0.024" numOctaves="4" seed="3" result="n" />
       <feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G" />
