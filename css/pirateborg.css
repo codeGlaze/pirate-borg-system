@@ -540,18 +540,19 @@
 .pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button {
   position: relative;
   z-index: 0;
-  width: 100%;
-  max-width: 132px;
-  margin-top: 4px;
-  padding: 9px 8px;
+  width: auto;
+  margin-top: 6px;
+  padding: 8px 20px;
   border: none;
   border-radius: 0;
   background: none;
   color: #f4e4c2;
   font-family: var(--h2-font);
   font-size: 18px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  text-align: center;
   text-transform: uppercase;
+  white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   cursor: pointer;
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
@@ -560,7 +561,7 @@
 .pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -3px -5px;
   z-index: -1;
   background: var(--pb-defend-color, #8f0f0f) url(../ui/parchment-2.jpg) center/300px;
   background-blend-mode: multiply;

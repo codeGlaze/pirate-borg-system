@@ -383,13 +383,13 @@ export const findTableItems = async (results) => {
     if (isCompendiumResult(type)) {
       item = null;
       const documentUuid = source.documentUuid ?? data.documentUuid;
-      const documentCollection = source.documentCollection ?? data.documentCollection;
-      const documentId = source.documentId ?? data.documentId;
 
       if (documentUuid) {
         item = await fromUuid(documentUuid);
-      } else if (documentCollection && documentId) {
-        item = await game.packs.get(documentCollection)?.getDocument(documentId);
+      } else if (source.documentCollection && source.documentId) {
+        // v12 fallback: read the deprecated fields from raw `_source` only. Touching
+        // them via the data model's getters (data.*) logs a V13 deprecation each draw.
+        item = await game.packs.get(source.documentCollection)?.getDocument(source.documentId);
       }
 
       if (!item) {
