@@ -558,15 +558,21 @@
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
   transition: transform 0.05s ease, filter 0.1s ease;
 }
-.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::before {
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::before, .pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::after {
   content: "";
   position: absolute;
-  inset: -3px -5px;
+  clip-path: polygon(0% 12%, 4% 4%, 14% 9%, 26% 3%, 40% 8%, 52% 3%, 65% 9%, 78% 3%, 90% 8%, 97% 2%, 100% 11%, 98% 34%, 100% 58%, 98% 82%, 100% 100%, 90% 95%, 77% 100%, 64% 94%, 50% 100%, 37% 95%, 23% 100%, 11% 94%, 3% 99%, 0% 84%, 2% 60%, 0% 38%);
+}
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::before {
+  inset: -4px -7px;
+  z-index: -2;
+  background: #240404;
+}
+.pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button::after {
+  inset: -1px -4px;
   z-index: -1;
   background: var(--pb-defend-color, #8f0f0f) url(../ui/parchment-2.jpg) center/300px;
   background-blend-mode: multiply;
-  border: 2px solid #240404;
-  filter: url("#pb-defend-rough");
 }
 .pirateborg.sheet.actor.character .sheet-header .header-col1 .defend-button:hover {
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6)) brightness(1.08);
