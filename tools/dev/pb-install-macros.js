@@ -12,9 +12,11 @@
  * How it can read the files: Foundry serves the whole system directory
  * statically, so `systems/<system.id>/tools/dev/<file>.js` is fetchable at
  * runtime. `<system.id>` resolves to `pirateborg` or `pirate-borg-beta`
- * automatically. `tools/dev/` is included in the packaged zip (`npm run pack`),
- * so this works on a hosted build too (e.g. The Forge). If a fetch ever 404s
- * (a build that dropped `tools/dev/`), that macro is skipped with a warning.
+ * automatically. `tools/dev/` is deliberately EXCLUDED from the public release
+ * zip (`npm run pack`) and included only in the QA build (`npm run pack:dev`) —
+ * dev tooling ships to testers, not end users. So this installer works on a
+ * `pack:dev` build (e.g. what you upload to The Forge for testing); on a plain
+ * public build the fetches 404 and each macro is skipped with a warning.
  */
 (async () => {
   const scope = CONFIG.PB.flagScope;
