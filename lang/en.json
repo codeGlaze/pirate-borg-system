@@ -41,6 +41,7 @@
   "PB.DamageFeatures": "Damage",
   "PB.DamageFeatureToggle": "Tap to add this bonus damage.",
   "PB.DamageFeatureCount": "Enter the count — bonus damage scales with it (e.g. Blood Frenzy: +2 per kill).",
+  "PB.DamageFeatureRecall": "Reuse your last count ({count}).",
   "PB.DamageFeatureApplied": "{name} (+{damage} damage)",
   "PB.AttackCritText": "Deal double damage, then armor/protection is reduced one tier",
   "PB.AttackFumble": "Fumble",

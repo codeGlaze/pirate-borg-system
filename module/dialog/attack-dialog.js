@@ -130,17 +130,30 @@ class AttackDialog extends Application {
     html.find("#attackDr, .attack-dr .radio-input").on("change", () => this._recomputeEffectiveDr(html));
     this._recomputeEffectiveDr(html);
 
-    // Countable damage-rider count (Blood Frenzy): a focused number input eats mouse-
-    // wheel scrolls and flies in tens (10/20/30/40). Blur on wheel so scrolling never
-    // changes it, select-all on focus so typing replaces the leading 0, and clamp to
-    // [0, max] on change so a fat-fingered value can't sneak through.
+    // Countable damage-rider count (Blood Frenzy). Fast, typo-proof input for live play:
+    //  • − / + stepper buttons nudge by one (no typing needed);
+    //  • a recall chip re-fills the last count used (≈ 2 clicks for a repeat value);
+    //  • the field stays editable, but wheel-scroll is disabled (it flies in tens) and
+    //    focus selects-all so typing replaces rather than appends. Everything clamps to
+    //    [0, max].
+    const clampCount = (el) => {
+      const max = Number(el.max) || Infinity;
+      el.value = String(Math.max(0, Math.min(max, Math.floor(Number(el.value) || 0))));
+    };
     html.find(".damage-rider-count").each((_i, el) => {
       el.addEventListener("wheel", () => el.blur(), { passive: true });
       el.addEventListener("focus", () => el.select());
-      el.addEventListener("change", () => {
-        const max = Number(el.max) || Infinity;
-        el.value = String(Math.max(0, Math.min(max, Math.floor(Number(el.value) || 0))));
-      });
+      el.addEventListener("change", () => clampCount(el));
+    });
+    html.find(".rider-step").on("click", (ev) => {
+      const input = ev.currentTarget.parentElement.querySelector(".damage-rider-count");
+      input.value = String((Number(input.value) || 0) + Number(ev.currentTarget.dataset.step));
+      clampCount(input);
+    });
+    html.find(".rider-recall").on("click", (ev) => {
+      const input = ev.currentTarget.closest(".damage-rider").querySelector(".damage-rider-count");
+      input.value = String(ev.currentTarget.dataset.count);
+      clampCount(input);
     });
   }
 
@@ -265,6 +278,10 @@ class AttackDialog extends Application {
             const numeric = Number(per);
             const damage = Number.isFinite(numeric) ? String(numeric * count) : `(${per}) * ${count}`;
             appliedDamageRiders.push({ name: String(el.data("name")), damage });
+            // Remember this count on the feature so the dialog's recall chip offers it
+            // next time (fire-and-forget; scope is the active one, so setFlag is safe).
+            const feature = this.actor?.items?.get(String(el.data("id")));
+            feature?.setFlag(CONFIG.PB.flagScope, "lastRiderCount", count);
           }
         } else if (el.hasClass("auto") || el.hasClass("active")) {
           appliedDamageRiders.push({ name: String(el.data("name")), damage: String(el.data("damage")) });

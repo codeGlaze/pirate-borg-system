@@ -390,9 +390,50 @@
       border-radius: 4px;
       color: var(--button-background);
 
-      .damage-rider-count {
-        width: 44px;
-        text-align: center;
+      .rider-stepper {
+        display: inline-flex;
+        align-items: stretch;
+
+        .rider-step {
+          width: 26px;
+          min-width: 26px;
+          padding: 0;
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1;
+          cursor: pointer;
+        }
+
+        .rider-step:first-child {
+          border-radius: 4px 0 0 4px;
+        }
+
+        .rider-step:last-child {
+          border-radius: 0 4px 4px 0;
+        }
+
+        .damage-rider-count {
+          width: 40px;
+          text-align: center;
+          border-radius: 0;
+          // Hide the native spinner — the ± buttons replace it (and it flew in tens).
+          appearance: textfield;
+          -moz-appearance: textfield;
+
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            appearance: none;
+            margin: 0;
+          }
+        }
+      }
+
+      .rider-recall {
+        width: auto;
+        padding: 0 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        cursor: pointer;
       }
     }
 
