@@ -89,10 +89,18 @@
       <div class="attack-features">
         {{#each situationalDamageRiders}}
           {{#if this.countable}}
-            <div class="attack-feature damage-rider countable" data-name="{{this.name}}" data-damage="{{this.damage}}"
+            <div class="attack-feature damage-rider countable" data-name="{{this.name}}" data-damage="{{this.damage}}" data-id="{{this.id}}"
               title="{{localize "PB.DamageFeatureCount"}}">
               <span class="attack-feature-name">{{this.name}}</span>
-              <input type="number" class="damage-rider-count" min="0" max="20" step="1" value="0" inputmode="numeric" />
+              <span class="rider-stepper">
+                <button type="button" class="rider-step" data-step="-1" tabindex="-1">&minus;</button>
+                <input type="number" class="damage-rider-count" min="0" max="20" step="1" value="0" inputmode="numeric" />
+                <button type="button" class="rider-step" data-step="1" tabindex="-1">+</button>
+              </span>
+              {{#if this.lastCount}}
+                <button type="button" class="rider-recall" data-count="{{this.lastCount}}"
+                  title="{{localize "PB.DamageFeatureRecall" count=this.lastCount}}">&#8635; {{this.lastCount}}</button>
+              {{/if}}
               <span class="attack-feature-dr">&times;{{this.damage}}</span>
             </div>
           {{else}}

@@ -753,6 +753,9 @@ export class PBActor extends Actor {
           // kill). They always need input, so they're never auto.
           countable: Boolean(spec.countable),
           auto: Boolean(spec.requires) && !spec.conditional && !spec.countable,
+          // Last count the player used for this rider, for the dialog's one-tap recall.
+          // Read raw (getFlag validates scope and throws in the beta build).
+          lastCount: Number(item.flags?.[CONFIG.PB.flagScope]?.lastRiderCount) || 0,
         };
       });
   }

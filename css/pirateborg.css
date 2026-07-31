@@ -2842,10 +2842,50 @@ li.folder > .folder-header {
   border-radius: 4px;
   color: var(--button-background);
 }
-.defense-dialog .form-group-attack-features .attack-feature.countable .damage-rider-count,
-.attack-dialog .form-group-attack-features .attack-feature.countable .damage-rider-count {
-  width: 44px;
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper {
+  display: inline-flex;
+  align-items: stretch;
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .rider-step,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .rider-step {
+  width: 26px;
+  min-width: 26px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .rider-step:first-child,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .rider-step:first-child {
+  border-radius: 4px 0 0 4px;
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .rider-step:last-child,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .rider-step:last-child {
+  border-radius: 0 4px 4px 0;
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .damage-rider-count,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .damage-rider-count {
+  width: 40px;
   text-align: center;
+  border-radius: 0;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .damage-rider-count::-webkit-outer-spin-button, .defense-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .damage-rider-count::-webkit-inner-spin-button,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .damage-rider-count::-webkit-outer-spin-button,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-stepper .damage-rider-count::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.defense-dialog .form-group-attack-features .attack-feature.countable .rider-recall,
+.attack-dialog .form-group-attack-features .attack-feature.countable .rider-recall {
+  width: auto;
+  padding: 0 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .defense-dialog .form-group-attack-features .attack-feature.situational,
 .attack-dialog .form-group-attack-features .attack-feature.situational {
