@@ -366,7 +366,9 @@ export const findTableItems = async (results) => {
   const textEditor = game.release.generation >= 13 ? foundry.applications.ux.TextEditor.implementation : TextEditor;
   const textType = CONST.TABLE_RESULT_TYPES?.TEXT;
   const documentType = CONST.TABLE_RESULT_TYPES?.DOCUMENT;
-  const compendiumType = CONST.TABLE_RESULT_TYPES?.COMPENDIUM;
+  // V13 merged COMPENDIUM into DOCUMENT and deprecated the constant (logs on access),
+  // so only read it on V12 where it's still a distinct, valid type.
+  const compendiumType = game.release.generation < 13 ? CONST.TABLE_RESULT_TYPES?.COMPENDIUM : undefined;
   const isTextResult = (type) => type === "text" || (textType !== undefined && type === textType);
   const isCompendiumResult = (type) =>
     type === "pack" ||
