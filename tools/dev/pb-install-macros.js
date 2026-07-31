@@ -12,8 +12,9 @@
  * How it can read the files: Foundry serves the whole system directory
  * statically, so `systems/<system.id>/tools/dev/<file>.js` is fetchable at
  * runtime. `<system.id>` resolves to `pirateborg` or `pirate-borg-beta`
- * automatically. (If your beta build strips `tools/`, the fetch 404s and that
- * one macro is skipped with a warning — the source build always has it.)
+ * automatically. `tools/dev/` is included in the packaged zip (`npm run pack`),
+ * so this works on a hosted build too (e.g. The Forge). If a fetch ever 404s
+ * (a build that dropped `tools/dev/`), that macro is skipped with a warning.
  */
 (async () => {
   const scope = CONFIG.PB.flagScope;
