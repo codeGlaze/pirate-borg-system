@@ -129,6 +129,19 @@ class AttackDialog extends Application {
     // Any change to the base DR (input or quick-pick) also moves the effective DR.
     html.find("#attackDr, .attack-dr .radio-input").on("change", () => this._recomputeEffectiveDr(html));
     this._recomputeEffectiveDr(html);
+
+    // Countable damage-rider count (Blood Frenzy): a focused number input eats mouse-
+    // wheel scrolls and flies in tens (10/20/30/40). Blur on wheel so scrolling never
+    // changes it, select-all on focus so typing replaces the leading 0, and clamp to
+    // [0, max] on change so a fat-fingered value can't sneak through.
+    html.find(".damage-rider-count").each((_i, el) => {
+      el.addEventListener("wheel", () => el.blur(), { passive: true });
+      el.addEventListener("focus", () => el.select());
+      el.addEventListener("change", () => {
+        const max = Number(el.max) || Infinity;
+        el.value = String(Math.max(0, Math.min(max, Math.floor(Number(el.value) || 0))));
+      });
+    });
   }
 
   /**
@@ -244,7 +257,9 @@ class AttackDialog extends Application {
       .each((_i, element) => {
         const el = $(element);
         if (el.hasClass("countable")) {
-          const count = parseInt(el.find(".damage-rider-count").val(), 10) || 0;
+          const input = el.find(".damage-rider-count");
+          const max = Number(input.attr("max")) || Infinity;
+          const count = Math.max(0, Math.min(max, parseInt(input.val(), 10) || 0));
           if (count > 0) {
             const per = String(el.data("damage"));
             const numeric = Number(per);
