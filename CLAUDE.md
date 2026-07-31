@@ -30,6 +30,12 @@
 - We are based on upstream **v1.8.0** (`Limithron-Foundry-VTT/pirate-borg-system`),
   plus our automation on top. v12/v13/v14 compat is maintained (upstream's AppV2
   rewrite drops v12 — keep our UI logic decoupled from sheet/dialog markup).
+- **Dev tooling stays out of the public release.** `npm run pack` (the public zip)
+  excludes `tools/dev/`; `npm run pack:dev` extends it to include the dev macros
+  (test bench, inspector, checklist, installer) — that's the build to upload to
+  The Forge for QA. The `pb-install-macros` macro fetches the sibling dev macros
+  from the served `systems/<id>/tools/dev/` path, so it only works on a `pack:dev`
+  build. New dev-only helpers go under `tools/dev/`, never in a shipped pack.
 
 ## Feature automation shapes (on a feature's `system`)
 
