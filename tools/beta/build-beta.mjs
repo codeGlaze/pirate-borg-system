@@ -58,6 +58,7 @@ const SHIP = [
   "module",
   "templates",
   "tokens",
+  "tools/dev", // dev/QA macros (test bench, checklist, inspector, installer) — beta only, never in the public release
   "ui",
 ];
 const TEXT_EXT = new Set([".js", ".json", ".html", ".hbs", ".css", ".md"]);
