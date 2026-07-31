@@ -23,6 +23,22 @@ test("patch handles object fields like onGain", () => {
   assert.deepEqual(patch["system.onGain"], { abilities: { toughness: 1 }, maxHp: "1d4" });
 });
 
+test("object field patch deletes keys the compendium dropped (stops the re-fire loop)", () => {
+  // Embedded item still carries a legacy `stacks` key that the compendium shape lost.
+  // Foundry's update deep-merges, so without an explicit `-=stacks` deletion the diff
+  // never converges and the migration re-fires every load (the Focused Aim bug).
+  const compendium = { system: { attackDr: { dr: 4, requires: "ranged", conditional: true } } };
+  const embedded = { system: { attackDr: { dr: 4, requires: "ranged", conditional: true, stacks: false } } };
+  assert.deepEqual(computeSystemPatch(embedded, compendium, ["attackDr"])["system.attackDr"], {
+    dr: 4,
+    requires: "ranged",
+    conditional: true,
+    "-=stacks": null,
+  });
+  // Once the stale key is gone the shapes match exactly → no patch (idempotent).
+  assert.deepEqual(computeSystemPatch(compendium, compendium, ["attackDr"]), {});
+});
+
 test("only whitelisted fields are touched", () => {
   const compendium = { system: { actionMacro: "X", description: "SHOULD NOT COPY" } };
   const patch = computeSystemPatch({ system: { actionMacro: "", description: "mine" } }, compendium, ["actionMacro"]);
