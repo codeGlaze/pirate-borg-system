@@ -86,9 +86,40 @@ const backfillLegacyBayonetMarkers = async (actor) => {
   return legacyBayonets.length;
 };
 
+const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * Builds an update value that makes an *object* field on the embedded item match the
+ * compendium shape EXACTLY.
+ *
+ * Foundry's `Document#update` deep-MERGES object-valued fields, so a key that the
+ * compendium shape has since dropped would otherwise survive on the embedded item
+ * forever — the exact `JSON.stringify` diff never converges and the migration
+ * re-fires on every load (the Focused Aim "Feature Update Applied" loop, from
+ * `attackDr` losing its old `stacks` key). So alongside the new keys we emit explicit
+ * `-=key` deletions for keys the compendium no longer carries. Recursive, so nested
+ * object fields (onGain, poison) are covered too.
+ *
+ * @returns {Object}
+ */
+const buildObjectReplacement = (current, next) => {
+  const out = {};
+  for (const [key, value] of Object.entries(next ?? {})) {
+    out[key] = isPlainObject(value) && isPlainObject(current?.[key]) ? buildObjectReplacement(current[key], value) : value;
+  }
+  for (const key of Object.keys(current ?? {})) {
+    if (!(key in (next ?? {}))) {
+      out[`-=${key}`] = null;
+    }
+  }
+  return out;
+};
+
 /**
  * The `system.<field>` updates needed to bring `embedded` in line with `compendium`
- * for the whitelisted fields. Empty when already current (idempotent).
+ * for the whitelisted fields. Empty when already current (idempotent). Object fields
+ * are patched key-for-key with `-=` deletions (see `buildObjectReplacement`) so a
+ * merge-update actually converges instead of re-firing every load.
  *
  * @returns {Object} update object (may be empty)
  */
@@ -97,9 +128,10 @@ export const computeSystemPatch = (embedded, compendium, fields = []) => {
   for (const field of fields) {
     const current = embedded.system?.[field];
     const next = compendium.system?.[field];
-    if (JSON.stringify(current) !== JSON.stringify(next)) {
-      patch[`system.${field}`] = next;
+    if (JSON.stringify(current) === JSON.stringify(next)) {
+      continue;
     }
+    patch[`system.${field}`] = isPlainObject(current) && isPlainObject(next) ? buildObjectReplacement(current, next) : next;
   }
   return patch;
 };
