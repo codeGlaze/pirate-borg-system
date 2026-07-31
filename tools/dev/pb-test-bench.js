@@ -10,7 +10,9 @@
  *      (feature + equipped weapon, etc.), then you click the map to drop its
  *      token and the sheet opens. Fast way to reach a testable actor.
  *   2. MANUAL (bottom) — grant a single feature/weapon onto the *selected* token,
- *      toggle equip, etc. (the original bench).
+ *      toggle equip, or ROLL → CHAT (attack/defend/use) through the real macro API
+ *      so the actual chat cards fire. The Inspector reads static state; this
+ *      exercises the roll → chat pipeline.
  *
  * Why building an actor is a faithful test: the sheet's real drag-drop reaches
  * item creation through core's `super._onDropItem` → `createEmbeddedDocuments`,
@@ -259,6 +261,61 @@
     });
   };
 
+  // ── Roll → chat (the SELECTED token, via the real macro API) ───────────────
+  // These call the exact entry points the sheet/hotbar use, so the full roll →
+  // chat pipeline runs: the attack dialog (rider/soak choices), damage formula,
+  // crit threshold, poison outcome, the INFLICT_DAMAGE button, the Inspiring
+  // Leader chip, etc. The Inspector reads static state; this exercises chat.
+  const macroApi = () => game.pirateborg?.api?.macros ?? null;
+
+  const rollDefend = async () => {
+    const actor = selected();
+    if (!actor) return ui.notifications.warn("Select a token first.");
+    const api = macroApi();
+    if (!api?.rollDefendMacro) return ui.notifications.error("game.pirateborg.api.macros.rollDefendMacro unavailable.");
+    const tok = canvas.tokens.controlled[0] ?? null;
+    await api.rollDefendMacro(actor.id, tok?.id ?? null, tok?.scene?.id ?? canvas.scene?.id ?? null);
+  };
+
+  // Roll one of `candidates` through rollItemMacro; if several, show a quick picker.
+  const pickAndRoll = async (kind, candidates) => {
+    const actor = selected();
+    if (!actor) return ui.notifications.warn("Select a token first.");
+    const api = macroApi();
+    if (!api?.rollItemMacro) return ui.notifications.error("game.pirateborg.api.macros.rollItemMacro unavailable.");
+    if (!candidates.length) return ui.notifications.warn(`No ${kind} to roll on ${actor.name}.`);
+    const roll = (id) => api.rollItemMacro(actor.id, id);
+    if (candidates.length === 1) return roll(candidates[0].id);
+    const buttons = {};
+    for (const item of candidates) {
+      buttons[item.id] = { label: item.name, callback: () => roll(item.id) };
+    }
+    new Dialog(
+      {
+        title: `Roll which ${kind}?`,
+        content: `<p style="font-size:12px">Pick a ${kind} on <b>${esc(actor.name)}</b>:</p>`,
+        buttons,
+        default: candidates[0].id,
+      },
+      { width: 320 },
+    ).render(true);
+  };
+
+  const rollAttack = () => {
+    const actor = selected();
+    if (!actor) return ui.notifications.warn("Select a token first.");
+    const weapons = actor.items.filter((i) => i.type === CONFIG.PB.itemTypes.weapon);
+    const equipped = weapons.filter((i) => i.system?.equipped);
+    return pickAndRoll("weapon", equipped.length ? equipped : weapons);
+  };
+
+  const rollUse = () => {
+    const actor = selected();
+    if (!actor) return ui.notifications.warn("Select a token first.");
+    const usable = actor.items.filter((i) => i.type === CONFIG.PB.itemTypes.feature && (i.system?.activeRoll?.formula || i.system?.actionMacro));
+    return pickAndRoll("feature", usable);
+  };
+
   // ── UI ───────────────────────────────────────────────────────────────────
   const btn = (action, arg, label, title = "") =>
     `<button type="button" data-action="${action}" data-arg="${arg}"${title ? ` title="${title}"` : ""} style="flex:0 0 auto;margin:2px;">${label}</button>`;
@@ -277,6 +334,10 @@
       <div style="display:flex;flex-wrap:wrap">${WEAPONS.map(([n, p]) => btn("weap", `${p}|${n}`, `+ ${n}`)).join("")}</div>
       <p style="margin:8px 0 2px"><b>Toggle equip</b></p>
       <div style="display:flex;flex-wrap:wrap">${["rapier", "cutlass", "dagger", "knife", "musket"].map((k) => btn("equip", k, `⇄ ${k}`)).join("")}</div>
+
+      <hr style="margin:8px 0">
+      <p style="margin:2px 0"><b>Roll → chat</b> — real roll pipeline on the <i>selected</i> token (posts actual cards).</p>
+      <div style="display:flex;flex-wrap:wrap">${btn("atk", "", "⚔ Attack")} ${btn("def", "", "🛡 Defend")} ${btn("use", "", "▶ Use feature")}</div>
 
       <hr style="margin:8px 0">
       <p style="margin:2px 0">${btn("tokens", "", "📋 List token names")} ${btn("clear", "", "🗑 Clear bench (items + actors + tokens)")}</p>
@@ -299,6 +360,12 @@
             await addToActor(selected(), pack, name, { equip: action === "weap" });
           } else if (action === "equip") {
             await toggleEquip(arg);
+          } else if (action === "atk") {
+            await rollAttack();
+          } else if (action === "def") {
+            await rollDefend();
+          } else if (action === "use") {
+            await rollUse();
           } else if (action === "tokens") {
             listTokens();
           } else if (action === "clear") {
