@@ -28,6 +28,13 @@ export const configureHandlebar = () => {
     return arg1 != arg2 ? options.fn(this) : options.inverse(this);
   });
 
+  // A weapon damage die that is blank or "0" (e.g. a net, which deals no damage)
+  // renders as an em dash so it reads "— thrown" instead of the confusing "0 thrown".
+  Handlebars.registerHelper("dieOrDash", (value) => {
+    const die = String(value ?? "").trim();
+    return die === "" || die === "0" ? "—" : die;
+  });
+
   Handlebars.registerHelper("ifPrint", (cond, v1) => (cond ? v1 : ""));
 
   Handlebars.registerHelper("ifPrintElse", (cond, v1, v2) => (cond ? v1 : v2));

@@ -38,17 +38,55 @@
               transform 0.05s ease,
               filter 0.1s ease;
 
-            // Torn paper banner behind the label. Extended past the text box so the
-            // filter's edge displacement can't eat into the letters.
-            &::before {
+            // Torn-paper scrap behind the label, built with clip-path (sharp, chipped
+            // edges) — no SVG filter, so it renders identically in every build. Two
+            // layers share the polygon: ::before is the dark torn edge (larger), ::after
+            // the parchment-red face (inset), so the dark peeks through as a torn border.
+            &::before,
+            &::after {
               content: "";
               position: absolute;
-              inset: -3px -5px;
+              clip-path: polygon(
+                0% 12%,
+                4% 4%,
+                14% 9%,
+                26% 3%,
+                40% 8%,
+                52% 3%,
+                65% 9%,
+                78% 3%,
+                90% 8%,
+                97% 2%,
+                100% 11%,
+                98% 34%,
+                100% 58%,
+                98% 82%,
+                100% 100%,
+                90% 95%,
+                77% 100%,
+                64% 94%,
+                50% 100%,
+                37% 95%,
+                23% 100%,
+                11% 94%,
+                3% 99%,
+                0% 84%,
+                2% 60%,
+                0% 38%
+              );
+            }
+
+            &::before {
+              inset: -4px -7px;
+              z-index: -2;
+              background: #240404;
+            }
+
+            &::after {
+              inset: -1px -4px;
               z-index: -1;
               background: var(--pb-defend-color, #8f0f0f) url(../ui/parchment-2.jpg) center / 300px;
               background-blend-mode: multiply;
-              border: 2px solid #240404;
-              filter: url("#pb-defend-rough");
             }
 
             &:hover {
