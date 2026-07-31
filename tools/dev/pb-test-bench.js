@@ -124,6 +124,11 @@
     ["Musket", "equipment-ranged-weapons"],
   ];
 
+  // Keep every pick-list alphabetical so nothing is a hunt (sorts future entries too).
+  SCENARIOS.sort((a, b) => a.label.localeCompare(b.label));
+  FEATURES.sort((a, b) => a[0].localeCompare(b[0]));
+  WEAPONS.sort((a, b) => a[0].localeCompare(b[0]));
+
   // ── Helpers ────────────────────────────────────────────────────────────────
   const findData = async (pack, name, { equip = false } = {}) => {
     // Live system id so refs resolve in the beta build too (pirate-borg-beta.*).
@@ -333,7 +338,7 @@
       <p style="margin:8px 0 2px"><b>Weapons (grant + equip)</b></p>
       <div style="display:flex;flex-wrap:wrap">${WEAPONS.map(([n, p]) => btn("weap", `${p}|${n}`, `+ ${n}`)).join("")}</div>
       <p style="margin:8px 0 2px"><b>Toggle equip</b></p>
-      <div style="display:flex;flex-wrap:wrap">${["rapier", "cutlass", "dagger", "knife", "musket"].map((k) => btn("equip", k, `⇄ ${k}`)).join("")}</div>
+      <div style="display:flex;flex-wrap:wrap">${["cutlass", "dagger", "knife", "musket", "rapier"].map((k) => btn("equip", k, `⇄ ${k}`)).join("")}</div>
 
       <hr style="margin:8px 0">
       <p style="margin:2px 0"><b>Roll → chat</b> — real roll pipeline on the <i>selected</i> token (posts actual cards).</p>
