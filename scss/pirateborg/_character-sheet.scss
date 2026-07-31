@@ -5,10 +5,9 @@
       min-height: 700px;
 
       .sheet-header {
-        // Defend button under the portrait: a torn parchment scrap. The ::before is the
-        // paper (deep-red-tinted parchment via multiply, with an SVG turbulence filter
-        // chipping its edges); the label rides crisply on top. --pb-defend-color is the
-        // only knob the "black Defend button" client setting turns.
+        // Defend button under the portrait: a torn parchment scrap built with clip-path
+        // (see .defend-button below). The label rides crisply on top. --pb-defend-color
+        // is the only knob the "black Defend button" client setting turns.
         .header-col1 {
           display: flex;
           flex-direction: column;
