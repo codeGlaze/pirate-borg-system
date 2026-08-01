@@ -18,6 +18,7 @@
     "sass": "sass ./scss:./css",
     "test": "node --test tests/*.test.mjs",
     "validate": "npm-run-all pretty-check lint:check",
+    "validate:content": "node tools/validate-content.mjs",
     "release:dry": "npx semantic-release --dry-run",
     "watch": "sass --watch ./scss:./css",
     "foundry:reference": "node ./utils/foundry-reference.mjs status",
