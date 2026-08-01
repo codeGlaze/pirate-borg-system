@@ -1,7 +1,8 @@
-import { isCharacterGeneratorClassAllowed } from "../system/settings.js";
+import { isCharacterGeneratorClassAllowed, useClassEmblems } from "../system/settings.js";
 import { buildCharacter, createActorWithCharacter, updateActorWithCharacter } from "../api/generator/character-generator.js";
 import { buildHybridCharacter, isHybridClass } from "../api/generator/hybrid-character-generator.js";
 import { classItemFromPack, compendiumInfoFromString, findClassPacks, getTableRows } from "../api/compendium.js";
+import { classSlug, defaultEmblemPath, emblemAssetPath, getClassEmblems } from "../api/class-emblems.js";
 import { PB } from "../config.js";
 
 const HAUNTED_SOUL_MACRO_PACK = "pirateborg.macros-haunted-soul";
@@ -41,6 +42,9 @@ class ManualCharacterCreatorDialog extends Application {
       silver: "",
       tableValues: {},
       hybrid: {},
+      // Chosen emblem stem per class pack: a stem string, or "" for the class' original art.
+      // Absent = "use that class' default emblem" (so the default is pre-selected).
+      emblemByPack: {},
     };
     // Lifetime caches: the class list and table contents are static while the
     // dialog is open, so we load/clone each at most once even across re-renders.
@@ -88,7 +92,34 @@ class ManualCharacterCreatorDialog extends Application {
       luck: this.selection.luck,
       silver: this.selection.silver,
       tableGroups: effectiveClass ? await this.getTableGroups(effectiveClass, effectivePack) : [],
+      emblem: await this._getEmblemContext(selectedPack, cls, hybrid),
     });
+  }
+
+  /**
+   * Emblem picker context for the selected class, or `null` when it shouldn't show. v1 covers
+   * standard (non-hybrid) classes that have manifest emblems, and only when the feature is on.
+   * The default is pre-selected until the player picks another (or "Original art").
+   *
+   * @param {String} selectedPack
+   * @param {?PBItem} cls
+   * @param {?Object} hybrid
+   * @returns {Promise.<?{options: Array, original: {img: String, selected: Boolean}}>}
+   */
+  async _getEmblemContext(selectedPack, cls, hybrid) {
+    if (!useClassEmblems() || !cls || hybrid) {
+      return null;
+    }
+    const emblems = await getClassEmblems(classSlug(cls.name));
+    if (!emblems) {
+      return null;
+    }
+    const chosen = this.selection.emblemByPack[selectedPack];
+    const currentStem = chosen === undefined ? emblems.default : chosen;
+    return {
+      options: emblems.options.map((option) => ({ ...option, selected: currentStem === option.stem })),
+      original: { img: cls.img, selected: currentStem === "" },
+    };
   }
 
   /**
@@ -324,6 +355,7 @@ class ManualCharacterCreatorDialog extends Application {
     super.activateListeners(html);
     html.find(".class-select").on("change", this._onRerenderChange.bind(this));
     html.find(".hybrid-select.hybrid-rerender").on("change", this._onRerenderChange.bind(this));
+    html.find(".emblem-option").on("click", this._onEmblemPick.bind(this));
     html.find(".cancel-button").on("click", this._onCancel.bind(this));
     html.find(".create-button").on("click", this._onCreate.bind(this));
     // Keep the scroll position across the re-render triggered by a class /
@@ -362,6 +394,15 @@ class ManualCharacterCreatorDialog extends Application {
     event.preventDefault();
     const form = $(event.currentTarget).closest(".manual-character-creator-dialog")[0];
     this._syncSelection(form);
+    this.render(false);
+  }
+
+  /** Remember the picked emblem stem ("" = original art) for the current class and re-render. */
+  _onEmblemPick(event) {
+    event.preventDefault();
+    const form = $(event.currentTarget).closest(".manual-character-creator-dialog")[0];
+    this._syncSelection(form);
+    this.selection.emblemByPack[this.selection.classPack] = event.currentTarget.dataset.stem ?? "";
     this.render(false);
   }
 
@@ -442,6 +483,7 @@ class ManualCharacterCreatorDialog extends Application {
         }
         characterData = await buildHybridCharacter(cls, choices);
       } else {
+        baseChoices.emblemImg = await this._resolveEmblemImg(cls);
         characterData = await buildCharacter(cls, baseChoices);
       }
 
@@ -464,6 +506,26 @@ class ManualCharacterCreatorDialog extends Application {
    */
   async _resolveBaseClass(pack) {
     return pack ? classItemFromPack(pack) : undefined;
+  }
+
+  /**
+   * The emblem image to apply for a standard class: "" when the feature is off or the player
+   * kept the original art, the class' default emblem when they left it untouched, else the
+   * specific alternate they clicked.
+   *
+   * @param {PBItem} cls
+   * @returns {Promise.<String>}
+   */
+  async _resolveEmblemImg(cls) {
+    if (!useClassEmblems()) {
+      return "";
+    }
+    const chosen = this.selection.emblemByPack[this.selection.classPack];
+    if (chosen === "") {
+      return "";
+    }
+    const slug = classSlug(cls.name);
+    return chosen === undefined ? defaultEmblemPath(slug) : emblemAssetPath(slug, chosen);
   }
 }
 

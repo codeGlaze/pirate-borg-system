@@ -31,6 +31,25 @@
       </select>
     </div>
 
+    {{#if emblem}}
+    <div class="manual-field emblem-field">
+      <label>{{localize "PB.ManualCharacterEmblem"}}</label>
+      <div class="emblem-options">
+        {{#each emblem.options as |opt|}}
+          <button type="button" class="emblem-option{{#if opt.selected}} selected{{/if}}" data-stem="{{opt.stem}}" title="{{opt.label}}">
+            <img src="{{opt.path}}" alt="{{opt.label}}" />
+            <span>{{opt.label}}{{#if opt.isDefault}} &middot; {{localize "PB.ManualCharacterEmblemDefault"}}{{/if}}</span>
+          </button>
+        {{/each}}
+        <button type="button" class="emblem-option{{#if emblem.original.selected}} selected{{/if}}" data-stem="" title="{{localize "PB.ManualCharacterEmblemOriginal"}}">
+          <img src="{{emblem.original.img}}" alt="{{localize "PB.ManualCharacterEmblemOriginal"}}" />
+          <span>{{localize "PB.ManualCharacterEmblemOriginal"}}</span>
+        </button>
+      </div>
+      <p class="emblem-hint">{{localize "PB.ManualCharacterEmblemHint"}}</p>
+    </div>
+    {{/if}}
+
     {{#if hybridSelects.length}}
       <h3 class="manual-group-title">{{localize "PB.ManualCharacterOverlayOptions"}}</h3>
       {{#each hybridSelects as |sel|}}

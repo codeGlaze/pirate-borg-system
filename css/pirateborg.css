@@ -2713,6 +2713,46 @@ li.folder > .folder-header {
 .manual-character-creator-dialog .manual-field select {
   width: 100%;
 }
+.manual-character-creator-dialog .emblem-field .emblem-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.manual-character-creator-dialog .emblem-field .emblem-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.1;
+}
+.manual-character-creator-dialog .emblem-field .emblem-option img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #0d0b0a;
+}
+.manual-character-creator-dialog .emblem-field .emblem-option span {
+  font-size: 11px;
+  text-align: center;
+}
+.manual-character-creator-dialog .emblem-field .emblem-option.selected {
+  border-color: var(--highlight-background-color, #8f0f0f);
+}
+.manual-character-creator-dialog .emblem-field .emblem-option:hover {
+  border-color: rgba(0, 0, 0, 0.35);
+}
+.manual-character-creator-dialog .emblem-field .emblem-hint {
+  margin: 6px 0 0 0;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.75;
+}
 .manual-character-creator-dialog .manual-abilities {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

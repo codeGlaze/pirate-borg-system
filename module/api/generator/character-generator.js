@@ -15,12 +15,23 @@ import { PB } from "../../config.js";
 import { evaluateFormula } from "../utils.js";
 import { chooseGettingBetterFeatureValue } from "../../dialog/get-better-feature-dialog.js";
 import { normalizeItemEffectDurations } from "../effect-duration.js";
+import { classSlug, defaultEmblemPath } from "../class-emblems.js";
+import { useClassEmblems } from "../../system/settings.js";
+
+/**
+ * The emblem image to apply for a class when no explicit choice was made (the Tavern path):
+ * the class' default emblem when the feature is on, else "" (keep the class' own art).
+ *
+ * @param {PBItem} cls
+ * @returns {Promise.<String>}
+ */
+const resolveDefaultEmblemImg = async (cls) => (useClassEmblems() ? defaultEmblemPath(classSlug(cls.name)) : "");
 
 /**
  * @param {PBItem} cls
  * @returns {Promise.<PBActor>}
  */
-export const createCharacter = async (cls) => createActorWithCharacter(await rollCharacterForClass(cls));
+export const createCharacter = async (cls) => createActorWithCharacter(await buildCharacter(cls, { emblemImg: await resolveDefaultEmblemImg(cls) }));
 
 /**
  * @param {PBActor} actor
@@ -598,9 +609,14 @@ export const buildCharacter = async (cls, choices = {}) => {
   // Starting ranged weapons ship with 10 + Presence rounds of shot (pg. 51).
   applyStartingRoundsOfShot(allDocs, abilities.presence);
 
+  // An emblem (when chosen at creation) becomes the actor art AND the class item icon; a
+  // falsy choice keeps the class' own image, so nothing changes with emblems off.
+  const emblemImg = choices.emblemImg || "";
+
   return {
     name,
-    actorImg: cls.img,
+    actorImg: emblemImg || cls.img,
+    emblemImg: emblemImg || null,
     hitPoints,
     luck,
     ...abilities,
@@ -666,6 +682,11 @@ const characterToActorData = (characterData) => ({
       i.getData().equipped = true;
     }
     const itemData = { ...i.toObject(false), _id: null };
+    // A chosen emblem also re-skins the class item itself, so the class icon on the sheet
+    // matches the actor's portrait/token.
+    if (characterData.emblemImg && itemData.type === CONFIG.PB.itemTypes.class) {
+      itemData.img = characterData.emblemImg;
+    }
     normalizeItemEffectDurations(itemData);
     return itemData;
   }),

@@ -128,6 +128,20 @@ export const registerSystemSettings = () => {
     default: true,
   });
 
+  /**
+   * Opt-in custom class emblems. When on, character creation offers a per-class emblem
+   * (see icons/classes/README.md); off keeps each class' original token art. Off by default
+   * so the system ships unchanged unless a table wants the emblems.
+   */
+  game.settings.register("pirateborg", "useClassEmblems", {
+    name: "PB.SettingsUseClassEmblems",
+    hint: "PB.SettingsUseClassEmblemsHint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false,
+  });
+
   /** The allowed classes menu */
   game.settings.registerMenu("pirateborg", "editAllowedCharacterGeneratorClassesMenu", {
     name: "PB.EditAllowedCharacterGeneratorClassesMenu",
@@ -341,6 +355,8 @@ export const isAutoExpireEffectsEnabled = () => game.settings.get("pirateborg", 
  * @returns {Boolean}
  */
 export const isGrogEnabled = () => game.settings.get("pirateborg", "enableGrog");
+
+export const useClassEmblems = () => game.settings.get("pirateborg", "useClassEmblems");
 
 /**
  * @returns {Boolean}
