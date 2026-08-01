@@ -8,6 +8,7 @@ import { renderCombatTracker } from "./system/render-combat-tracker.js";
 import { handleChatMessageAutomation, handleChatMessageButton, handleChatMessageGMOnly } from "./system/render-chat-message.js";
 import { renderActorDirectory } from "./system/render-actor-directory.js";
 import { registerSystemSettings, isCreateLootFromDropEnabled, applyDefendButtonAppearance } from "./system/settings.js";
+import { loadEmblemManifest } from "./api/class-emblems.js";
 import { showHelpDialogOnStartup } from "./dialog/help-dialog.js";
 import { renderSettings } from "./system/render-settings.js";
 import { registerSocketHandler } from "./system/sockets.js";
@@ -79,6 +80,9 @@ Hooks.once("ready", () => {
   configureAutomation();
   registerEnricherClickHandlers();
   applyDefendButtonAppearance();
+  // Warm the emblem manifest so the class sheet's header button can decide synchronously
+  // whether a class has emblems.
+  loadEmblemManifest();
 
   // hotbarDrop hook cannot be async and still block the default macro creation workflow,
   Hooks.on("hotbarDrop", (bar, data, slot) => createPirateBorgMacro(data, slot));

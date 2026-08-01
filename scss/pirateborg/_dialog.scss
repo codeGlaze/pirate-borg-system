@@ -242,55 +242,6 @@
     }
   }
 
-  .emblem-field {
-    .emblem-options {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-
-    .emblem-option {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 4px;
-      background: rgba(0, 0, 0, 0.15);
-      border: 2px solid transparent;
-      border-radius: 6px;
-      cursor: pointer;
-      line-height: 1.1;
-
-      img {
-        width: 100%;
-        aspect-ratio: 1;
-        object-fit: contain;
-        border-radius: 4px;
-        background: #0d0b0a;
-      }
-
-      span {
-        font-size: 11px;
-        text-align: center;
-      }
-
-      &.selected {
-        border-color: var(--highlight-background-color, #8f0f0f);
-      }
-
-      &:hover {
-        border-color: rgba(0, 0, 0, 0.35);
-      }
-    }
-
-    .emblem-hint {
-      margin: 6px 0 0 0;
-      font-size: 11px;
-      font-style: italic;
-      opacity: 0.75;
-    }
-  }
-
   .manual-abilities {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -573,5 +524,56 @@
         }
       }
     }
+  }
+}
+
+// Emblem picker grid — shared by the manual creator's inline field and the class-sheet
+// header-button dialog, so top-level rather than nested under one dialog.
+.emblem-field {
+  .emblem-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .emblem-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1.1;
+
+    img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      border-radius: 4px;
+      background: #0d0b0a;
+    }
+
+    span {
+      font-size: 11px;
+      text-align: center;
+    }
+
+    &.selected {
+      border-color: var(--highlight-background-color, #8f0f0f);
+    }
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  .emblem-hint {
+    margin: 6px 0 0 0;
+    font-size: 11px;
+    font-style: italic;
+    opacity: 0.75;
   }
 }

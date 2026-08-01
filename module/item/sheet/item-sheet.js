@@ -1,5 +1,8 @@
 import { PB } from "../../config.js";
 import { showAnimationDialog } from "../../dialog/animation-dialog.js";
+import { showClassEmblemPicker } from "../../dialog/emblem-picker-dialog.js";
+import { classSlug, hasClassEmblemsSync } from "../../api/class-emblems.js";
+import { useClassEmblems } from "../../system/settings.js";
 import { configureEditor } from "../../system/configure-editor.js";
 import { bindProseMirrorDescriptionEditor, getCachedEditorDraft } from "../../system/prosemirror-editor-state.js";
 import PBActorSheet from "../../actor/sheet/actor-sheet.js";
@@ -125,10 +128,16 @@ export class PBItemSheet extends (foundry.appv1?.sheets?.ItemSheet ?? ItemSheet)
   /** @override */
   _getHeaderButtons() {
     const buttons = super._getHeaderButtons();
+    const extra = [];
     if (this.item.isWeapon && typeof Sequencer !== "undefined") {
-      return [this._getHeaderAnimationButton(), ...buttons];
+      extra.push(this._getHeaderAnimationButton());
     }
-    return buttons;
+    // Change/clear a class' emblem after creation (feature on + this class has emblems). The
+    // sync check relies on the manifest being warmed at "ready".
+    if (this.item.isClass && useClassEmblems() && hasClassEmblemsSync(classSlug(this.item.name))) {
+      extra.push(this._getHeaderEmblemButton());
+    }
+    return [...extra, ...buttons];
   }
 
   _getHeaderAnimationButton() {
@@ -137,6 +146,15 @@ export class PBItemSheet extends (foundry.appv1?.sheets?.ItemSheet ?? ItemSheet)
       label: game.i18n.localize("PB.EditAnimation"),
       icon: "fas fa-edit",
       onclick: this._onEditAnimation.bind(this),
+    };
+  }
+
+  _getHeaderEmblemButton() {
+    return {
+      class: `edit-class-emblem-button-${this.item.id}`,
+      label: game.i18n.localize("PB.EditClassEmblem"),
+      icon: "fas fa-skull",
+      onclick: () => showClassEmblemPicker(this.item),
     };
   }
 

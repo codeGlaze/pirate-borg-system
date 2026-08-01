@@ -73,3 +73,13 @@ export const defaultEmblemPath = async (slug) => {
   const emblems = await getClassEmblems(slug);
   return emblems ? emblemAssetPath(slug, emblems.default) : "";
 };
+
+/**
+ * Synchronous "does this class have emblems?" against the already-loaded manifest. Returns
+ * false until {@link loadEmblemManifest} has run, so preload it at startup for callers that
+ * can't await (e.g. a sheet's header buttons).
+ *
+ * @param {String} slug
+ * @returns {Boolean}
+ */
+export const hasClassEmblemsSync = (slug) => Boolean(_manifest && _manifest[slug]?.options?.length);

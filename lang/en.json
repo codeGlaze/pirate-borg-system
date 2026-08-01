@@ -118,6 +118,7 @@
   "PB.EditAllowedCharacterGeneratorClassesMenuButtonLabel": "Edit",
   "PB.EditAllowedCharacterGeneratorClassesMenuHint": "Edit the allowed classes in the character generator.",
   "PB.EditAnimation": "Animation",
+  "PB.EditClassEmblem": "Emblem",
   "PB.EditButton": "Edit",
   "PB.EffectExpired": "{effect} has expired on {actor}",
   "PB.EffectsAddCondition": "Add a condition…",
