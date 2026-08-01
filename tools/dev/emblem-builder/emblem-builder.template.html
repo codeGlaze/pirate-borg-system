@@ -1,0 +1,593 @@
+<style>
+  :root {
+    --ink: #0d0b0a; --bg: #171310; --panel: #221b16; --panel2: #2b221b;
+    --line: #3c2f25; --text: #ece0c8; --muted: #a58d6c; --accent: #b5232a; --parch: #d8c6a4;
+    --radius: 10px;
+  }
+  :root[data-theme="light"] {
+    --ink: #0d0b0a; --bg: #efe6d0; --panel: #e4d7ba; --panel2: #dccdac;
+    --line: #c3ac86; --text: #2b2018; --muted: #6b5a3e; --accent: #a51d1d; --parch: #3a2c1e;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #efe6d0; --panel: #e4d7ba; --panel2: #dccdac;
+      --line: #c3ac86; --text: #2b2018; --muted: #6b5a3e; --accent: #a51d1d; --parch: #3a2c1e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap {
+    min-height: 100vh; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 18px 16px 40px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  header { text-align: center; max-width: 560px; }
+  h1 { font-size: 19px; margin: 0 0 2px; letter-spacing: .01em; text-wrap: balance; }
+  header p { margin: 0; font-size: 13px; color: var(--muted); }
+  .stage-wrap { position: relative; width: min(340px, 82vw); aspect-ratio: 1; touch-action: none; }
+  #stage {
+    width: 100%; height: 100%; border-radius: var(--radius);
+    background: repeating-conic-gradient(var(--panel) 0% 25%, var(--panel2) 0% 50%) 50% / 22px 22px;
+    cursor: grab; touch-action: none; border: 1px solid var(--line);
+  }
+  #stage:active { cursor: grabbing; }
+  .hint { font-size: 12px; color: var(--muted); text-align: center; }
+  .panel {
+    width: min(560px, 100%); background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .seg { display: flex; gap: 6px; }
+  .seg button {
+    flex: 1; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  /* Weapon 2 is optional — when it's set to "None" the tab dims to show it's inactive
+     (still clickable so you can go turn it on). A pressed tab always stays lit. */
+  .seg button[data-off="1"][aria-pressed="false"] { opacity: .45; border-style: dashed; }
+  .seg button[data-off="1"]::after { content: " (off)"; font-weight: 400; font-size: 11px; opacity: .8; }
+  .seg button[data-off="1"][aria-pressed="true"]::after { content: ""; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row > label { flex: 0 0 74px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  select, .btn {
+    font: inherit; font-size: 14px; color: var(--text); background: var(--panel2);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; cursor: pointer;
+  }
+  input[type="range"] { flex: 1; accent-color: var(--accent); height: 26px; }
+  .val { flex: 0 0 42px; text-align: right; font: 12px ui-monospace, monospace; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* Big touch-target +/- nudgers flanking each slider — precise input without fighting a
+     thumb on a phone. They just push the paired range by a fine step and re-fire its input. */
+  .step { flex: 0 0 36px; height: 32px; padding: 0; font-size: 20px; font-weight: 700; line-height: 1;
+    color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+  .step:active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
+  .actions { display: flex; gap: 8px; }
+  .btn { text-align: center; font-weight: 600; }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn:focus-visible, .seg button:focus-visible, select:focus-visible { outline: 2px solid var(--parch); outline-offset: 2px; }
+  #resultWrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  #resultWrap .hint { max-width: 260px; }
+  #layout { width: min(560px, 100%); font: 12px ui-monospace, monospace; color: var(--muted);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; white-space: pre-wrap; word-break: break-all; }
+  @media (prefers-reduced-motion: no-preference) { .seg button, .btn { transition: background .1s ease; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Pirate Borg &mdash; Class Emblem Builder</h1>
+    <p>Swap the skull and the crossed weapon, drag to place, resize &amp; outline. All art is from the repo.</p>
+  </header>
+
+  <div class="stage-wrap">
+    <canvas id="stage" width="512" height="512" aria-label="Emblem preview — drag to move the active layer"></canvas>
+  </div>
+  <div class="hint">Drag the emblem to move the <b id="activeName">skull</b>. Sliders or the &minus;/+ nudgers resize &amp; rotate.</div>
+
+  <div class="panel">
+    <div class="seg" role="group" aria-label="Which layer to edit">
+      <button id="editTop" aria-pressed="true">Skull</button>
+      <button id="editBottom" aria-pressed="false">Weapon 1</button>
+      <button id="editBottom2" aria-pressed="false">Weapon 2</button>
+    </div>
+
+    <div class="row"><label for="skullSel">Skull</label><select id="skullSel"></select></div>
+    <div class="row"><label for="weaponSel">Weapon 1</label><select id="weaponSel"></select></div>
+    <div class="row"><label for="weapon2Sel">Weapon 2</label><select id="weapon2Sel"></select></div>
+
+    <div class="row"><label>Size</label>
+      <button class="step" data-for="scale" data-d="-0.02" aria-label="smaller">&minus;</button>
+      <input id="scale" type="range" min="0.3" max="2.2" step="0.01" value="1">
+      <button class="step" data-for="scale" data-d="0.02" aria-label="bigger">+</button>
+      <span class="val" id="scaleV">1.00</span></div>
+    <div class="row"><label>Rotate</label>
+      <button class="step" data-for="rot" data-d="-1" aria-label="rotate left">&minus;</button>
+      <input id="rot" type="range" min="-180" max="180" step="1" value="0">
+      <button class="step" data-for="rot" data-d="1" aria-label="rotate right">+</button>
+      <span class="val" id="rotV">0°</span></div>
+    <div class="row"><label id="strokeLbl">Skull line</label>
+      <button class="step" data-for="stroke" data-d="-1" aria-label="thinner">&minus;</button>
+      <input id="stroke" type="range" min="0" max="30" step="1" value="11">
+      <button class="step" data-for="stroke" data-d="1" aria-label="thicker">+</button>
+      <span class="val" id="strokeV">11</span></div>
+    <div class="row" id="flipRow"><label>Flip</label>
+      <label class="chk" style="flex:1"><input type="checkbox" id="flipH"> left / right</label>
+      <label class="chk" style="flex:1"><input type="checkbox" id="flipV"> up / down</label></div>
+    <div class="row" id="mirrorRow"><label>Mirror</label><label class="chk" style="flex:1"><input type="checkbox" id="mirror"> crossed pair (mirrors the rotation too)</label></div>
+    <div class="row" id="spreadRow"><label>Spread</label>
+      <button class="step" data-for="spread" data-d="-4" aria-label="closer">&minus;</button>
+      <input id="spread" type="range" min="0" max="220" step="2" value="0">
+      <button class="step" data-for="spread" data-d="4" aria-label="farther">+</button>
+      <span class="val" id="spreadV">0</span></div>
+    <div class="row" id="mirrorStrokeRow"><label>Both</label><label class="chk" style="flex:1"><input type="checkbox" id="mirrorStroke"> outline both blades of the pair</label></div>
+    <div class="row" id="placeRow"><label>Place</label>
+      <button class="btn" id="centerBtn" style="width:auto;flex:0 0 auto;padding:8px 14px">Center</button>
+      <label class="chk" style="flex:1"><input type="checkbox" id="axisLock"> lock to centre line</label></div>
+    <div class="row" id="copyRow"><label>Match</label>
+      <button class="btn" id="copySize" style="width:auto;padding:8px 12px">Copy this weapon&rsquo;s size to the other</button></div>
+
+    <div class="toggles">
+      <label class="chk"><input type="checkbox" id="discOn" checked> Disc</label>
+      <label class="chk"><input type="checkbox" id="invert"> White on transparent (no disc)</label>
+      <label class="chk"><input type="checkbox" id="fillHoles" checked> Fill top's holes (skull eyes/mouth)</label>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="reset">Reset placement</button>
+      <button class="btn" id="save">Save combo</button>
+      <button class="btn primary" id="export">Make PNG</button>
+    </div>
+  </div>
+
+  <details class="panel" id="savedPanel">
+    <summary style="cursor:pointer;font-weight:600;font-size:14px">Saved combos (<span id="savedCount">0</span>)</summary>
+    <div class="row"><label for="savedSel">Restore</label><select id="savedSel"><option value="">&mdash; pick a saved combo &mdash;</option></select></div>
+    <p class="hint" style="margin:0;text-align:left">Export = copy the box below and keep it. Paste it back &amp; hit Import to restore your whole list later.</p>
+    <textarea id="combos" rows="4" spellcheck="false" style="width:100%;font:12px ui-monospace,monospace;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical"></textarea>
+    <div class="actions">
+      <button class="btn" id="dltxt">Save .txt</button>
+      <button class="btn" id="copyCombos">Copy</button>
+      <button class="btn" id="importCombos">Import</button>
+    </div>
+    <p class="hint" id="combosMsg" style="margin:0;text-align:left">Combos auto-save to this browser. Download the .txt to keep a backup or move it between devices.</p>
+  </details>
+
+  <div id="resultWrap" hidden>
+    <img id="result" alt="Your emblem" width="220" height="220"
+         style="border-radius:10px;border:1px solid var(--line);background:repeating-conic-gradient(var(--panel) 0% 25%, var(--panel2) 0% 50%) 50% / 20px 20px">
+    <p class="hint" id="fnHint" style="font-family:ui-monospace,monospace"></p>
+    <p class="hint">Long-press (mobile) or right-click &rarr; <b>Save image</b> to keep this PNG.</p>
+  </div>
+
+  <div id="layout" tabindex="0">layout will appear here after you tweak…</div>
+</div>
+
+<script>
+const A = __ASSETS_JSON__;
+const SRC = 512;
+// skull-region polygon used to lift the real skull out of class.png
+const SKPOLY = [[256,20],[360,50],[374,128],[362,208],[346,254],[316,288],[256,297],[196,288],[166,254],[150,208],[138,128],[152,50]];
+// footprints (bboxes) the default skull and cutlasses occupy in class.png
+const TOP_FP = [159,31,352,296], BOT_FP = [35,154,511,476];
+
+const pip = (px,py,p)=>{let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const xi=p[i][0],yi=p[i][1],xj=p[j][0],yj=p[j][1];if(((yi>py)!=(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))c=!c;}return c;};
+const load = s => new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error("load "+s));i.src=s;});
+const cv = (w=SRC)=>{const c=document.createElement("canvas");c.width=c.height=w;return c;};
+// willReadFrequently keeps these canvases on the CPU — the whole pipeline is getImageData
+// heavy, and letting the browser round-trip each read to the GPU is what spikes memory on
+// phones (the crash). Use this ctx everywhere we read pixels.
+const rctx = c => c.getContext("2d",{willReadFrequently:true});
+const bbox = (d,w=SRC)=>{let b=[1e9,1e9,-1e9,-1e9];for(let y=0;y<w;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>60){if(x<b[0])b[0]=x;if(y<b[1])b[1]=y;if(x>b[2])b[2]=x;if(y>b[3])b[3]=y;}return b;};
+// Silhouette canvases are stable between frames, so cache their bbox (a full-canvas scan)
+// keyed by the canvas object — drawLayer no longer rescans 3 layers every drag frame.
+const _bboxCache = new WeakMap();
+const bboxOf = c => { let b=_bboxCache.get(c); if(!b){ b=bbox(rctx(c).getImageData(0,0,SRC,SRC).data); _bboxCache.set(c,b); } return b; };
+
+// white silhouette from a white-on-dark repo icon
+async function whiteSil(key){const im=await load(A[key]);const c=cv(),x=rctx(c);x.drawImage(im,0,0,SRC,SRC);const d=x.getImageData(0,0,SRC,SRC);for(let i=0;i<d.data.length;i+=4){const l=(d.data[i]+d.data[i+1]+d.data[i+2])/3,a=d.data[i+3];d.data[i]=d.data[i+1]=d.data[i+2]=255;d.data[i+3]=(a>100&&l>105)?255:0;}x.putImageData(d,0,0);return c;}
+// isolate just the skull from skull-crossed-bones.png (keep centre, drop corner bones)
+async function centreSkull(key){const im=await load(A[key]);const c=cv(),x=rctx(c);x.drawImage(im,0,0,SRC,SRC);const d=x.getImageData(0,0,SRC,SRC);for(let y=0;y<SRC;y++)for(let X=0;X<SRC;X++){const i=(y*SRC+X)*4;const l=(d.data[i]+d.data[i+1]+d.data[i+2])/3;const keep=d.data[i+3]>100&&l>110&&Math.hypot(X-256,y-238)<140;d.data[i]=d.data[i+1]=d.data[i+2]=255;d.data[i+3]=keep?255:0;}x.putImageData(d,0,0);return c;}
+
+let disc, defSkull, defSword;
+async function isolateDefaults(){
+  const im=await load(A["class.png"]);const s=cv(),sx=rctx(s);sx.drawImage(im,0,0,SRC,SRC);const d=sx.getImageData(0,0,SRC,SRC).data;
+  disc=cv(); defSkull=cv(); defSword=cv();
+  const dd=disc.getContext("2d").createImageData(SRC,SRC), sk=defSkull.getContext("2d").createImageData(SRC,SRC), sw=defSword.getContext("2d").createImageData(SRC,SRC);
+  for(let y=0;y<SRC;y++)for(let x=0;x<SRC;x++){const i=(y*SRC+x)*4;if(d[i+3]<128)continue;dd.data[i]=13;dd.data[i+1]=11;dd.data[i+2]=10;dd.data[i+3]=255;if((d[i]+d[i+1]+d[i+2])/3<=128)continue;if(pip(x,y,SKPOLY)){sk.data[i]=sk.data[i+1]=sk.data[i+2]=255;sk.data[i+3]=255;}else{sw.data[i]=sw.data[i+1]=sw.data[i+2]=255;sw.data[i+3]=255;}}
+  disc.getContext("2d").putImageData(dd,0,0);defSkull.getContext("2d").putImageData(sk,0,0);defSword.getContext("2d").putImageData(sw,0,0);
+}
+
+// dropdown option -> builder returning a white silhouette canvas (or null)
+const SKULLS = {
+  "Default skull": async()=>defSkull,
+  "Skull & bones": ()=>centreSkull("skull-crossed-bones.png"),
+  "Broken skull": ()=>whiteSil("broken-skull.svg"),
+  "Class-feature skull": ()=>whiteSil("class-feature.png"),
+  "Class-item": ()=>whiteSil("class-item.png"),
+  "Bandanna": ()=>whiteSil("bandanna.png"),
+  "Ghost": ()=>whiteSil("ghost.png"),
+  "Horned skull": ()=>whiteSil("monster.png"),
+  "Holy symbol": ()=>whiteSil("holy-symbol.png"),
+  "Praying figure": ()=>whiteSil("prayer.png"),
+  "Sorcery hand": ()=>whiteSil("sorcery.png"),
+  "None": async()=>null,
+};
+const W = key => () => whiteSil(key+".png");
+const WEAPONS = {
+  "Cutlasses (default)": async()=>defSword,
+  // blades
+  "Rapier": W("rapier"), "Fine rapier": W("finely-crafted-rapier"), "Scimitars": W("scimitar"),
+  "Broadsword": W("broadsword"), "Smallsword": W("smallsword"), "Machete": W("machete"),
+  "Dagger": W("dagger"), "Knife": W("knife"), "Broken bottle": W("broken-bottle"), "Bayonets": W("bayonet"),
+  // guns & ranged
+  "Flintlock pistols": W("flintlock-pistol"), "Sword & gun": W("weapon"), "Blunderbuss": W("blunderbuss"),
+  "Musket": W("musket"), "Buccaneer musket": W("buccaneer-musket"), "Harpoon gun": W("harpoon-gun"),
+  "Small arm": W("small-arm"), "Blowpipe": W("blowpipe"), "Berserk dart": W("berserk-dart"),
+  // thrown
+  "Throwing knife": W("throwing-knife"), "Throwing axes": W("throwing-axes"), "Tomahawk": W("tomahawk"),
+  "Hatchet": W("hatchet"), "Harpoon": W("harpoon"),
+  // heavy / brute
+  "Boarding axe": W("boarding-axe"), "Bone mace": W("bone-mace"), "Heavy club": W("heavy-club"),
+  "Cudgel": W("cudgel"), "Cat o' nine tails": W("cat-o-nine-tails"), "Boarding pike": W("boarding-pike"), "Whale bone": W("whale-bone"),
+  // roguish / tools
+  "Cards (joker)": W("card-joker"), "Cards (random)": W("card-random"), "Hook": W("hook"),
+  "Grappling hook": W("grappling-hook"), "Marlinspikes": W("marlinspike"), "Belaying pins": W("belaying-pin"), "Chain": W("chain"),
+  // motifs / bursts
+  "All for one": W("all-for-one"), "Holy symbol": W("holy-symbol"), "Sorcery hand": W("sorcery"),
+  "None": async()=>null,
+};
+
+const layers = {
+  top:     { sil:null, name:"Default skull", x:0, y:0, scale:1, rot:0, stroke:11 },
+  bottom:  { sil:null, name:"Cutlasses (default)", x:0, y:0, scale:1, rot:0, mirror:false, stroke:0, flipH:false, flipV:false, spread:0, mirrorStroke:false },
+  bottom2: { sil:null, name:"None", x:0, y:0, scale:1, rot:0, mirror:false, stroke:0, flipH:false, flipV:false, spread:0, mirrorStroke:false },
+};
+let active = "top";
+
+// fit a silhouette's bbox into a footprint, set layer x/y/scale to that as the baseline
+function fitToFootprint(layer, fp){
+  if(!layer.sil){return;}
+  const b=bboxOf(layer.sil); const cx=(b[0]+b[2])/2, cy=(b[1]+b[3])/2;
+  const fw=fp[2]-fp[0], fh=fp[3]-fp[1], sw=b[2]-b[0], sh=b[3]-b[1];
+  layer._base = Math.min(fw/sw, fh/sh);
+  layer.x=(fp[0]+fp[2])/2; layer.y=(fp[1]+fp[3])/2; layer.scale=1; layer.rot=0;
+}
+
+function _mask(sil){const d=rctx(sil).getImageData(0,0,SRC,SRC).data,m=new Uint8Array(SRC*SRC);for(let i=0;i<SRC*SRC;i++)m[i]=d[i*4+3]>60?1:0;return m;}
+// Solid black backing shaped like the skull: fill each row between its left/right edges
+// and each column between its top/bottom edges, keep the overlap. That seals every hole
+// AND the open mouth (a downward bay) without bloating the outline; the white skull then
+// layers on top, so eyes/nose/mouth read black, the weapon hides behind the skull, and
+// the backing follows the skull as one grouped layer. O(pixels), so it never stalls.
+function solidify(sil){
+  const w=SRC, m=_mask(sil), h=new Uint8Array(w*w), v=new Uint8Array(w*w);
+  for(let y=0;y<w;y++){ let lo=-1,hi=-1; for(let x=0;x<w;x++) if(m[y*w+x]){ if(lo<0)lo=x; hi=x; } if(lo>=0) for(let x=lo;x<=hi;x++) h[y*w+x]=1; }
+  for(let x=0;x<w;x++){ let lo=-1,hi=-1; for(let y=0;y<w;y++) if(m[y*w+x]){ if(lo<0)lo=y; hi=y; } if(lo>=0) for(let y=lo;y<=hi;y++) v[y*w+x]=1; }
+  const out=cv(), ic=out.getContext("2d"), img=ic.createImageData(w,w), a=img.data;
+  for(let i=0;i<w*w;i++){ if(h[i]&&v[i]){a[i*4]=13;a[i*4+1]=11;a[i*4+2]=10;a[i*4+3]=255;} }
+  ic.putImageData(img,0,0); ic.drawImage(sil,0,0); return out;
+}
+
+// The outline (28 offset copies) is the single most expensive thing per frame. It depends
+// only on (silhouette, width), both stable during a drag, so memoize it per canvas → per
+// width. This is what turns a per-frame 28-blit recompute into a one-time cost.
+const _strokeCache = new WeakMap();
+function strokedSil(sil, width){
+  if(width<=0) return sil;
+  let byW=_strokeCache.get(sil); if(!byW){ byW=new Map(); _strokeCache.set(sil,byW); }
+  const hit=byW.get(width); if(hit) return hit;
+  const out=cv(),o=out.getContext("2d");
+  const black=cv(),bc=black.getContext("2d");
+  bc.drawImage(sil,0,0); bc.globalCompositeOperation="source-in"; bc.fillStyle="#0d0b0a"; bc.fillRect(0,0,SRC,SRC);
+  const steps=28; for(let a=0;a<steps;a++){const ang=a/steps*2*Math.PI;o.drawImage(black,Math.cos(ang)*width,Math.sin(ang)*width);}
+  o.drawImage(sil,0,0); byW.set(width,out); return out;
+}
+
+function _blit(ctx,img,x,y,rot,sx,sy,cx,cy){ ctx.save(); ctx.translate(x,y); ctx.rotate(rot*Math.PI/180); ctx.scale(sx,sy); ctx.translate(-cx,-cy); ctx.drawImage(img,0,0); ctx.restore(); }
+function drawLayer(ctx, layer){
+  if(!layer.sil) return;
+  const b=bboxOf(layer.sil); const cx=(b[0]+b[2])/2, cy=(b[1]+b[3])/2;
+  const eff=(layer._base||1)*layer.scale;
+  const hx=layer.flipH?-1:1, vy=layer.flipV?-1:1;   // per-layer left/right & up/down flip
+  const stroked=(layer.stroke>0)?strokedSil(layer.sil,layer.stroke):layer.sil;
+  // Mirror = a second copy flipped across the vertical through (x,y) with the rotation
+  // negated, turning one weapon into a symmetric crossed pair. `spread` pushes the two
+  // copies apart horizontally (0 = crossing at the centre). Draw the mirror FIRST and
+  // un-stroked so it sits UNDER the canonical; the canonical then lands on top with its
+  // outline, so the crossing reads as one blade clearly passing in front of the other.
+  const gap=layer.mirror?(layer.spread||0)/2:0;
+  // By default only the front copy is outlined (keeps the crossing reading as one-over-the-
+  // other). `mirrorStroke` also outlines the back copy — useful when the pair is spread apart
+  // or sits over weapon 2 and you want both blades edged. Front still draws last, so the
+  // crossing still reads correctly. `stroked` is cached, so this adds no per-frame cost.
+  const mirImg=(layer.mirrorStroke && layer.stroke>0) ? stroked : layer.sil;
+  if(layer.mirror) _blit(ctx,mirImg,layer.x-gap,layer.y,-layer.rot,-eff*hx,eff*vy,cx,cy);
+  _blit(ctx,stroked,layer.x+gap,layer.y,layer.rot,eff*hx,eff*vy,cx,cy);
+}
+
+function compose(ctx, {showDisc}){
+  ctx.clearRect(0,0,SRC,SRC);
+  if(showDisc && disc) ctx.drawImage(disc,0,0);
+  // Bottom-up: weapon 2, then weapon 1 (its outline separates it from weapon 2), then the
+  // skull on top. Each layer's own stroke lifts it off whatever was drawn before it.
+  drawLayer(ctx, layers.bottom2);
+  drawLayer(ctx, layers.bottom);
+  drawLayer(ctx, layers.top);
+}
+
+const stage=document.getElementById("stage"), sctx=stage.getContext("2d");
+const el=id=>document.getElementById(id);
+function draw(){
+  const showDisc = el("discOn").checked && !el("invert").checked;
+  compose(sctx, {showDisc});
+  updateLayout();
+}
+// Sliders, steppers and drag fire far faster than the screen refreshes. Coalesce every
+// render() request into a single paint per animation frame so a fast drag can't stack up
+// dozens of full recomposites and starve the phone into a crash.
+let _rafPending=0;
+function render(){ if(_rafPending) return; _rafPending=requestAnimationFrame(()=>{ _rafPending=0; draw(); }); }
+
+function updateLayout(){
+  const f=(n)=>Number(n).toFixed(2);
+  const t=layers.top,b=layers.bottom,b2=layers.bottom2;
+  const line=(tag,L,extra)=>tag+" "+L.name+"  x="+Math.round(L.x)+" y="+Math.round(L.y)+" scale="+f(L.scale)+" rot="+L.rot+extra;
+  const wx=(L)=>(L.mirror?" mirror":"")+(L.mirror&&L.spread?" spread="+L.spread:"")+(L.mirror&&L.mirrorStroke?" both-outlined":"")+(L.flipH?" flipH":"")+(L.flipV?" flipV":"")+(L.stroke?" outline="+L.stroke:"");
+  el("layout").textContent =
+    line("skull  ", t, " stroke="+t.stroke)+"\n"+
+    line("weapon1", b, wx(b))+
+    (b2.sil ? "\n"+line("weapon2", b2, wx(b2)) : "");
+}
+
+function syncControls(){
+  const L=layers[active], isTop=active==="top";
+  el("scale").value=L.scale; el("scaleV").textContent=Number(L.scale).toFixed(2);
+  el("rot").value=L.rot; el("rotV").textContent=L.rot+"\u00B0";
+  // Every layer carries an outline now: the skull's "line", and each weapon's edge stroke
+  // (which lifts a blade off its mirror, and weapon 1 off weapon 2, where they cross).
+  el("strokeLbl").textContent = isTop ? "Skull line" : "Outline";
+  el("stroke").value=L.stroke||0; el("strokeV").textContent=L.stroke||0;
+  // Weapon-only controls: flip, crossed-pair mirror, copy-size. Spread only matters once a
+  // pair exists, so it rides with the mirror toggle.
+  el("mirrorRow").style.display = isTop ? "none" : "";
+  el("flipRow").style.display   = isTop ? "none" : "";
+  el("copyRow").style.display   = isTop ? "none" : "";
+  el("spreadRow").style.display = (!isTop && L.mirror) ? "" : "none";
+  el("mirrorStrokeRow").style.display = (!isTop && L.mirror) ? "" : "none";
+  if(!isTop){
+    el("mirror").checked=!!L.mirror;
+    el("flipH").checked=!!L.flipH; el("flipV").checked=!!L.flipV;
+    el("spread").value=L.spread||0; el("spreadV").textContent=L.spread||0;
+    el("mirrorStroke").checked=!!L.mirrorStroke;
+  }
+  el("activeName").textContent = isTop ? "skull" : (active==="bottom" ? "weapon 1" : "weapon 2");
+  el("editTop").setAttribute("aria-pressed", isTop);
+  el("editBottom").setAttribute("aria-pressed", active==="bottom");
+  el("editBottom2").setAttribute("aria-pressed", active==="bottom2");
+  // Weapon 2 is optional: dim its tab while it's unset so it reads as "off".
+  el("editBottom2").setAttribute("data-off", layers.bottom2.name==="None" ? "1" : "0");
+}
+
+// The top layer holds a raw silhouette; whether its holes get filled solid (so the
+// weapon can't show through skull eyes/mouth) is a toggle. The fill is expensive, so
+// cache the solid sticker per skull name — restoring a combo never recomputes it.
+const _stickerCache = {};
+function applyTopFill(){
+  const L=layers.top;
+  if(!L.raw){ L.sil=null; return; }
+  if(!el("fillHoles").checked){ L.sil=L.raw; return; }
+  if(!_stickerCache[L.name]) _stickerCache[L.name]=solidify(L.raw);
+  L.sil=_stickerCache[L.name];
+}
+async function setAsset(slot, name){
+  const map = slot==="top" ? SKULLS : WEAPONS;
+  const L = layers[slot];
+  L.name = name;
+  const raw = await map[name]();
+  if(slot==="top"){ L.raw = raw; applyTopFill(); } else { L.sil = raw; }
+  fitToFootprint(L, slot==="top" ? TOP_FP : BOT_FP);
+  syncControls(); // refresh the Weapon 2 on/off tab state
+  render();
+}
+
+// ---- interaction ----
+function toLocal(e){
+  const r=stage.getBoundingClientRect();
+  const px=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const py=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  return { x: px*SRC/r.width, y: py*SRC/r.height };
+}
+let dragging=false, last=null;
+function down(e){ dragging=true; last=toLocal(e); e.preventDefault(); }
+function move(e){ if(!dragging)return; const p=toLocal(e); const L=layers[active]; L.x+=p.x-last.x; L.y+=p.y-last.y; if(el("axisLock").checked) L.x=SRC/2; last=p; render(); e.preventDefault(); }
+function up(){ dragging=false; }
+stage.addEventListener("pointerdown",down); stage.addEventListener("pointermove",move);
+window.addEventListener("pointerup",up); stage.addEventListener("pointercancel",up);
+
+el("editTop").onclick=()=>{active="top";syncControls();};
+el("editBottom").onclick=()=>{active="bottom";syncControls();};
+el("editBottom2").onclick=()=>{active="bottom2";syncControls();};
+el("mirror").onchange=()=>{
+  const L=layers[active]; if(active==="top") return;
+  L.mirror=el("mirror").checked;
+  if(L.mirror){
+    if(L.rot===0){ L.rot=22; el("rot").value=22; el("rotV").textContent="22°"; } // sensible X spread
+    if(!L.stroke){ L.stroke=10; el("stroke").value=10; el("strokeV").textContent=10; } // outline so the crossing reads
+  }
+  syncControls(); render(); // show/hide the Spread row with the pair
+};
+el("scale").oninput=e=>{layers[active].scale=+e.target.value;el("scaleV").textContent=(+e.target.value).toFixed(2);render();};
+el("rot").oninput=e=>{layers[active].rot=+e.target.value;el("rotV").textContent=e.target.value+"\u00B0";render();};
+el("stroke").oninput=e=>{layers[active].stroke=+e.target.value;el("strokeV").textContent=e.target.value;render();};
+el("spread").oninput=e=>{layers[active].spread=+e.target.value;el("spreadV").textContent=e.target.value;render();};
+el("flipH").onchange=()=>{ if(active!=="top"){ layers[active].flipH=el("flipH").checked; render(); } };
+el("flipV").onchange=()=>{ if(active!=="top"){ layers[active].flipV=el("flipV").checked; render(); } };
+el("mirrorStroke").onchange=()=>{ if(active!=="top"){ layers[active].mirrorStroke=el("mirrorStroke").checked; render(); } };
+// Snap the active layer to the disc centre, and an axis lock that pins it to the vertical
+// centre line so it only slides up/down (great for keeping a skull dead-centre).
+el("centerBtn").onclick=()=>{ const L=layers[active]; L.x=SRC/2; L.y=SRC/2; render(); };
+el("axisLock").onchange=()=>{ if(el("axisLock").checked){ layers[active].x=SRC/2; render(); } };
+// Copy the active weapon's on-screen size onto the other weapon (matches rendered pixels,
+// not just the multiplier, since each weapon's base fit differs). Slider tops out at 2.2.
+el("copySize").onclick=()=>{
+  if(active==="top") return;
+  const src=layers[active], other=(active==="bottom")?layers.bottom2:layers.bottom;
+  const eff=(src._base||1)*src.scale;
+  other.scale=Math.min(2.2,Math.max(0.3, eff/(other._base||1)));
+  render();
+  el("copySize").textContent="Copied!"; setTimeout(()=>el("copySize").textContent="Copy this weapon\u2019s size to the other",1100);
+};
+// +/- nudgers: push the paired range by a fine step (clamped) and re-fire its input handler.
+document.querySelectorAll(".step").forEach(btn=>{
+  btn.onclick=()=>{
+    const inp=el(btn.dataset.for), d=+btn.dataset.d, step=+inp.step||1;
+    let v=Math.min(+inp.max, Math.max(+inp.min, (+inp.value)+d));
+    v=Math.round(v/step)*step;
+    inp.value=v; inp.dispatchEvent(new Event("input"));
+  };
+});
+el("discOn").onchange=render; el("invert").onchange=()=>{ if(el("invert").checked) el("discOn").checked=false; render(); };
+el("reset").onclick=()=>{ fitToFootprint(layers[active], active==="top"?TOP_FP:BOT_FP); syncControls(); render(); };
+el("skullSel").onchange=e=>setAsset("top", e.target.value);
+el("weaponSel").onchange=e=>setAsset("bottom", e.target.value);
+el("weapon2Sel").onchange=async e=>{
+  await setAsset("bottom2", e.target.value);
+  // Two weapons now overlap → give weapon 1 an outline so it reads on top of weapon 2.
+  if(e.target.value!=="None" && !layers.bottom.stroke){
+    layers.bottom.stroke=10; if(active==="bottom"){ el("stroke").value=10; el("strokeV").textContent=10; }
+    render();
+  }
+};
+
+function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"none"; }
+function fileName(){ return slug(layers.top.name)+"__"+slug(layers.bottom.name)+".png"; }
+
+el("export").onclick=()=>{
+  const out=cv(), o=out.getContext("2d");
+  compose(o, {showDisc: el("discOn").checked && !el("invert").checked});
+  // Sandboxed iframes block programmatic downloads, so show the PNG on-page for the
+  // browser's native "Save image" (works on mobile). Also try a download as a bonus.
+  const name=fileName();
+  el("result").src = out.toDataURL("image/png");
+  el("resultWrap").hidden = false;
+  el("fnHint").textContent = "Suggested name: "+name;
+  el("resultWrap").scrollIntoView({behavior:"smooth", block:"nearest"});
+  saveCombo(); // remember this combination when you export it
+  try{ out.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; a.click(); }); }catch(e){}
+};
+
+// ---- saved combos (small strings: names + coords/scale/rot/stroke/toggles) ----
+let combos=[];
+const r=n=>Math.round(n), q=n=>+(+n).toFixed(3);
+function serializeCurrent(){
+  const t=layers.top,b=layers.bottom,b2=layers.bottom2;
+  return { t:t.name, b:b.name, b2:b2.name,
+           tx:r(t.x), ty:r(t.y), ts:q(t.scale), tr:t.rot, tk:t.stroke,
+           bx:r(b.x), by:r(b.y), bs:q(b.scale), br:b.rot, bm:b.mirror, bk:b.stroke, bfh:b.flipH, bfv:b.flipV, bsp:b.spread, bms:b.mirrorStroke,
+           b2x:r(b2.x), b2y:r(b2.y), b2s:q(b2.scale), b2r:b2.rot, b2m:b2.mirror, b2k:b2.stroke, b2fh:b2.flipH, b2fv:b2.flipV, b2sp:b2.spread, b2ms:b2.mirrorStroke,
+           disc:el("discOn").checked, inv:el("invert").checked, fill:el("fillHoles").checked };
+}
+function refreshCombosUI(){
+  el("savedCount").textContent=combos.length;
+  const sel=el("savedSel"); sel.innerHTML='<option value="">&mdash; pick a saved combo &mdash;</option>';
+  combos.forEach((c,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=(i+1)+". "+c.t+" + "+c.b; sel.appendChild(o); });
+  const json=JSON.stringify(combos);
+  el("combos").value=json;
+  try{ localStorage.setItem("pb-emblem-combos", json); }catch(e){} // survive reloads / accidents
+}
+function saveCombo(){
+  const c=serializeCurrent(), s=JSON.stringify(c);
+  if(combos.length && JSON.stringify(combos[combos.length-1])===s) return; // skip exact repeat
+  combos.push(c); refreshCombosUI();
+}
+async function restoreCombo(c){
+  el("fillHoles").checked=!!c.fill; el("discOn").checked=!!c.disc; el("invert").checked=!!c.inv;
+  if(c.t in SKULLS){ el("skullSel").value=c.t; await setAsset("top", c.t); }
+  if(c.b in WEAPONS){ el("weaponSel").value=c.b; await setAsset("bottom", c.b); }
+  const b2=(c.b2 in WEAPONS)?c.b2:"None"; el("weapon2Sel").value=b2; await setAsset("bottom2", b2);
+  // bk/b2k are new; for combos saved before outlines existed, fall back to a stroke on any
+  // old mirrored pair so its crossing still reads.
+  Object.assign(layers.top, {x:c.tx, y:c.ty, scale:c.ts, rot:c.tr, stroke:c.tk});
+  Object.assign(layers.bottom, {x:c.bx, y:c.by, scale:c.bs, rot:c.br, mirror:!!c.bm, stroke:c.bk??(c.bm?10:0), flipH:!!c.bfh, flipV:!!c.bfv, spread:c.bsp||0, mirrorStroke:!!c.bms});
+  Object.assign(layers.bottom2, {x:c.b2x??layers.bottom2.x, y:c.b2y??layers.bottom2.y, scale:c.b2s??1, rot:c.b2r??0, mirror:!!c.b2m, stroke:c.b2k??(c.b2m?10:0), flipH:!!c.b2fh, flipV:!!c.b2fv, spread:c.b2sp||0, mirrorStroke:!!c.b2ms});
+  syncControls(); render();
+}
+
+el("save").onclick=()=>{ saveCombo(); el("save").textContent="Saved!"; setTimeout(()=>el("save").textContent="Save combo",900); el("savedPanel").open=true; };
+el("savedSel").onchange=e=>{ if(e.target.value!=="") restoreCombo(combos[+e.target.value]); };
+el("fillHoles").onchange=()=>{ applyTopFill(); render(); };
+// Copy that works in a sandboxed iframe: try the async clipboard, fall back to the
+// legacy execCommand("copy") on a throwaway textarea (allowed on a user gesture even
+// when navigator.clipboard is blocked). Returns true if the copy landed.
+async function copyText(text){
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); return true; } }catch(e){}
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text; ta.readOnly=true;
+    ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0,text.length);
+    const ok=document.execCommand("copy"); ta.remove(); return ok;
+  }catch(e){ return false; }
+}
+el("copyCombos").onclick=async()=>{
+  const ok=await copyText(el("combos").value);
+  el("copyCombos").textContent = ok ? "Copied!" : "Select box, copy";
+  if(!ok){ el("combos").focus(); el("combos").select(); }
+  setTimeout(()=>el("copyCombos").textContent="Copy",1400);
+};
+// A real file download only works when this page is its own document. Inside an embedded
+// (sandboxed) view the browser silently swallows the download, so detect that up front and
+// don't pretend a file was saved — copy the text to the clipboard as the reliable backup.
+const EMBEDDED = (()=>{ try{ return window.self!==window.top; }catch(e){ return true; } })();
+el("dltxt").onclick=async()=>{
+  const text=JSON.stringify(combos,null,2);
+  const url=URL.createObjectURL(new Blob([text],{type:"text/plain"}));
+  let filed=false, opened=false;
+  if(!EMBEDDED){
+    // Standalone file: a real download fires here.
+    try{
+      const a=document.createElement("a"); a.href=url; a.download="pirate-emblem-combos.txt";
+      document.body.appendChild(a); a.click(); a.remove(); filed=true;
+    }catch(e){}
+  } else {
+    // Embedded (sandboxed) view blocks silent downloads — open the text in a new tab so the
+    // browser's own Save/Share can grab it. Works when popups are allowed; harmless if not.
+    try{ opened=!!window.open(url,"_blank"); }catch(e){}
+  }
+  const ok=await copyText(text);
+  setTimeout(()=>URL.revokeObjectURL(url),8000);
+  const msg = filed  ? "Saved pirate-emblem-combos.txt (also copied to your clipboard)."
+            : opened ? "Opened the list in a new tab — use your browser's Save/Share there to keep the file. (Also copied to your clipboard.)"
+            : ok     ? "This embedded view blocks file saves, so the list was copied to your clipboard — paste it anywhere to keep it. Opening the tool as its own downloaded file gives a real .txt."
+                     : "Couldn't save or copy automatically — the list is selected below; copy it manually.";
+  importMsg(msg);
+  if(!ok && !filed && !opened){ el("combos").focus(); el("combos").select(); }
+};
+function importMsg(t){ el("combosMsg").textContent=t; }
+el("importCombos").onclick=()=>{
+  // Validate BEFORE touching the saved list — a bad paste can never wipe your combos.
+  let arr;
+  try{ arr=JSON.parse(el("combos").value); }
+  catch{ importMsg("Couldn't read that text — paste the exported list and try again. (Your saved list is untouched.)"); return; }
+  if(!Array.isArray(arr) || !arr.every(c=>c && typeof c==="object" && "t" in c && "b" in c)){
+    importMsg("That doesn't look like a combo list — nothing changed."); return;
+  }
+  combos=arr; refreshCombosUI(); importMsg("Imported "+arr.length+" combo(s).");
+};
+
+function fillSelect(sel, obj, current){ sel.innerHTML=""; for(const k of Object.keys(obj)){ const o=document.createElement("option"); o.value=o.textContent=k; if(k===current)o.selected=true; sel.appendChild(o);} }
+
+(async function init(){
+  try{
+    await isolateDefaults();
+    fillSelect(el("skullSel"), SKULLS, "Default skull");
+    fillSelect(el("weaponSel"), WEAPONS, "Cutlasses (default)");
+    fillSelect(el("weapon2Sel"), WEAPONS, "None");
+    layers.top.raw=defSkull; applyTopFill(); fitToFootprint(layers.top, TOP_FP);
+    layers.bottom.sil=defSword; fitToFootprint(layers.bottom, BOT_FP);
+    try{ const raw=localStorage.getItem("pb-emblem-combos"); const a=raw&&JSON.parse(raw); if(Array.isArray(a)) combos=a; }catch(e){}
+    refreshCombosUI(); syncControls(); render();
+    window.__ready=1;
+  }catch(e){ document.getElementById("layout").textContent="ERROR: "+e.message+"\n"+e.stack; }
+})();
+</script>
