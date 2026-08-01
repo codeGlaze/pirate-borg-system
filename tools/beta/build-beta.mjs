@@ -117,6 +117,81 @@ const zipDirectory = async (sourceDir, outputZip) =>
     archive.finalize();
   });
 
+/**
+ * Vet the staged system before we zip it. The betaify rewrite is blunt and has silently
+ * shipped broken builds more than once (missing packs, a namespace it forgot to rescope);
+ * Forge just rejects the upload with no useful message, so the build has to be its own gate.
+ * Throws with every problem it finds, refusing to produce a zip that won't install.
+ *
+ * @param {Object} sj The rewritten system.json (already at BETA_ID).
+ */
+function validateStage(sj) {
+  const errors = [];
+  const abs = (rel) => path.join(STAGE, rel);
+  const has = (rel) => fs.existsSync(abs(rel));
+
+  // 1) Every file the manifest references must actually be in the build. A declared-but-
+  //    absent pack/esmodule/style/language is an instant, silent Forge rejection.
+  for (const m of sj.esmodules || []) if (!has(m)) errors.push(`esmodule declared but missing: ${m}`);
+  for (const s of sj.styles || []) if (!has(s)) errors.push(`style declared but missing: ${s}`);
+  for (const l of sj.languages || []) if (l.path && !has(l.path)) errors.push(`language declared but missing: ${l.path}`);
+  for (const p of sj.packs || []) {
+    const dir = String(p.path).replace(/\/+$/, "");
+    if (!has(dir)) {
+      errors.push(`pack declared in manifest but missing from build: ${dir}`);
+      continue;
+    }
+    // A pack dir must be a loadable LevelDB: CURRENT must point at a MANIFEST that exists.
+    if (!has(path.join(dir, "CURRENT"))) {
+      errors.push(`pack is not a valid LevelDB (no CURRENT): ${dir}`);
+      continue;
+    }
+    const cur = fs.readFileSync(abs(path.join(dir, "CURRENT")), "utf8").trim();
+    if (!has(path.join(dir, cur))) errors.push(`pack LevelDB broken (CURRENT -> ${cur} missing): ${dir}`);
+  }
+
+  // 2) Every shipped module JS must still parse after betaify (a bad rewrite = white screen),
+  //    and the namespace/flagScope rescopes must have actually landed (the class of bug that
+  //    makes getFlag/settings throw only in the beta build).
+  const jsFiles = [];
+  const collectJs = (d) => {
+    if (!fs.existsSync(d)) return;
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) collectJs(p);
+      else if (/\.(js|mjs|cjs)$/.test(e.name)) jsFiles.push(p);
+    }
+  };
+  collectJs(path.join(STAGE, "module"));
+  for (const f of jsFiles) {
+    const rel = path.relative(STAGE, f);
+    try {
+      execFileSync(process.execPath, ["--check", f], { stdio: "pipe" });
+    } catch {
+      errors.push(`betaify produced invalid JS: ${rel}`);
+      continue;
+    }
+    const src = fs.readFileSync(f, "utf8");
+    if (/settings\.(?:get|set|register|registerMenu)\("pirateborg"/.test(src)) {
+      errors.push(`settings namespace not rescoped (still "pirateborg"): ${rel}`);
+    }
+    if (/PB\.flagScope\s*=\s*"pirateborg"(?!-beta)/.test(src)) {
+      errors.push(`flagScope not rescoped (still "pirateborg"): ${rel}`);
+    }
+  }
+
+  // 3) Manifest sanity: valid id that matches the install folder, and the fields Foundry needs.
+  if (sj.id !== BETA_ID) errors.push(`system.json id is "${sj.id}", expected "${BETA_ID}"`);
+  for (const field of ["title", "version", "compatibility", "esmodules"]) {
+    if (sj[field] === undefined) errors.push(`system.json missing required field: ${field}`);
+  }
+
+  if (errors.length) {
+    throw new Error(`Beta build validation FAILED — refusing to ship a broken system:\n  - ${errors.join("\n  - ")}`);
+  }
+  console.log(`  validated: ${(sj.packs || []).length} packs (loadable) + ${jsFiles.length} module files (parse + rescoped) + manifest refs`);
+}
+
 async function main() {
   rmrf(STAGE_ROOT);
   fs.mkdirSync(STAGE, { recursive: true });
@@ -152,25 +227,27 @@ async function main() {
   rmrf(srcRoot);
 
   // A few compendiums (e.g. macros-sorcerer, macros-zealot) ship intentionally EMPTY and have
-  // no `_source` at all — only a committed empty LevelDB. compilePack above only runs for
-  // `_source` dirs, so those packs would be absent from the build while system.json still
-  // declares them, and Foundry refuses to load a system whose manifest points at a missing
-  // pack. Reconcile: every declared pack must have a directory — copy the committed compiled
-  // pack for any the source compile didn't produce (matching what the public `pack` zip ships).
-  let copiedEmptyPacks = 0;
+  // no `_source` at all. compilePack above only runs for `_source` dirs, so those packs were
+  // absent from the build while system.json still declared them — and Foundry HANGS on
+  // "loading package data" when it hits a declared pack whose folder isn't there (this is what
+  // broke the beta after it switched to recompiling from `_source`). Reconcile by compiling a
+  // FRESH empty LevelDB for each missing pack, so its DB format matches the other packs this
+  // build just produced rather than a stale committed copy.
+  let emptyPacks = 0;
+  const emptySrc = path.join(DIST, "_empty-pack-src");
+  fs.mkdirSync(emptySrc, { recursive: true });
   for (const pack of sj.packs || []) {
     const name = path.basename(String(pack.path || "").replace(/\/+$/, ""));
     if (!name) continue;
     const stageDir = path.join(STAGE, "packs", name);
     if (fs.existsSync(stageDir)) continue;
-    const committed = path.join(ROOT, "packs", name);
-    if (fs.existsSync(committed)) {
-      fs.cpSync(committed, stageDir, { recursive: true });
-    } else {
-      fs.mkdirSync(stageDir, { recursive: true });
-    }
-    copiedEmptyPacks++;
+    await compilePack(emptySrc, stageDir, { recursive: true, log: false });
+    emptyPacks++;
   }
+  rmrf(emptySrc);
+
+  // Gate: never emit a zip that fails these checks (Forge won't tell you why it rejected it).
+  validateStage(sj);
 
   fs.mkdirSync(DIST, { recursive: true });
   for (const f of fs.readdirSync(DIST)) {
@@ -183,7 +260,7 @@ async function main() {
   console.log(`Built ${path.relative(ROOT, zipPath)}`);
   console.log(`  title:   ${BETA_TITLE}`);
   console.log(`  version: ${VERSION}`);
-  console.log(`  packs:   ${packDirs.length} compiled + ${copiedEmptyPacks} empty = ${(sj.packs || []).length} (matches manifest)`);
+  console.log(`  packs:   ${packDirs.length} compiled + ${emptyPacks} empty = ${(sj.packs || []).length} (matches manifest)`);
 }
 
 main().catch((err) => {
