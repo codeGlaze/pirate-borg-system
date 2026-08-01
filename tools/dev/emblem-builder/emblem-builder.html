@@ -579,7 +579,17 @@ el("importCombos").onclick=()=>{
   combos=arr; refreshCombosUI(); importMsg("Imported "+arr.length+" combo(s).");
 };
 
-function fillSelect(sel, obj, current){ sel.innerHTML=""; for(const k of Object.keys(obj)){ const o=document.createElement("option"); o.value=o.textContent=k; if(k===current)o.selected=true; sel.appendChild(o);} }
+// Options are authored grouped-by-theme in the SKULLS/WEAPONS maps (nice for maintainers),
+// but the dropdowns show them A→Z so they're easy to scan. The "(default)" pick stays pinned
+// to the top and "None" to the bottom; everything else sorts alphabetically.
+function fillSelect(sel, obj, current){
+  sel.innerHTML="";
+  const keys=Object.keys(obj);
+  const top=keys.filter(k=>/\(default\)/.test(k)||k==="Default skull");
+  const bottom=keys.filter(k=>k==="None");
+  const mid=keys.filter(k=>!top.includes(k)&&!bottom.includes(k)).sort((a,b)=>a.localeCompare(b));
+  for(const k of [...top,...mid,...bottom]){ const o=document.createElement("option"); o.value=o.textContent=k; if(k===current)o.selected=true; sel.appendChild(o); }
+}
 
 (async function init(){
   try{
