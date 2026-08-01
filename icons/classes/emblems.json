@@ -1,0 +1,10 @@
+{
+  "brute": { "default": "brt-spiked-maces", "options": ["brt-spiked-maces", "brt-horned-chains"] },
+  "buccaneer": { "default": "buc-crossed-cutlasses", "options": ["buc-crossed-cutlasses"] },
+  "swashbuckler": { "default": "swa-crossed-rapiers", "options": ["swa-crossed-rapiers"] },
+  "rapscallion": { "default": "rap-joker-cards", "options": ["rap-joker-cards", "rap-random-cards", "rap-card-fan"] },
+  "sorcerer": { "default": "sor-flame-hands", "options": ["sor-flame-hands", "sor-single-flame-hand"] },
+  "zealot": { "default": "zel-crossed-croziers", "options": ["zel-crossed-croziers", "zel-single-crozier"] },
+  "haunted-soul": { "default": "hnt-ghost-bones", "options": ["hnt-ghost-bones", "hnt-crossbones"] },
+  "landlubber": { "default": "lub-broken-bottles", "options": ["lub-broken-bottles"] }
+}
