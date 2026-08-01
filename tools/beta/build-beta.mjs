@@ -151,6 +151,27 @@ async function main() {
   }
   rmrf(srcRoot);
 
+  // A few compendiums (e.g. macros-sorcerer, macros-zealot) ship intentionally EMPTY and have
+  // no `_source` at all — only a committed empty LevelDB. compilePack above only runs for
+  // `_source` dirs, so those packs would be absent from the build while system.json still
+  // declares them, and Foundry refuses to load a system whose manifest points at a missing
+  // pack. Reconcile: every declared pack must have a directory — copy the committed compiled
+  // pack for any the source compile didn't produce (matching what the public `pack` zip ships).
+  let copiedEmptyPacks = 0;
+  for (const pack of sj.packs || []) {
+    const name = path.basename(String(pack.path || "").replace(/\/+$/, ""));
+    if (!name) continue;
+    const stageDir = path.join(STAGE, "packs", name);
+    if (fs.existsSync(stageDir)) continue;
+    const committed = path.join(ROOT, "packs", name);
+    if (fs.existsSync(committed)) {
+      fs.cpSync(committed, stageDir, { recursive: true });
+    } else {
+      fs.mkdirSync(stageDir, { recursive: true });
+    }
+    copiedEmptyPacks++;
+  }
+
   fs.mkdirSync(DIST, { recursive: true });
   for (const f of fs.readdirSync(DIST)) {
     if (f.startsWith(`${BETA_ID}-`) && f.endsWith(".zip")) rmrf(path.join(DIST, f));
@@ -162,7 +183,7 @@ async function main() {
   console.log(`Built ${path.relative(ROOT, zipPath)}`);
   console.log(`  title:   ${BETA_TITLE}`);
   console.log(`  version: ${VERSION}`);
-  console.log(`  packs:   ${packDirs.length}`);
+  console.log(`  packs:   ${packDirs.length} compiled + ${copiedEmptyPacks} empty = ${(sj.packs || []).length} (matches manifest)`);
 }
 
 main().catch((err) => {
