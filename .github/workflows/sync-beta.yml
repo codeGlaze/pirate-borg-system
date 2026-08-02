@@ -48,5 +48,22 @@ jobs:
           git fetch origin "${{ github.ref_name }}"
           git merge --no-edit "origin/${{ github.ref_name }}"
 
+      # Gate the push on a clean beta build. build:beta re-ids to the beta system,
+      # recompiles packs, and runs validateStage (declared packs present + loadable,
+      # module JS parses post-betaify, flags/settings rescoped, manifest fields present).
+      # If the merged tree can't produce a valid beta build, fail loudly here and leave
+      # beta/community untouched rather than pushing a build that won't install.
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build beta (validation gate)
+        run: npm run build:beta
+
       - name: Push beta
         run: git push origin "HEAD:${{ env.BETA_BRANCH }}"
