@@ -9,8 +9,12 @@
  * API namespace and the `.pirateborg` CSS hooks. It then repacks the compendiums
  * from the rewritten source and zips the result for import.
  *
- * Usage:  node tools/beta/build-beta.mjs [version]
- * Output: dist/pirateborg-beta-b<build>-<sha>.zip
+ * Usage:  node tools/beta/build-beta.mjs [version] [--id <system-id>]
+ *   --id  build a side-by-side system under a different id (e.g. pb-test-attackdr)
+ *         so an isolated feature chunk can be installed next to the real beta with
+ *         no collision — its own install folder, worlds, settings + flag scope, and
+ *         migration watermark. Defaults to the rolling beta id (pirateborg-beta).
+ * Output: dist/<id>-b<build>-<sha>.zip
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -23,7 +27,34 @@ const require = createRequire(import.meta.url);
 const archiver = require("archiver");
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const BETA_ID = "pirateborg-beta";
+
+// CLI: [version] [--id <system-id>] [--version <version>]. The positional version is
+// kept for back-compat (existing `build:beta` / `build:beta <version>` calls). `--id`
+// re-ids the whole build so an isolated chunk installs alongside the real beta.
+function parseArgs(argv) {
+  const out = { id: "pirateborg-beta", version: null };
+  const rest = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--id") out.id = argv[++i];
+    else if (a.startsWith("--id=")) out.id = a.slice("--id=".length);
+    else if (a === "--version") out.version = argv[++i];
+    else if (a.startsWith("--version=")) out.version = a.slice("--version=".length);
+    else rest.push(a);
+  }
+  if (out.version == null && rest.length) out.version = rest[0];
+  return out;
+}
+const ARGS = parseArgs(process.argv.slice(2));
+
+// Foundry ties a world to its system id and derives the install folder from it, so the id
+// must be a valid folder/package name. Reject anything that isn't, up front — a bad id only
+// surfaces as a cryptic Foundry load failure otherwise.
+if (!/^[a-z0-9][a-z0-9-]*$/.test(ARGS.id)) {
+  console.error(`Invalid --id "${ARGS.id}": use lowercase letters, digits, and hyphens (e.g. pb-test-attackdr).`);
+  process.exit(1);
+}
+const BETA_ID = ARGS.id;
 
 const git = (...args) => {
   try {
@@ -33,12 +64,15 @@ const git = (...args) => {
   }
 };
 
-const BASE_VERSION = process.argv[2] || "v1.8.0-beta";
+const BASE_VERSION = ARGS.version || "v1.8.0-beta";
 const BUILD_NUM = git("rev-list", "--count", "HEAD") || "0";
 const SHORT_SHA = git("rev-parse", "--short", "HEAD") || "nogit";
 const DIRTY = git("status", "--porcelain", "--untracked-files=no") ? "-dirty" : "";
 const VERSION = `${BASE_VERSION}.${BUILD_NUM}`;
-const BETA_TITLE = `PIRATE BORG (Beta b${BUILD_NUM} - ${SHORT_SHA}${DIRTY})`;
+// Show the id in the title for non-default builds so isolated chunk systems are
+// distinguishable at a glance in Foundry's system list (the rolling beta stays "Beta").
+const LABEL = BETA_ID === "pirateborg-beta" ? "Beta" : BETA_ID;
+const BETA_TITLE = `PIRATE BORG (${LABEL} b${BUILD_NUM} - ${SHORT_SHA}${DIRTY})`;
 const DIST = path.join(ROOT, "dist");
 const STAGE_ROOT = path.join(DIST, "stage");
 const STAGE = path.join(STAGE_ROOT, "systems", BETA_ID);
